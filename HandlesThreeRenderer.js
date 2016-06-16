@@ -5,7 +5,7 @@
     self.selectedMesh = null;
     self.handlesScene = null;
 
-    //First we need to add a new initialization call wich will be executed after the one of BasicThreeRenderer
+    //First we need to add a new initialization call wich will be executed after the one of InteractiveThreeRenderer
     self.initCalls.push(function () { //push the init function to the list of initCalls
         document.addEventListener('click', this.onDocumentMouseClick, false);
         document.addEventListener('keydown', this.onDocumentKeyDownESC, false);
