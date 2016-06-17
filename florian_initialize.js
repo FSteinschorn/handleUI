@@ -1,1 +1,0 @@
-Widgets.Renderers.Add3DRenderer(new HandlesThreeRenderer("<body>"));
