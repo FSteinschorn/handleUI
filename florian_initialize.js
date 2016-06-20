@@ -1,1 +1,1 @@
-RenderWidgets.Add3DRenderer(new HandlesThreeRenderer("#graphRendererContainer"));
+RenderWidgets.Add3DRenderer(new HandlesThreeRenderer("#basicRendererContainer"));
