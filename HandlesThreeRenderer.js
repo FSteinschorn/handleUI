@@ -115,12 +115,13 @@
     }
 
     self.addNewTranslation = function (x, y, z) {
-//        var m = new THREE.Matrix4();
-//        m.makeTranslation(x, y, z);
-        self.selectedMesh.shape.appearance.transformation[0] += x;
-        self.selectedMesh.shape.appearance.transformation[1] += y;
-        self.selectedMesh.shape.appearance.transformation[2] += z;
+        var m = self.selectedMesh.shape.appearance.transformation;
+        var matrix = new THREE.Matrix4().set(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], m[12], m[13], m[14], m[15]);
+        var translation = new THREE.Matrix4().makeTranslation(x, y, z);
+        matrix.applyMatrix(translation);
+        self.selectedMesh.shape.appearance.transformation = matrix;
 
+        self.GenerateMesh(self.selectedMesh.shape);
         self.Update();
         self.RenderSingleFrame();
     }
