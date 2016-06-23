@@ -94,7 +94,7 @@
         uiDiv.id = 'uiDiv';
         uiDiv.style.color = "red";
         uiDiv.innerHTML = "TESTESTEST";
-        document.body.appendChild(iDiv);
+        document.getElementsByTagName('body')[0].appendChild(uiDiv);
     }
 
     // $("#code_editor")[0].CodeMirror.setValue(getOldCode + generated rule);
