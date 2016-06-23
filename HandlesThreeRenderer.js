@@ -91,9 +91,9 @@
 
     self.initRuleUI = function () {
         var uiDiv = document.createElement('div');
-        uiDiv.id = 'uiDiv';
-        uiDiv.style.color = "red";
-        uiDiv.innerHTML = "TESTESTEST";
+        uiDiv.id = "uiDiv";
+//        uiDiv.style.color = "red";
+//       uiDiv.innerHTML = "TESTESTEST";
         document.getElementsByTagName('body')[0].appendChild(uiDiv);
     }
 
