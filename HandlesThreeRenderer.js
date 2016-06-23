@@ -117,9 +117,9 @@
     self.addNewTranslation = function (x, y, z) {
 //        var m = new THREE.Matrix4();
 //        m.makeTranslation(x, y, z);
-        self.selectedMesh.shape.appearance.transformation.x += x;
-        self.selectedMesh.shape.appearance.transformation.y += y;
-        self.selectedMesh.shape.appearance.transformation.z += z;
+        self.selectedMesh.shape.appearance.transformation[0] += x;
+        self.selectedMesh.shape.appearance.transformation[1] += y;
+        self.selectedMesh.shape.appearance.transformation[2] += z;
 
         self.Update();
         self.RenderSingleFrame();
