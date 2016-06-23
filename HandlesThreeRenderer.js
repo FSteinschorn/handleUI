@@ -95,7 +95,7 @@
         uiDiv.id = "uiDiv";
         uiDiv.style.backgroundColor = "red";
         uiDiv.innerHTML = "TESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTEST";
-        document.getElementById("basicRendererContainer").appendChild(uiDiv);
+        document.getElementById("graphRendererContainer").appendChild(uiDiv);
     }
 
     // $("#code_editor")[0].CodeMirror.setValue(getOldCode + generated rule);
