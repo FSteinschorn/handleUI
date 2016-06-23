@@ -124,9 +124,9 @@
         self.Update();
         self.RenderSingleFrame();
 
-        var codeEditor = document.querySelector('#code_text').nextSibling;
-        var code = codeEditor.doc.getValue();
-        codeEditor.doc.setValue(code + "\n\nCHANGED!!!!");
+        var codeEditor = $('.CodeMirror')[0].CodeMirror;
+        var code = codeEditor.getValue();
+        codeEditor.setValue(code + "\n\nCHANGED!!!!");
     }
 
     // $("#code_editor")[0].CodeMirror.setValue(getOldCode + generated rule);
