@@ -90,21 +90,29 @@
     }
 
     self.initRuleUI = function () {
+
+        //create div container
         var uiDiv = document.createElement('div');
         uiDiv.id = "uiDiv";
-//        uiDiv.style = "position: absolute; bottom: 0;";
         uiDiv.style.position = "absolute";
         uiDiv.style.bottom = "0";
         uiDiv.style.backgroundColor = "red";
 
+        //create button
         var button = document.createElement("button");
         button.id = "newTranslationButton";
         var buttonText = document.createTextNode("New Translation");
+
+        //put it together
         button.appendChild(buttonText);
-
         uiDiv.appendChild(button);
+        document.getElementById("graphRendererContainer").appendChild(uiDiv);
 
-       document.getElementById("graphRendererContainer").appendChild(uiDiv);
+        //add functions
+        $("#newTranslationButton").click(function () {
+            var test = document.createTextNode("TEST");
+            uiDiv.appendChild(test);
+        })
     }
 
     // $("#code_editor")[0].CodeMirror.setValue(getOldCode + generated rule);
