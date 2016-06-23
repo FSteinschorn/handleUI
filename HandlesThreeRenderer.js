@@ -90,12 +90,12 @@
     }
 
     self.initRuleUI = function () {
-        $('#basicRendererContainer').append($('<div id="uiDiv">TESTTESTTEST</div>'));
-//        var uiDiv = document.createElement('div');
-//        uiDiv.id = "uiDiv";
-//        uiDiv.style.color = "red";
-//       uiDiv.innerHTML = "TESTESTEST";
-//        document.getElementsByTagName('body')[0].appendChild(uiDiv);
+//        $('#basicRendererContainer').append($('<div id="uiDiv">TESTTESTTEST</div>'));
+        var uiDiv = document.createElement('div');
+        uiDiv.id = "uiDiv";
+        uiDiv.style.color = "red";
+        uiDiv.innerHTML = "TESTESTEST";
+        document.getElementById("basicRendererContainer").appendChild(uiDiv);
     }
 
     // $("#code_editor")[0].CodeMirror.setValue(getOldCode + generated rule);
