@@ -121,9 +121,11 @@
         matrix.multiply(translation);
         self.selectedMesh.shape.appearance.transformation = matrix;
 
-        GenerateMesh(self.selectedMesh.shape);
         self.Update();
         self.RenderSingleFrame();
+
+        var code = $("#code_editor")[0].CodeMirror.getValue();
+        $("#code_editor")[0].CodeMirror.setValue(code + "\n\n\nADDED");
     }
 
     // $("#code_editor")[0].CodeMirror.setValue(getOldCode + generated rule);
