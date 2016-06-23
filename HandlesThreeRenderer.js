@@ -110,9 +110,12 @@
 
         //add functions
         $("#newTranslationButton").click(function () {
-            var test = document.createTextNode("TEST");
-            uiDiv.appendChild(test);
+            addNewTranslation(1.0, 1.0, 1.0);
         })
+    }
+
+    self.addNewTranslation = function (x, y, z) {
+        self.selectedMesh.appearance.transformation.applyMatrix(new THREE.Matrix4().setTranslation(x, y, z));
     }
 
     // $("#code_editor")[0].CodeMirror.setValue(getOldCode + generated rule);
