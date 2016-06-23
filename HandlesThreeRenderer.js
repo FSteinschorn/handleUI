@@ -115,7 +115,9 @@
     }
 
     self.addNewTranslation = function (x, y, z) {
-        self.selectedMesh.shape.appearance.transformation.applyMatrix((new THREE.Matrix4()).setTranslation(x, y, z));
+        var m = new THREE.Matrix4();
+        m.setTranslation(x, y, z);
+        self.selectedMesh.shape.appearance.transformation.applyMatrix(m);
     }
 
     // $("#code_editor")[0].CodeMirror.setValue(getOldCode + generated rule);
