@@ -124,8 +124,8 @@
         self.Update();
         self.RenderSingleFrame();
 
-        var code = $("#code_editor")[0].CodeMirror.getValue();
-        $("#code_editor")[0].CodeMirror.setValue(code + "\n\n\nADDED");
+        var code = $("#code_editor").CodeMirror.getDoc().getValue();
+        $("#code_editor").CodeMirror.getDoc().setValue(code + "\n\n\nADDED");
     }
 
     // $("#code_editor")[0].CodeMirror.setValue(getOldCode + generated rule);
