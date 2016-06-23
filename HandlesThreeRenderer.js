@@ -120,6 +120,9 @@
         self.selectedMesh.shape.appearance.transformation.x += x;
         self.selectedMesh.shape.appearance.transformation.y += y;
         self.selectedMesh.shape.appearance.transformation.z += z;
+
+        self.Update();
+        self.RenderSingleFrame();
     }
 
     // $("#code_editor")[0].CodeMirror.setValue(getOldCode + generated rule);
