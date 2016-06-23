@@ -23,6 +23,8 @@
             var axes = self.buildAxes(node.shape.appearance.transformation);
             self.handlesScene.add(axes);
 
+            self.initRuleUI();
+
             self.Update();
             self.RenderSingleFrame();
         }
@@ -85,6 +87,14 @@
         axis.receiveShadow = false;
         return axis;
 
+    }
+
+    self.initRuleUI = function () {
+        var uiDiv = document.createElement('div');
+        uiDiv.id = 'uiDiv';
+        uiDiv.style.color = "red";
+        uiDiv.innerHTML = "TESTESTEST";
+        document.body.appendChild(iDiv);
     }
 
     // $("#code_editor")[0].CodeMirror.setValue(getOldCode + generated rule);
