@@ -93,8 +93,8 @@
 //        $('#basicRendererContainer').append($('<div id="uiDiv">TESTTESTTEST</div>'));
         var uiDiv = document.createElement('div');
         uiDiv.id = "uiDiv";
-        uiDiv.style.color = "red";
-        uiDiv.innerHTML = "TESTESTEST";
+        uiDiv.style.backgroundColor = "red";
+        uiDiv.innerHTML = "TESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTESTTESTESTEST";
         document.getElementById("basicRendererContainer").appendChild(uiDiv);
     }
 
