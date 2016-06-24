@@ -100,19 +100,89 @@
         uiDiv.style.bottom = "0";
         uiDiv.style.backgroundColor = "red";
 
-        //create button
-        var button = document.createElement("button");
-        button.id = "newTranslationButton";
-        var buttonText = document.createTextNode("New Translation");
+        //create selector
+        selectionDiv = document.createElement('div');
+        selectionDiv.id = "selectionDiv";
+        selectionDiv.innerHTML = '<select id="rule_selector>'+
+            '<option value="translate">Translate</option>'+
+            '<option value="rotate">Rotate</option>'+
+            '<option value="scale">Scale</option></select>';
+
+        //create input container
+        var inputDiv = document.createElement('div');
+        inputDiv.id = "inputDiv";
+
+        //create buttons
+        var new_button = document.createElement("button");
+        new_button.id = "newRule_Button";
+        var new_button_text = document.createTextNode("NEW");
+
+        var edit_button = document.createElement("button");
+        edit_button.id = "editRule_Button";
+        var edit_button_text = document.createTextNode("Edit");
 
         //put it together
-        button.appendChild(buttonText);
-        uiDiv.appendChild(button);
+        new_button.appendChild(new_button_text);
+        edit_button.appendChild(edit_button_text);
+        uiDiv.appendChild(selectionDiv);
+        uiDiv.appendChild(inputDiv);
+        uiDiv.appendChild(new_button);
+        uiDiv.appendChild(edit_button);
         document.getElementById("graphRendererContainer").appendChild(uiDiv);
 
         //add functions
-        $("#newTranslationButton").click(function () {
-            self.addNewTranslation(10, 10, 10);
+        $('#rule_selector').change(function () {
+
+            //remove old input fields
+            var inputDiv = document.getElementById("inputDiv");
+            while (inputDiv.hasChildNodes()) {
+                inputDiv.removeChild(inputDiv.lastChild);
+            }
+
+            //create new input fields
+            var selector = document.getElementById("rule_selector");
+            var selection = selector.options[selector.selectedIndex].value;
+            switch (selection) {
+                case 'translate':
+                    var x_input = document.createElement("input");
+                    x_input.setAttribute('type', 'text');
+                    x_input.setAttribute('id', 'x_input_field');
+                    x_input.setAttribute('value', '0');
+                    var y_input = document.createElement("input");
+                    y_input.setAttribute('type', 'text');
+                    y_input.setAttribute('id', 'y_input_field');
+                    y_input.setAttribute('value', '0');
+                    var z_input = document.createElement("input");
+                    z_input.setAttribute('type', 'text');
+                    z_input.setAttribute('id', 'z_input_field');
+                    z_input.setAttribute('value', '0');
+                    break;
+                case 'rotate':
+                    break;
+                case 'scale':
+                    break;
+                default:
+                    break;
+            }
+        });
+
+        $("#newRule_Button").click(function () {
+            var selector = document.getElementById("rule_selector");
+            var selection = selector.options[selector.selectedIndex].value;
+            switch (selection) {
+                case 'translate':
+                    var x_field = document.getElementById("x_input_field");
+                    var y_field = document.getElementById("y_input_field");
+                    var z_field = document.getElementById("z_input_field");
+                    self.addNewTranslation(x_field.value, y_field.value, z_field.value);
+                    break;
+                case 'rotate':
+                    break;
+                case 'scale':
+                    break;
+                default:
+                    break;
+            }
         })
     }
 
@@ -145,7 +215,8 @@
 
         var codeEditor = $('.CodeMirror')[0].CodeMirror;
         var code = codeEditor.getValue();
-        codeEditor.setValue(code + "\n\nCHANGED!!!!");
+        codeEditor.setValue(code + "\n\n"+
+            "new Rules.Translate(Vec3("+x+", "+y+", "+z+"));");
     }
 
     // $("#code_editor")[0].CodeMirror.setValue(getOldCode + generated rule);
