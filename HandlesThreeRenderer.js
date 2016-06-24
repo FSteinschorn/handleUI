@@ -14,18 +14,33 @@
     });
 
     self.onDocumentMouseClick = function onDocumentMouseClick(event) {
+        if ((self.picked) && (self.pickingUnlocked)) {
+            var node = self.resolveNode(self.picked);
+            self.pickingUnlocked = false;
+            node.shape.interaction.selected(true);
+            self.selectedMesh = node;
+
+            var axes = self.buildAxes(node.shape.appearance.transformation);
+            self.handlesScene.add(axes);
+
+            self.initRuleUI();
+
+            self.Update();
+            self.RenderSingleFrame();
+        }
+    }
+
+    self.onDocumentKeyDown = function onDocumentKeyDown(event) {
         switch(event.keyCode) {
             case 27:
-                if ((self.picked) && (self.pickingUnlocked)) {
-                    self.pickingUnlocked = false;
-                    var node = self.resolveNode(self.picked);
-                    node.shape.interaction.selected(true);
-                    self.selectedMesh = node;
+                if (self.selectedMesh) {
+                    self.selectedMesh.shape.interaction.selected(false);
+                    self.selectedMesh = null;
+                    self.pickingUnlocked = true;
+                    for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
+                        self.handlesScene.remove(self.handlesScene.children[i]);
 
-                    var axes = self.buildAxes(node.shape.appearance.transformation);
-                    self.handlesScene.add(axes);
-
-                    self.initRuleUI();
+                    self.removeRuleUI();
 
                     self.Update();
                     self.RenderSingleFrame();
@@ -33,21 +48,6 @@
                 break;
             default:
                 break;
-        }
-    }
-
-    self.onDocumentKeyDown = function onDocumentKeyDownESC(event) {
-        if (self.selectedMesh) {
-            self.selectedMesh.shape.interaction.selected(false);
-            self.selectedMesh = null;
-            self.pickingUnlocked = true;
-            for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
-                self.handlesScene.remove(self.handlesScene.children[i]);
-
-            self.removeRuleUI();
-
-            self.Update();
-            self.RenderSingleFrame();
         }
     }
 
