@@ -157,6 +157,9 @@
                     z_input.setAttribute('type', 'text');
                     z_input.setAttribute('id', 'z_input_field');
                     z_input.setAttribute('value', '0');
+                    inputDiv.appendChild(x_input);
+                    inputDiv.appendChild(y_input);
+                    inputDiv.appendChild(z_input);
                     break;
                 case 'rotate':
                     break;
