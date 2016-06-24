@@ -103,10 +103,11 @@
         //create selector
         selectionDiv = document.createElement('div');
         selectionDiv.id = "selectionDiv";
-        selectionDiv.innerHTML = '<select id="rule_selector>'+
-            '<option value="translate">Translate</option>'+
-            '<option value="rotate">Rotate</option>'+
-            '<option value="scale">Scale</option></select>';
+        selectionDiv.innerHTML = '<select id="rule_selector">'+
+                                    '<option value="translate">Translate</option>'+
+                                    '<option value="rotate">Rotate</option>'+
+                                    '<option value="scale">Scale</option>'+
+                                '</select>';
 
         //create input container
         var inputDiv = document.createElement('div');
