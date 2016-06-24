@@ -36,6 +36,7 @@
             self.selectedMesh = null;
             self.picked = null;
             self.pickingUnlocked = true;
+            self.highlighted = [];
             for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
                 self.handlesScene.remove(self.handlesScene.children[i]);
 
@@ -125,6 +126,7 @@
         self.selectedMesh.shape.interaction.selected(false);
         self.selectedMesh = null;
         self.picked = null;
+        self.highlighted = [];
         self.pickingUnlocked = true;
         for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
             self.handlesScene.remove(self.handlesScene.children[i]);
