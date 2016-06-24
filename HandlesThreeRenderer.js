@@ -38,6 +38,8 @@
             for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
                 self.handlesScene.remove(self.handlesScene.children[i]);
 
+            self.removeRuleUI();
+
             self.Update();
             self.RenderSingleFrame();
         }
@@ -114,6 +116,11 @@
         })
     }
 
+    self.removeRuleUI = function () {
+        var uiDiv = document.getElementById("uiDiv");
+        uiDiv.parentNode.removeChild(uiDiv);
+    }
+
     self.addNewTranslation = function (x, y, z) {
         /*var m = self.selectedMesh.shape.appearance.transformation;
         var matrix = new THREE.Matrix4().set(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], m[12], m[13], m[14], m[15]);
@@ -129,6 +136,8 @@
         shape.appearance.transformation[3] += x;
         shape.appearance.transformation[7] += y;
         shape.appearance.transformation[11] += z;
+
+        self.removeRuleUI();
 
         self.addShape(shape);
         self.Update();
