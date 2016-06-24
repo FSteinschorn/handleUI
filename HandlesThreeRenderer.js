@@ -121,6 +121,7 @@
         matrix.multiply(translation);
         self.selectedMesh.shape.appearance.transformation = matrix;
 
+        self.addShape(self.selectedMesh.shape);
         self.Update();
         self.RenderSingleFrame();
 
