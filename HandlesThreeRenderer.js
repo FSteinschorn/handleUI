@@ -125,9 +125,6 @@
 
         self.selectedMesh.shape.interaction.selected(false);
         self.selectedMesh = null;
-        self.picked = null;
-        self.highlighted = [];
-        self.pickingUnlocked = true;
         for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
             self.handlesScene.remove(self.handlesScene.children[i]);
 
@@ -135,8 +132,11 @@
         shape.appearance.transformation[7] += y;
         shape.appearance.transformation[11] += z;
 
+        self.Update();
         self.addShape(shape);
+        self.Update();
         self.OnUpdateCompleted();
+        self.Update();
 
         var codeEditor = $('.CodeMirror')[0].CodeMirror;
         var code = codeEditor.getValue();
