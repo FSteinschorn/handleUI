@@ -137,7 +137,7 @@
         self.selectedMesh.shape.appearance.transformation[15] = matrix.elements[15];
 
         self.addShape(self.selectedMesh.shape);
-        self.self.onUpdateCompleted();
+        self.OnUpdateCompleted();
 
         var codeEditor = $('.CodeMirror')[0].CodeMirror;
         var code = codeEditor.getValue();
