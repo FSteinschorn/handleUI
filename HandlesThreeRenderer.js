@@ -219,9 +219,9 @@
         for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
             self.handlesScene.remove(self.handlesScene.children[i]);
 
-        shape.appearance.transformation[3] += x;
-        shape.appearance.transformation[7] += y;
-        shape.appearance.transformation[11] += z;
+        shape.appearance.transformation[3] += (x * 100);
+        shape.appearance.transformation[7] += (y * 100);
+        shape.appearance.transformation[11] += (z * 100);
 
         self.removeRuleUI();
 
