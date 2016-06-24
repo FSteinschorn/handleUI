@@ -188,6 +188,9 @@
                     break;
             }
         })
+
+        var selector = document.getElementById("rule_selector");
+        selector.options.selectedIndex = 0;
     }
 
     self.removeRuleUI = function () {
