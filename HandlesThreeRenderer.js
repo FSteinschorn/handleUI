@@ -189,7 +189,9 @@
             }
         })
 
+        //change selection once to create input fields automatically
         var selector = document.getElementById("rule_selector");
+        selector.options.selectedIndex = 1;
         selector.options.selectedIndex = 0;
     }
 
