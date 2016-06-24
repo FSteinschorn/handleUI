@@ -8,29 +8,35 @@
     //First we need to add a new initialization call wich will be executed after the one of InteractiveThreeRenderer
     self.initCalls.push(function () { //push the init function to the list of initCalls
         document.addEventListener('click', this.onDocumentMouseClick, false);
-        document.addEventListener('keydown', this.onDocumentKeyDownESC, false);
+        document.addEventListener('keydown', this.onDocumentKeyDown, false);
 
         self.handlesScene = new THREE.Scene();
     });
 
     self.onDocumentMouseClick = function onDocumentMouseClick(event) {
-        if ((self.picked) && (self.pickingUnlocked)) {
-            self.pickingUnlocked = false;
-            var node = self.resolveNode(self.picked);
-            node.shape.interaction.selected(true);
-            self.selectedMesh = node;
+        switch(event.keyCode) {
+            case 27:
+                if ((self.picked) && (self.pickingUnlocked)) {
+                    self.pickingUnlocked = false;
+                    var node = self.resolveNode(self.picked);
+                    node.shape.interaction.selected(true);
+                    self.selectedMesh = node;
 
-            var axes = self.buildAxes(node.shape.appearance.transformation);
-            self.handlesScene.add(axes);
+                    var axes = self.buildAxes(node.shape.appearance.transformation);
+                    self.handlesScene.add(axes);
 
-            self.initRuleUI();
+                    self.initRuleUI();
 
-            self.Update();
-            self.RenderSingleFrame();
+                    self.Update();
+                    self.RenderSingleFrame();
+                }
+                break;
+            default:
+                break;
         }
     }
 
-    self.onDocumentKeyDownESC = function onDocumentKeyDownESC(event) {
+    self.onDocumentKeyDown = function onDocumentKeyDownESC(event) {
         if (self.selectedMesh) {
             self.selectedMesh.shape.interaction.selected(false);
             self.selectedMesh = null;
