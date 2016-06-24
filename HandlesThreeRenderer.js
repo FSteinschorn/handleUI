@@ -110,7 +110,7 @@
 
         //add functions
         $("#newTranslationButton").click(function () {
-            self.addNewTranslation(1.0, 1.0, 1.0);
+            self.addNewTranslation(10, 10, 10);
         })
     }
 
@@ -119,22 +119,22 @@
         var matrix = new THREE.Matrix4().set(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], m[12], m[13], m[14], m[15]);
         var translation = new THREE.Matrix4().makeTranslation(x, y, z);
         matrix.multiply(translation);
-        self.selectedMesh.shape.appearance.transformation[0] = matrix[0];
-        self.selectedMesh.shape.appearance.transformation[1] = matrix[1];
-        self.selectedMesh.shape.appearance.transformation[2] = matrix[2];
-        self.selectedMesh.shape.appearance.transformation[3] = matrix[3];
-        self.selectedMesh.shape.appearance.transformation[4] = matrix[4];
-        self.selectedMesh.shape.appearance.transformation[5] = matrix[5];
-        self.selectedMesh.shape.appearance.transformation[6] = matrix[6];
-        self.selectedMesh.shape.appearance.transformation[7] = matrix[7];
-        self.selectedMesh.shape.appearance.transformation[8] = matrix[8];
-        self.selectedMesh.shape.appearance.transformation[9] = matrix[9];
-        self.selectedMesh.shape.appearance.transformation[10] = matrix[10];
-        self.selectedMesh.shape.appearance.transformation[11] = matrix[11];
-        self.selectedMesh.shape.appearance.transformation[12] = matrix[12];
-        self.selectedMesh.shape.appearance.transformation[13] = matrix[13];
-        self.selectedMesh.shape.appearance.transformation[14] = matrix[14];
-        self.selectedMesh.shape.appearance.transformation[15] = matrix[15];
+        self.selectedMesh.shape.appearance.transformation[0] = matrix.elements[0];
+        self.selectedMesh.shape.appearance.transformation[1] = matrix.elements[1];
+        self.selectedMesh.shape.appearance.transformation[2] = matrix.elements[2];
+        self.selectedMesh.shape.appearance.transformation[3] = matrix.elements[3];
+        self.selectedMesh.shape.appearance.transformation[4] = matrix.elements[4];
+        self.selectedMesh.shape.appearance.transformation[5] = matrix.elements[5];
+        self.selectedMesh.shape.appearance.transformation[6] = matrix.elements[6];
+        self.selectedMesh.shape.appearance.transformation[7] = matrix.elements[7];
+        self.selectedMesh.shape.appearance.transformation[8] = matrix.elements[8];
+        self.selectedMesh.shape.appearance.transformation[9] = matrix.elements[9];
+        self.selectedMesh.shape.appearance.transformation[10] = matrix.elements[10];
+        self.selectedMesh.shape.appearance.transformation[11] = matrix.elements[11];
+        self.selectedMesh.shape.appearance.transformation[12] = matrix.elements[12];
+        self.selectedMesh.shape.appearance.transformation[13] = matrix.elements[13];
+        self.selectedMesh.shape.appearance.transformation[14] = matrix.elements[14];
+        self.selectedMesh.shape.appearance.transformation[15] = matrix.elements[15];
 
         self.addShape(self.selectedMesh.shape);
         self.Update();
