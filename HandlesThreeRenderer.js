@@ -131,43 +131,12 @@
         uiDiv.appendChild(edit_button);
         document.getElementById("graphRendererContainer").appendChild(uiDiv);
 
+        //init input fields
+        self.initInputFields();
+
         //add functions
         $('#rule_selector').change(function () {
-
-            //remove old input fields
-            var inputDiv = document.getElementById("inputDiv");
-            while (inputDiv.hasChildNodes()) {
-                inputDiv.removeChild(inputDiv.lastChild);
-            }
-
-            //create new input fields
-            var selector = document.getElementById("rule_selector");
-            var selection = selector.options[selector.selectedIndex].value;
-            switch (selection) {
-                case 'translate':
-                    var x_input = document.createElement("input");
-                    x_input.setAttribute('type', 'text');
-                    x_input.setAttribute('id', 'x_input_field');
-                    x_input.setAttribute('value', '0');
-                    var y_input = document.createElement("input");
-                    y_input.setAttribute('type', 'text');
-                    y_input.setAttribute('id', 'y_input_field');
-                    y_input.setAttribute('value', '0');
-                    var z_input = document.createElement("input");
-                    z_input.setAttribute('type', 'text');
-                    z_input.setAttribute('id', 'z_input_field');
-                    z_input.setAttribute('value', '0');
-                    inputDiv.appendChild(x_input);
-                    inputDiv.appendChild(y_input);
-                    inputDiv.appendChild(z_input);
-                    break;
-                case 'rotate':
-                    break;
-                case 'scale':
-                    break;
-                default:
-                    break;
-            }
+            self.initInputFields();            
         });
 
         $("#newRule_Button").click(function () {
@@ -188,16 +157,48 @@
                     break;
             }
         })
-
-        //change selection once to create input fields automatically
-        var selector = document.getElementById("rule_selector");
-        selector.options.selectedIndex = 1;
-        selector.options.selectedIndex = 0;
     }
 
     self.removeRuleUI = function () {
         var uiDiv = document.getElementById("uiDiv");
         uiDiv.parentNode.removeChild(uiDiv);
+    }
+
+    self.initInputFields = function () {
+        //remove old input fields
+        var inputDiv = document.getElementById("inputDiv");
+        while (inputDiv.hasChildNodes()) {
+            inputDiv.removeChild(inputDiv.lastChild);
+        }
+
+        //create new input fields
+        var selector = document.getElementById("rule_selector");
+        var selection = selector.options[selector.selectedIndex].value;
+        switch (selection) {
+            case 'translate':
+                var x_input = document.createElement("input");
+                x_input.setAttribute('type', 'text');
+                x_input.setAttribute('id', 'x_input_field');
+                x_input.setAttribute('value', '0');
+                var y_input = document.createElement("input");
+                y_input.setAttribute('type', 'text');
+                y_input.setAttribute('id', 'y_input_field');
+                y_input.setAttribute('value', '0');
+                var z_input = document.createElement("input");
+                z_input.setAttribute('type', 'text');
+                z_input.setAttribute('id', 'z_input_field');
+                z_input.setAttribute('value', '0');
+                inputDiv.appendChild(x_input);
+                inputDiv.appendChild(y_input);
+                inputDiv.appendChild(z_input);
+                break;
+            case 'rotate':
+                break;
+            case 'scale':
+                break;
+            default:
+                break;
+        }
     }
 
     self.addNewTranslation = function (x, y, z) {
