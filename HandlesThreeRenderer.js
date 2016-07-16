@@ -119,11 +119,6 @@
         var tagDiv = document.createElement('div');
         tagDiv.id = "tagDiv";
         tagDiv.innerHTML= '<textarea id="tagField"></textarea>';
-        $('#tagField').tagEditor({
-            initialTags: ['Hello', 'World', 'Example', 'Tags'],
-            delimiter: ', ', /* space and comma */
-            placeholder: 'Enter tags ...'
-        });
 
         //create selector
         selectionDiv = document.createElement('div');
@@ -161,6 +156,12 @@
         self.initInputFields();
 
         //add functions
+        $('#tagField').tagEditor({
+            initialTags: ['Hello', 'World', 'Example', 'Tags'],
+            delimiter: ', ', /* space and comma */
+            placeholder: 'Enter tags ...'
+        });
+
         $('#rule_selector').change(function () {
             self.initInputFields();            
         });
