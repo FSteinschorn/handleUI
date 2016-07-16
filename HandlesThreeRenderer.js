@@ -33,7 +33,7 @@
             var axes = self.buildAxes(node.shape.appearance.transformation);
             self.handlesScene.add(axes);
 
-            self.initButtonsUI(event.clientX - self.container.offset().left, event.clienty - self.container.offset().top);
+            self.initButtonsUI(event.clientX - self.container.offset().left, event.clientY - self.container.offset().top);
 
             self.Update();
             self.RenderSingleFrame();
