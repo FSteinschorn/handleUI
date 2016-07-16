@@ -33,7 +33,7 @@
             var axes = self.buildAxes(node.shape.appearance.transformation);
             self.handlesScene.add(axes);
 
-            self.initButtonsUI();
+            self.initButtonsUI(event.clientX, event.clientY);
 
             self.Update();
             self.RenderSingleFrame();
@@ -106,11 +106,13 @@
 
     }
 
-    self.initButtonsUI = function () {
+    self.initButtonsUI = function (x, y) {
         //create div container
         var buttonDiv = document.createElement('div');
         buttonDiv.id = "buttonDiv";
         buttonDiv.style.position = "relative";
+        buttonDiv.style.left = "20px";
+        buttonDiv.style.top = "20px";
         buttonDiv.style.z_index = -1;
 
         //create buttons
