@@ -118,9 +118,7 @@
         //create tag field
         var tagDiv = document.createElement('div');
         tagDiv.id = "tagDiv";
-        var tagField = document.createElement('textarea');
-        tagField.id = "tagField";
-        tagField.innerHTML = "test";
+        tagDiv.innerHTML= '<textarea id="tagField"></textarea>';
         $('#tagField').tagEditor({
             initialTags: ['Hello', 'World', 'Example', 'Tags'],
             delimiter: ', ', /* space and comma */
@@ -156,7 +154,6 @@
         uiDiv.appendChild(inputDiv);
         uiDiv.appendChild(new_button);
         uiDiv.appendChild(edit_button);
-        tagDiv.appendChild(tagField);
         uiDiv.appendChild(tagDiv);
         document.getElementById("graphRendererContainer").appendChild(uiDiv);
 
