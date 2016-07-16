@@ -121,7 +121,7 @@
         var tagField = document.createElement('textarea');
         tagField.id = "tagField";
         tagField.innerHTML = "test";
-        tagField.tagEditor();
+        $("tagField").tagEditor();
 
         //create selector
         selectionDiv = document.createElement('div');
