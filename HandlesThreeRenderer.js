@@ -34,6 +34,7 @@
                 // remove old selection and ui
                 self.selectedMesh.shape.interaction.selected(false);
                 self.selectedMesh.shape.appearance.material = self.storedMaterial;
+                self.addShape(self.selectedMesh.shape);
                 for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
                     self.handlesScene.remove(self.handlesScene.children[i]);
                 self.removeRuleUI();
@@ -43,7 +44,8 @@
             node.shape.interaction.selected(true);
             self.selectedMesh = node;
             self.storedMaterial = node.shape.appearance.material;
-            node.shape.appearance.material = self.selectedMaterial;
+            self.selectedMesh.shape.appearance.material = self.selectedMaterial;
+            self.addShape(self.selectedMesh.shape);
 
             var axes = self.buildAxes(node.shape.appearance.transformation);
             self.handlesScene.add(axes);
