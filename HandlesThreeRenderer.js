@@ -115,6 +115,14 @@
         uiDiv.style.bottom = "0";
         uiDiv.style.backgroundColor = "red";
 
+        //create tag field
+        var tagDiv = document.createElement('div');
+        tagDiv.id = "tagDiv";
+        var tagField = document.createElement('textarea');
+        tagField.id = "tagField";
+        tagField.innerHTML = "test";
+        tagField.tagEditor();
+
         //create selector
         selectionDiv = document.createElement('div');
         selectionDiv.id = "selectionDiv";
