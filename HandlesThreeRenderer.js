@@ -106,6 +106,35 @@
 
     }
 
+    self.initButtonsUI = function () {
+        //create div container
+        var buttonDiv = document.createElement('div');
+        buttonDiv.id = "buttonDiv";
+        buttonDiv.style.position = "relative";
+        buttonDiv.style.z_index = -1;
+
+        //create buttons
+        var new_button = document.createElement("button");
+        new_button.id = "newRule_Button";
+        var new_button_text = document.createTextNode("New");
+
+        var edit_button = document.createElement("button");
+        edit_button.id = "editRule_Button";
+        var edit_button_text = document.createTextNode("Edit");
+
+        //put it together
+        new_button.appendChild(new_button_text);
+        edit_button.appendChild(edit_button_text);
+        buttonDiv.appendChild(new_button);
+        buttonDiv.appendChild(edit_button);
+        document.getElementById("basicRendererContainer").appendChild(buttonDiv);
+
+        //add functions
+        $("#newRule_Button").click(function () {
+            self.initRuleUI();
+        })
+    }
+
     self.initRuleUI = function () {
 
         //create div container
@@ -133,23 +162,16 @@
         var inputDiv = document.createElement('div');
         inputDiv.id = "inputDiv";
 
-        //create buttons
-        var new_button = document.createElement("button");
-        new_button.id = "newRule_Button";
-        var new_button_text = document.createTextNode("NEW");
-
-        var edit_button = document.createElement("button");
-        edit_button.id = "editRule_Button";
-        var edit_button_text = document.createTextNode("Edit");
+        //create commit button
+        var commit_button = document.createElement('button');
+        commit_button.id = "commit_Button";
+        var commit_button_text = document.createTextNode("Commit");
 
         //put it together
-        new_button.appendChild(new_button_text);
-        edit_button.appendChild(edit_button_text);
         uiDiv.appendChild(selectionDiv);
         uiDiv.appendChild(inputDiv);
-        uiDiv.appendChild(new_button);
-        uiDiv.appendChild(edit_button);
         uiDiv.appendChild(tagDiv);
+        uiDiv.appendChild(commit_button);
         document.getElementById("graphRendererContainer").appendChild(uiDiv);
 
         //init input fields
@@ -166,7 +188,7 @@
             self.initInputFields();            
         });
 
-        $("#newRule_Button").click(function () {
+        $("#commit_Button").click(function () {
             var selector = document.getElementById("rule_selector");
             var selection = selector.options[selector.selectedIndex].value;
             switch (selection) {
