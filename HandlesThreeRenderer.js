@@ -152,6 +152,8 @@
         uiDiv.appendChild(inputDiv);
         uiDiv.appendChild(new_button);
         uiDiv.appendChild(edit_button);
+        tagDiv.appendChild(tagField);
+        uiDiv.appendChild(tagDiv);
         document.getElementById("graphRendererContainer").appendChild(uiDiv);
 
         //init input fields
