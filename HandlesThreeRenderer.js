@@ -16,6 +16,17 @@
     self.onDocumentMouseClick = function onDocumentMouseClick(event) {
         if (self.picked) {
             var node = self.resolveNode(self.picked);
+            if (node == self.selectedMesh) return;
+
+            if (self.selectedMesh) {
+                // remove old selection and ui
+                self.selectedMesh.shape.interaction.selected(false);
+                for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
+                    self.handlesScene.remove(self.handlesScene.children[i]);
+                self.removeRuleUI();
+            }
+
+            // create new selection and ui
             node.shape.interaction.selected(true);
             self.selectedMesh = node;
 
