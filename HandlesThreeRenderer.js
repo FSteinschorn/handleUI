@@ -157,6 +157,10 @@
 
         //add functions
         $('#tagField').tagEditor();
+        $('#tagField').tagEditor('addTag', self.selectedMesh.shape.relations.rule);
+        for (i=0; i<self.selectedMesh.shape.semantics.tags.length; i++) {
+            $('#tagField').tagEditor('addTag', self.selectedMesh.shape.semantics.tags[i]);
+        }
 
         $('#rule_selector').change(function () {
             self.initInputFields();            
