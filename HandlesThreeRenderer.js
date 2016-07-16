@@ -111,8 +111,8 @@
         var buttonDiv = document.createElement('div');
         buttonDiv.id = "buttonDiv";
         buttonDiv.style.position = "relative";
-        buttonDiv.style.left = "20px";
-        buttonDiv.style.top = "20px";
+        buttonDiv.style.left = "50px";
+        buttonDiv.style.top = "-50px";
         buttonDiv.style.z_index = -1;
 
         //create buttons
