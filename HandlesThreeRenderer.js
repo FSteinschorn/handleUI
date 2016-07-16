@@ -121,7 +121,11 @@
         var tagField = document.createElement('textarea');
         tagField.id = "tagField";
         tagField.innerHTML = "test";
-        $("tagField").tagEditor();
+        $('#tagField').tagEditor({
+            initialTags: ['Hello', 'World', 'Example', 'Tags'],
+            delimiter: ', ', /* space and comma */
+            placeholder: 'Enter tags ...'
+        });
 
         //create selector
         selectionDiv = document.createElement('div');
