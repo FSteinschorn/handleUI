@@ -248,7 +248,7 @@
 
         var editor = ace.edit("code_text_ace");
         var code = editor.getValue();
-        code.setValue(code + "\n\n" + "new Rules.Translate(Vec3("+x+", "+y+", "+z+"));", 1);
+        editor.setValue(code + "\n\n" + "new Rules.Translate(Vec3("+x+", "+y+", "+z+"));", 1);
     }
 
     // $("#code_editor")[0].CodeMirror.setValue(getOldCode + generated rule);
