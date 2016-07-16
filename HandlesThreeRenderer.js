@@ -33,7 +33,7 @@
             var axes = self.buildAxes(node.shape.appearance.transformation);
             self.handlesScene.add(axes);
 
-            self.initRuleUI();
+            self.initButtonsUI();
 
             self.Update();
             self.RenderSingleFrame();
