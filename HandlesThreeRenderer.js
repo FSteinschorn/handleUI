@@ -5,6 +5,18 @@
     self.selectedMesh = null;
     self.handlesScene = null;
 
+    self.selectedMaterial = new THREE.MeshBasicMaterial({
+        color: 'blue',
+        transparent: true,
+        opacity: 0.4,
+        depthWrite: false,
+        depthTest: true,
+        polygonOffset: true,
+        polygonOffsetFactor: -1, // positive value pushes polygon further away
+        polygonOffsetUnits: 1
+    });
+    self.storedMaterial;
+
     //First we need to add a new initialization call wich will be executed after the one of InteractiveThreeRenderer
     self.initCalls.push(function () { //push the init function to the list of initCalls
         document.addEventListener('click', this.onDocumentMouseClick, false);
@@ -21,6 +33,7 @@
             if (self.selectedMesh) {
                 // remove old selection and ui
                 self.selectedMesh.shape.interaction.selected(false);
+                self.selectedMesh.shape.appearance.material = self.storedMaterial;
                 for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
                     self.handlesScene.remove(self.handlesScene.children[i]);
                 self.removeRuleUI();
@@ -29,6 +42,8 @@
             // create new selection and ui
             node.shape.interaction.selected(true);
             self.selectedMesh = node;
+            self.storedMaterial = node.shape.appearance.material;
+            node.shape.appearance.material = self.selectedMaterial;
 
             var axes = self.buildAxes(node.shape.appearance.transformation);
             self.handlesScene.add(axes);
