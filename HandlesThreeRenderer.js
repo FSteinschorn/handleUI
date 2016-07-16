@@ -156,11 +156,7 @@
         self.initInputFields();
 
         //add functions
-        $('#tagField').tagEditor({
-            initialTags: ['Hello', 'World', 'Example', 'Tags'],
-            delimiter: ', ', /* space and comma */
-            placeholder: 'Enter tags ...'
-        });
+        $('#tagField').tagEditor();
 
         $('#rule_selector').change(function () {
             self.initInputFields();            
@@ -250,10 +246,9 @@
         self.Update();
         self.OnUpdateCompleted();
 
-        var codeEditor = $('.CodeMirror')[0].CodeMirror;
-        var code = codeEditor.getValue();
-        codeEditor.setValue(code + "\n\n"+
-            "new Rules.Translate(Vec3("+x+", "+y+", "+z+"));");
+        var editor = ace.edit("code_text_ace");
+        var code = editor.getValue();
+        code.setValue(code + "\n\n" + "new Rules.Translate(Vec3("+x+", "+y+", "+z+"));", 1);
     }
 
     // $("#code_editor")[0].CodeMirror.setValue(getOldCode + generated rule);
