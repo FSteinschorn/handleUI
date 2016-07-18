@@ -211,7 +211,7 @@
                     var x_field = document.getElementById("x_input_field");
                     var y_field = document.getElementById("y_input_field");
                     var z_field = document.getElementById("z_input_field");
-                    self.addNewTranslation(x_field.value, y_field.value, z_field.value);
+                    self.addNewTranslation(x_field.value, y_field.value, z_field.value, $('#tagField').tagEditor('getTags')[0].tags);
                     break;
                 case 'rotate':
                     break;
@@ -275,7 +275,7 @@
         }
     }
 
-    self.addNewTranslation = function (x, y, z) {
+    self.addNewTranslation = function (x, y, z, tags) {
         /*var m = self.selectedMesh.shape.appearance.transformation;
         var matrix = new THREE.Matrix4().set(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], m[12], m[13], m[14], m[15]);
         var translation = new THREE.Matrix4().makeTranslation(x, y, z);
@@ -299,7 +299,10 @@
 
         var editor = ace.edit("code_text_ace");
         var code = editor.getValue();
-        editor.setValue(code + "\n\n" + "new Rules.Translate(Vec3("+x+", "+y+", "+z+"));", 1);
+        editor.setValue(code + "\n\n" + "new Rules.Translate(Vec3(" + x + ", " + y + ", " + z + "));", 1);
+        for (i = 0; i < tags.length; i++) {
+            editor.setValue(code + "\n\t.Fulfills(\"" + tags[i] + "\");");
+        }
     }
 
     // $("#code_editor")[0].CodeMirror.setValue(getOldCode + generated rule);
