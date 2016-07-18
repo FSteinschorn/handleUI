@@ -114,7 +114,7 @@
         buttonDiv.id = "buttonDiv";
         buttonDiv.style.position = "relative";
         buttonDiv.style.left = "" + (x-80) + "px";
-        buttonDiv.style.top = "-" + (y) + "px";
+        buttonDiv.style.top = "" + (y) + "px";
         buttonDiv.style.z_index = -1;
 
         //create buttons
@@ -298,10 +298,9 @@
         self.OnUpdateCompleted();
 
         var editor = ace.edit("code_text_ace");
-        var code = editor.getValue();
-        editor.setValue(code + "\n\n" + "new Rules.Translate(Vec3(" + x + ", " + y + ", " + z + "));", 1);
+        editor.setValue(editor.getValue() + "\n\n" + "new Rules.Translate(Vec3(" + x + ", " + y + ", " + z + "));", 1);
         for (i = 0; i < tags.length; i++) {
-            editor.setValue(code + "\n\t.Fulfills(\"" + tags[i] + "\");");
+            editor.setValue(editor.getValue() + "\n\t.Fulfills(\"" + tags[i] + "\");");
         }
     }
 
