@@ -23,7 +23,7 @@
                 self.selectedMesh.shape.interaction.selected(false);
                 for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
                     self.handlesScene.remove(self.handlesScene.children[i]);
-                self.removeRuleUI();
+                if (document.getElementById("ruleUi")) self.removeRuleUI();
                 self.removeButtonUI();
             }
 
