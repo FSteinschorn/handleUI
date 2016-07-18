@@ -114,7 +114,7 @@
         buttonDiv.id = "buttonDiv";
         buttonDiv.style.position = "relative";
         buttonDiv.style.left = "" + (x-80) + "px";
-        buttonDiv.style.top = "" + (y) + "px";
+        buttonDiv.style.top = "-" + (y) + "px";
         buttonDiv.style.z_index = -1;
 
         //create buttons
