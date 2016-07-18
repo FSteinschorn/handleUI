@@ -24,6 +24,7 @@
                 for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
                     self.handlesScene.remove(self.handlesScene.children[i]);
                 self.removeRuleUI();
+                self.removeButtonUI();
             }
 
             // create new selection and ui
@@ -50,6 +51,7 @@
                         self.handlesScene.remove(self.handlesScene.children[i]);
 
                     self.removeRuleUI();
+                    self.removeButtonUI();
 
                     self.Update();
                     self.RenderSingleFrame();
@@ -134,6 +136,11 @@
         //add functions
         $("#newRule_Button").click(function () {
             self.initRuleUI();
+            self.removeButtonUI();
+        })
+
+        $("#editRule_Button").click(function () {
+            self.removeButtonUI();
         })
     }
 
@@ -164,16 +171,22 @@
         var inputDiv = document.createElement('div');
         inputDiv.id = "inputDiv";
 
-        //create commit button
+        //create buttons
         var commit_button = document.createElement('button');
         commit_button.id = "commit_Button";
         var commit_button_text = document.createTextNode("Commit");
+        commit_button.appendChild(commit_button_text);
+        var cancel_button = document.createElement('button');
+        cancel_button.id = "commit_Button";
+        var cancel_buttonn_text = document.createTextNode("Cancel");
+        cancel_button.appendChild(cancel_buttonn_text);
 
         //put it together
         uiDiv.appendChild(selectionDiv);
         uiDiv.appendChild(inputDiv);
         uiDiv.appendChild(tagDiv);
         uiDiv.appendChild(commit_button);
+        uiDiv.appendChild(cancel_button);
         document.getElementById("graphRendererContainer").appendChild(uiDiv);
 
         //init input fields
@@ -207,12 +220,22 @@
                 default:
                     break;
             }
+            self.removeRuleUI();
+        })
+
+        $("#cancel_Button").click(function () {
+            self.removeRuleUI();
         })
     }
 
     self.removeRuleUI = function () {
         var uiDiv = document.getElementById("uiDiv");
         uiDiv.parentNode.removeChild(uiDiv);
+    }
+
+    self.removeButtonUI = function () {
+        var buttonDiv = document.getElementById("buttonDiv");
+        buttonDiv.parentNode.removeChild(buttonDiv);
     }
 
     self.initInputFields = function () {
