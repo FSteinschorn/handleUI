@@ -295,6 +295,7 @@
 
         self.removeRuleUI();
 
+        self.removeShape(shape);
         self.addShape(shape);
         self.Update();
         self.OnUpdateCompleted();
