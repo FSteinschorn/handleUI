@@ -23,7 +23,7 @@
                 self.selectedMesh.shape.interaction.selected(false);
                 for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
                     self.handlesScene.remove(self.handlesScene.children[i]);
-                if (document.getElementById("ruleUi")) self.removeRuleUI();
+                self.removeRuleUI();
                 self.removeButtonUI();
             }
 
@@ -230,12 +230,14 @@
 
     self.removeRuleUI = function () {
         var uiDiv = document.getElementById("uiDiv");
-        uiDiv.parentNode.removeChild(uiDiv);
+        if(uiDiv != null)
+            uiDiv.parentNode.removeChild(uiDiv);
     }
 
     self.removeButtonUI = function () {
         var buttonDiv = document.getElementById("buttonDiv");
-        buttonDiv.parentNode.removeChild(buttonDiv);
+        if (buttonDiv != null)
+            buttonDiv.parentNode.removeChild(buttonDiv);
     }
 
     self.initInputFields = function () {
