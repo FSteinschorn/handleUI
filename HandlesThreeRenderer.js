@@ -5,12 +5,15 @@
     self.selectedMesh = null;
     self.handlesScene = null;
 
+    self.ruleController = new TempRuleController();
+
     //First we need to add a new initialization call wich will be executed after the one of InteractiveThreeRenderer
     self.initCalls.push(function () { //push the init function to the list of initCalls
         document.addEventListener('click', this.onDocumentMouseClick, false);
         document.addEventListener('keydown', this.onDocumentKeyDown, false);
 
         self.handlesScene = new THREE.Scene();
+        
     });
 
     self.onDocumentMouseClick = function onDocumentMouseClick(event) {
@@ -43,7 +46,7 @@
 
     self.onDocumentKeyDown = function onDocumentKeyDown(event) {
         switch(event.keyCode) {
-            case 27:
+            case 27:    // ESC
                 if (self.selectedMesh) {
                     self.selectedMesh.shape.interaction.selected(false);
                     self.selectedMesh = null;
@@ -63,16 +66,12 @@
     }
 
     self.renderCalls.push(function () {
+        this.renderer.render(self.TempRuleController.previewScene, this.camera);
         this.renderer.render(self.handlesScene, this.camera);
     });
 
-
     self.buildAxes = function (mat) {
         var axes = new THREE.Object3D();
-
-        //var sx = Math.sqrt(mat[0] * mat[0] + mat[1] * mat[1] + mat[2] * mat[2]);
-        //var sy = Math.sqrt(mat[4] * mat[4] + mat[5] * mat[5] + mat[6] * mat[6]);
-        //var sz = Math.sqrt(mat[8] * mat[8] + mat[9] * mat[9] + mat[10] * mat[10]);
 
         axes.add(self.buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(1.0, 0, 0), 0xFF3030, false)); // +X
         axes.add(self.buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-0.5 * 1.0, 0, 0), 0xA00000, true)); // -X
@@ -211,7 +210,16 @@
                     var x_field = document.getElementById("x_input_field");
                     var y_field = document.getElementById("y_input_field");
                     var z_field = document.getElementById("z_input_field");
-                    self.addNewTranslation(x_field.value, y_field.value, z_field.value, $('#tagField').tagEditor('getTags')[0].tags);
+
+                    self.ruleController.addNewTranslation(self.selectedMesh.shape, x_field.value, y_field.value, z_field.value, $('#tagField').tagEditor('getTags')[0].tags);
+                    self.selectedMesh.shape.interaction.selected(false);
+                    self.selectedMesh = null;
+                    for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
+                        self.handlesScene.remove(self.handlesScene.children[i]);
+                    self.removeRuleUI();
+                    self.Update();
+                    self.OnUpdateCompleted();
+
                     break;
                 case 'rotate':
                     break;
@@ -276,38 +284,6 @@
                 break;
         }
     }
-
-    self.addNewTranslation = function (x, y, z, tags) {
-        /*var m = self.selectedMesh.shape.appearance.transformation;
-        var matrix = new THREE.Matrix4().set(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], m[12], m[13], m[14], m[15]);
-        var translation = new THREE.Matrix4().makeTranslation(x, y, z);
-        matrix.multiply(translation);*/
-        var shape = self.selectedMesh.shape;
-
-        self.selectedMesh.shape.interaction.selected(false);
-        self.selectedMesh = null;
-        for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
-            self.handlesScene.remove(self.handlesScene.children[i]);
-
-        shape.appearance.transformation[3] += parseFloat(x);
-        shape.appearance.transformation[7] += parseFloat(y);
-        shape.appearance.transformation[11] += parseFloat(z);
-
-        self.removeRuleUI();
-
-        self.removeShape(shape);
-        self.addShape(shape);
-        self.Update();
-        self.OnUpdateCompleted();
-
-        var editor = ace.edit("code_text_ace");
-        editor.setValue(editor.getValue() + "\n\n" + "new Rules.Translate(Vec3(" + x + ", " + y + ", " + z + "));", 1);
-        for (i = 0; i < tags.length; i++) {
-            editor.setValue(editor.getValue() + "\n\t.Fulfills(\"" + tags[i] + "\");");
-        }
-    }
-
-    // $("#code_editor")[0].CodeMirror.setValue(getOldCode + generated rule);
 
     return self;
 }
