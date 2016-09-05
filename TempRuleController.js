@@ -1,41 +1,110 @@
-function TempRuleController() {
+function TempRuleController(renderer) {
     var self = {};
 
-    self.rules = new Map();
-    self.shapes = new Map();
+    rules = new Map();
+    meshes = new Map();
 
     self.previewScene = new THREE.Scene();
 
-    self.addNewTranslation = function (shape, x, y, z, tags) {
+    self.addRule = function (shape, rule) {
+        rules[shape.id] = rules[shape.id] || [];
+        rules[shape.id].push(rule);
 
-        var rule = {
-            type: "translation",
-            x: x,
-            y: y,
-            z: z,
-            tags: tags
-        }
-
-        rules.add(shape.id, rule);
-
-        shape.appearance.transformation[3] += parseFloat(x);
-        shape.appearance.transformation[7] += parseFloat(y);
-        shape.appearance.transformation[11] += parseFloat(z);
-
-        addPreview(shape);
+        applyRule(shape, rule);
+        if (meshes[shape.id])
+            updatePreview(shape)
+        else
+            addPreview(shape);
         
         var editor = ace.edit("code_text_ace");
-        editor.setValue(editor.getValue() + "\n\n" + "new Rules.Translate(Vec3(" + x + ", " + y + ", " + z + "));", 1);
-        for (i = 0; i < tags.length; i++) {
-            editor.setValue(editor.getValue() + "\n\t.Fulfills(\"" + tags[i] + "\");");
+        editor.setValue(editor.getValue() + "\n\n" + generateRuleString(rule), 1);
+    }
+
+    self.removeRule = function (shape) {
+        if (rules[shape.id]) {
+            removedRule = rules[shape.id].pop();
+
+            unapplyRule(shape, removedRule);
+            if (rules[shape.id].length != 0)
+                updatePreview(shape);
+            else
+                removePreview(shape);
+
+            var editor = ace.edit("code_text_ace");
+            editor.setValue(editor.getValue().replace("\n\n" + generateRuleString(removedRule), ""));
         }
     }
 
-    self.addPreview = function (shape) {
-        var id = shape.id;
+    self.updateRule = function (shape, rule) {
+        if (rules[shape.id]) {
+            removedRule = rules[shape.id].pop();
+            rules[shape.id].push(rule);
 
-        shapes.add(id, shape);
+            unapplyRule(shape, removedRule);
+            applyRule(shape, rule);
+            updatePreview(shape);
 
+            var editor = ace.edit("code_text_ace");
+            editor.setValue(editor.getValue().replace(generateRuleString(removedRule), generateRuleString(rule)));
+        }
+    }
+
+    self.getRule = function (shape) {
+        return rules[shape.id][rules[shape.id].length - 1];
+    }
+
+    applyRule = function (shape, rule) {
+        switch (rule.type) {
+            case 'translate':
+                shape.appearance.transformation[3] += parseFloat(rule.x);
+                shape.appearance.transformation[7] += parseFloat(rule.y);
+                shape.appearance.transformation[11] += parseFloat(rule.z);
+                break;
+            case 'rotate':
+                break;
+            case 'scale':
+                break;
+            default:
+                break;
+        }
+    }
+
+    unapplyRule = function (shape, rule) {
+        switch (rule.type) {
+            case 'translate':
+                shape.appearance.transformation[3] -= parseFloat(rule.x);
+                shape.appearance.transformation[7] -= parseFloat(rule.y);
+                shape.appearance.transformation[11] -= parseFloat(rule.z);
+                break;
+            case 'rotate':
+                break;
+            case 'scale':
+                break;
+            default:
+                break;
+        }
+    }
+
+    generateRuleString = function (rule) {
+        var ruleString = "unsupported function";
+        switch (rule.type) {
+            case 'translate':
+                ruleString = "new Rules.Translate(Vec3(" + rule.x + ", " + rule.y + ", " + rule.z + "))";
+                for (i = 0; i < rule.tags.fulfills.length; i++) {
+                    ruleString += "\n\t.Fulfills(\"" + rule.tags.fulfills[i] + "\");";
+                }
+                break;
+            case 'rotate':
+                break;
+            case 'scale':
+                break;
+            default:
+                break;
+        }
+        return ruleString;
+    }
+
+    addPreview = function (shape) {
         var geo, matrix;
         var t = shape.appearance.transformation;
         var matrix = new THREE.Matrix4().set(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8], t[9], t[10], t[11], t[12], t[13], t[14], t[15]);
@@ -73,11 +142,24 @@ function TempRuleController() {
         var mesh = new THREE.Mesh(geo, wireFrameMaterial);
         mesh.matrixAutoUpdate = false;
         mesh.applyMatrix(matrix);
-        mesh.mName = id;
+        mesh.mName = shape.id;
         mesh.mMaterial = wireFrameMaterial;
         mesh.visible = visible;
         self.previewScene.add(mesh);
+
+        meshes[shape.id] = mesh;
+
     }
 
-    return self;
+    removePreview = function (shape) {
+        self.previewScene.remove(meshes[shape.id]);
+        meshes.delete(shape.id);
+    }
+
+    updatePreview = function (shape) {
+        removePreview(shape);
+        addPreview(shape);
+    }
+
+return self;
 }
