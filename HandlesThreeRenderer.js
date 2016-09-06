@@ -5,7 +5,7 @@
     self.selectedRule = null;
     self.handlesScene = null;
 
-    self.ruleController = new TempRuleController(self);
+    ruleController = new TempRuleController(self);
 
     self.initCalls.push(function () {
         document.addEventListener('click', this.onDocumentMouseClick, false);
@@ -16,12 +16,12 @@
     });
 
     self.updateCalls.push(function () {
-        self.raycastScene(self.ruleController.previewScene);
+        self.raycastScene(ruleController.previewScene);
         self.raycastScene(self.handlesScene);
     });
 
     self.renderCalls.push(function () {
-        this.renderer.render(self.ruleController.previewScene, this.camera);
+        this.renderer.render(ruleController.previewScene, this.camera);
         this.renderer.render(self.handlesScene, this.camera);
     });
 
@@ -87,9 +87,9 @@
         yDir.sub(center);
         zDir.sub(center);
 
-        self.addShape(new THREE.ArrowHelper(xDir.normalize(), center, xDir.length(), 0xFF3030));
-        self.addShape(new THREE.ArrowHelper(yDir.normalize(), center, yDir.length(), 0x30FF30));
-        self.addShape(new THREE.ArrowHelper(zDir.normalize(), center, zDir.length(), 0x3030FF));
+        self.handlesScene.add(new THREE.ArrowHelper(xDir.normalize(), center, xDir.length(), 0xFF3030));
+        self.handlesScene.add(new THREE.ArrowHelper(yDir.normalize(), center, yDir.length(), 0x30FF30));
+        self.handlesScene.add(new THREE.ArrowHelper(zDir.normalize(), center, zDir.length(), 0x3030FF));
     }
 
     self.initButtonsUI = function (x, y) {
@@ -132,13 +132,13 @@
         })
 
         $("#editRule_Button").click(function () {
-            self.selectedRule = self.ruleController.getRule(self.selectedMesh.shape);
+            self.selectedRule = ruleController.getRule(self.selectedMesh.shape);
             clearUI();
             self.initRuleUI();
         })
 
         $("#deleteRule_Button").click(function () {
-            self.ruleController.removeRule(self.selectedMesh.shape);
+            ruleController.removeRule(self.selectedMesh.shape);
             self.selectedMesh.shape.interaction.selected(false);
             self.selectedMesh = null;
             clearUI();
@@ -164,11 +164,12 @@
         //create selector
         selectionDiv = document.createElement('div');
         selectionDiv.id = "selectionDiv";
-        selectionDiv.innerHTML = '<select id="rule_selector">'+
-                                    '<option value="translate">Translate</option>'+
-                                    '<option value="rotate">Rotate</option>'+
-                                    '<option value="scale">Scale</option>'+
-                                '</select>';
+        var innerHTML = '<select id="rule_selector">';
+        ruleController.rules.forEach(function(value, key, map){
+            innerHTML += '<option value="' + key + '">' + key + '</option>';        
+        });
+        innerHTML += '</select>'
+        selectionDiv.innerHTML = innerHTML;
 
         //create input container
         var inputDiv = document.createElement('div');
@@ -192,8 +193,16 @@
         uiDiv.appendChild(cancel_button);
         document.getElementById("graphRendererContainer").appendChild(uiDiv);
 
-        //init input fields
-        self.initInputFields();
+        //remove old input fields
+        var inputDiv = document.getElementById("inputDiv");
+        while (inputDiv.hasChildNodes()) {
+            inputDiv.removeChild(inputDiv.lastChild);
+        }
+
+        //create new input fields
+        var selector = document.getElementById("rule_selector");
+        var selection = selector.options[selector.selectedIndex].value;
+        ruleController.rules.get(selection).appendInputFields(inputDiv, self.selectedRule);
 
         //add functions
         $('#tagField').tagEditor();
@@ -209,42 +218,18 @@
         $("#commit_Button").click(function () {
             var selector = document.getElementById("rule_selector");
             var selection = selector.options[selector.selectedIndex].value;
-            switch (selection) {
-                case 'translate':
-                    var rule = {
-                        type: "translate",
-                        x: document.getElementById("x_input_field").value,
-                        y: document.getElementById("y_input_field").value,
-                        z: document.getElementById("z_input_field").value,
-                    }
-                    break;
-                case 'rotate':
-                    var rule = {
-                        type: "rotate",
-                        axis: document.getElementById("axis_selector").options[selector.selectedIndex].value,
-                        angle: document.getElementById("angle_input_field").value,
-                    }
-                    break;
-                case 'scale':
-                    var rule = {
-                        type: "scale",
-                        x: document.getElementById("x_input_field").value,
-                        y: document.getElementById("y_input_field").value,
-                        z: document.getElementById("z_input_field").value,
-                    }
-                    break;
-                default:
-                    break;
-            }
+
+            var rule = ruleController.rules.get(selection).createRuleDescriptor();
             var tags = {
                 fulfills: $('#tagField').tagEditor('getTags')[0].tags
             }
             rule.tags = tags;
+
             self.selectedMesh.shape.interaction.selected(false);
             if (self.selectedRule) {
-                self.ruleController.updateRule(self.selectedMesh.shape, rule);
+                ruleController.updateRule(self.selectedMesh.shape, rule);
             } else {
-                self.ruleController.addRule(self.selectedMesh.shape, rule);
+                ruleController.addRule(self.selectedMesh.shape, rule);
             }
             self.selectedMesh = null;
             clearUI();
@@ -261,65 +246,9 @@
             var selector = document.getElementById("rule_selector");
             selector.selectedIndex
             for (i = 0; i < selector.options.length; i++) {
-                if (selector.options[i].value == rule.type)
+                if (selector.options[i].value == self.selectedRule.type)
                     selector.selectedIndex = i;
             }
-        }
-    }
-
-    self.initInputFields = function () {
-        //remove old input fields
-        var inputDiv = document.getElementById("inputDiv");
-        while (inputDiv.hasChildNodes()) {
-            inputDiv.removeChild(inputDiv.lastChild);
-        }
-
-        //create new input fields
-        var selector = document.getElementById("rule_selector");
-        var selection = selector.options[selector.selectedIndex].value;
-        switch (selection) {
-            case 'translate':
-            case 'scale':
-                var x_input = document.createElement("input");
-                x_input.setAttribute('type', 'text');
-                x_input.setAttribute('id', 'x_input_field');
-                var y_input = document.createElement("input");
-                y_input.setAttribute('type', 'text');
-                y_input.setAttribute('id', 'y_input_field');
-                var z_input = document.createElement("input");
-                z_input.setAttribute('type', 'text');
-                z_input.setAttribute('id', 'z_input_field');
-                if (self.selectedRule) {
-                    x_input.setAttribute('value', self.selectedRule.x);
-                    y_input.setAttribute('value', self.selectedRule.y);
-                    z_input.setAttribute('value', self.selectedRule.z);
-                } else {
-                    x_input.setAttribute('value', '0');
-                    y_input.setAttribute('value', '0');
-                    z_input.setAttribute('value', '0');
-
-                }
-                inputDiv.appendChild(x_input);
-                inputDiv.appendChild(y_input);
-                inputDiv.appendChild(z_input);
-                break;
-            case 'rotate':
-                axisDiv = document.createElement('div');
-                axisDiv.id = "axisDiv";
-                axisDiv.innerHTML = '<select id="axis_selector">' +
-                                        '<option value="Axis.X">Axis.X</option>' +
-                                        '<option value="Axis.Y">Axis.Y</option>' +
-                                        '<option value="Axis.Z">Axis.Z</option>' +
-                                    '</select>';
-                var angle_input = document.createElement("input");
-                angle_input.setAttribute('type', 'text');
-                angle_input.setAttribute('id', 'angle_input_field');
-                angle_input.setAttribute('value', 'Deg(0)');
-                inputDiv.appendChild(axisDiv);
-                inputDiv.appendChild(angle_input);
-                break;
-            default:
-                break;
         }
     }
 

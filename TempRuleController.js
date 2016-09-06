@@ -1,107 +1,58 @@
 function TempRuleController(renderer) {
     var self = {};
 
-    rules = new Map();
+    self.rules = new Map();
+
+    storedRules = new Map();
     meshes = new Map();
 
     self.previewScene = new THREE.Scene();
 
     self.addRule = function (shape, rule) {
-        rules[shape.id] = rules[shape.id] || [];
-        rules[shape.id].push(rule);
+        storedRules[shape.id] = storedRules[shape.id] || [];
+        storedRules[shape.id].push(rule);
 
-        applyRule(shape, rule);
+        self.rules.get(rule.type).applyRule(rule, shape)
         if (meshes[shape.id])
             updatePreview(shape)
         else
             addPreview(shape);
         
         var editor = ace.edit("code_text_ace");
-        editor.setValue(editor.getValue() + "\n\n" + generateRuleString(rule), 1);
+        editor.setValue(editor.getValue() + "\n\n" + self.rules.get(rule.type).generateRuleString(rule), 1);
     }
 
     self.removeRule = function (shape) {
-        if (rules[shape.id]) {
-            removedRule = rules[shape.id].pop();
+        if (storedRules[shape.id]) {
+            removedRule = storedRules[shape.id].pop();
 
-            unapplyRule(shape, removedRule);
-            if (rules[shape.id].length != 0)
+            self.rules.get(removedRule.type).unapplyRule(removedRule, shape);
+            if (storedRules[shape.id].length != 0)
                 updatePreview(shape);
             else
                 removePreview(shape);
 
             var editor = ace.edit("code_text_ace");
-            editor.setValue(editor.getValue().replace("\n\n" + generateRuleString(removedRule), ""));
+            editor.setValue(editor.getValue().replace("\n\n" + self.rules.get(removedRule.type).generateRuleString(removedRule), ""));
         }
     }
 
     self.updateRule = function (shape, rule) {
-        if (rules[shape.id]) {
-            removedRule = rules[shape.id].pop();
-            rules[shape.id].push(rule);
+        if (storedRules[shape.id]) {
+            removedRule = storedRules[shape.id].pop();
+            storedRules[shape.id].push(rule);
 
-            unapplyRule(shape, removedRule);
-            applyRule(shape, rule);
+            self.rules.get(removedRule.type).unapplyRule(removedRule, shape);
+            self.rules.get(rule.type).applyRule(rule, shape);
             updatePreview(shape);
 
             var editor = ace.edit("code_text_ace");
-            editor.setValue(editor.getValue().replace(generateRuleString(removedRule), generateRuleString(rule)));
+            editor.setValue(editor.getValue().replace(self.rules.get(removedRule.type).generateRuleString(removedRule), self.rules.get(rule.type).generateRuleString(rule)));
         }
     }
 
     self.getRule = function (shape) {
-        return rules[shape.id][rules[shape.id].length - 1];
-    }
-
-    applyRule = function (shape, rule) {
-        switch (rule.type) {
-            case 'translate':
-                shape.appearance.transformation[3] += parseFloat(rule.x);
-                shape.appearance.transformation[7] += parseFloat(rule.y);
-                shape.appearance.transformation[11] += parseFloat(rule.z);
-                break;
-            case 'rotate':
-                break;
-            case 'scale':
-                break;
-            default:
-                break;
-        }
-    }
-
-    unapplyRule = function (shape, rule) {
-        switch (rule.type) {
-            case 'translate':
-                shape.appearance.transformation[3] -= parseFloat(rule.x);
-                shape.appearance.transformation[7] -= parseFloat(rule.y);
-                shape.appearance.transformation[11] -= parseFloat(rule.z);
-                break;
-            case 'rotate':
-                break;
-            case 'scale':
-                break;
-            default:
-                break;
-        }
-    }
-
-    generateRuleString = function (rule) {
-        var ruleString = "unsupported function";
-        switch (rule.type) {
-            case 'translate':
-                ruleString = "new Rules.Translate(Vec3(" + rule.x + ", " + rule.y + ", " + rule.z + "))";
-                for (i = 0; i < rule.tags.fulfills.length; i++) {
-                    ruleString += "\n\t.Fulfills(\"" + rule.tags.fulfills[i] + "\");";
-                }
-                break;
-            case 'rotate':
-                break;
-            case 'scale':
-                break;
-            default:
-                break;
-        }
-        return ruleString;
+        return storedRules[shape.id][storedRules[shape.id].length - 1];
     }
 
     addPreview = function (shape) {
@@ -160,6 +111,61 @@ function TempRuleController(renderer) {
         removePreview(shape);
         addPreview(shape);
     }
+
+
+
+    self.rules.set("Translation", {
+       generateRuleString: function (rule) {
+           var ruleString = "new Rules.Translate(Vec3(" + rule.x + ", " + rule.y + ", " + rule.z + "))";
+           for (i = 0; i < rule.tags.fulfills.length; i++) {
+               ruleString += "\n\t.Fulfills(\"" + rule.tags.fulfills[i] + "\");";
+           }
+           return ruleString;
+       },
+       applyRule: function (rule, shape) {
+           shape.appearance.transformation[3] += parseFloat(rule.x);
+           shape.appearance.transformation[7] += parseFloat(rule.y);
+           shape.appearance.transformation[11] += parseFloat(rule.z);
+       },
+       unapplyRule: function (rule, shape) {
+           shape.appearance.transformation[3] -= parseFloat(rule.x);
+           shape.appearance.transformation[7] -= parseFloat(rule.y);
+           shape.appearance.transformation[11] -= parseFloat(rule.z);
+       },
+       appendInputFields: function (parentDiv, rule) {
+           var x_input = document.createElement("input");
+           x_input.setAttribute('type', 'text');
+           x_input.setAttribute('id', 'x_input_field');
+           var y_input = document.createElement("input");
+           y_input.setAttribute('type', 'text');
+           y_input.setAttribute('id', 'y_input_field');
+           var z_input = document.createElement("input");
+           z_input.setAttribute('type', 'text');
+           z_input.setAttribute('id', 'z_input_field');
+           if (rule) {
+               x_input.setAttribute('value', rule.x);
+               y_input.setAttribute('value', rule.y);
+               z_input.setAttribute('value', rule.z);
+           } else {
+               x_input.setAttribute('value', '0');
+               y_input.setAttribute('value', '0');
+               z_input.setAttribute('value', '0');
+
+           }
+           parentDiv.appendChild(x_input);
+           parentDiv.appendChild(y_input);
+           parentDiv.appendChild(z_input);
+       },
+       createRuleDescriptor: function () {
+           var rule = {
+               type: "Translation",
+               x: document.getElementById("x_input_field").value,
+               y: document.getElementById("y_input_field").value,
+               z: document.getElementById("z_input_field").value,
+           }
+           return rule;
+       }
+    });
 
 return self;
 }
