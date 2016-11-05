@@ -14,6 +14,15 @@
 
     ruleController = new TempRuleController(self);
 
+    accordionFunction = function(id) {
+        var x = document.getElementById(id);
+        if (x.className.indexOf("w3-show") == -1) {
+            x.className += " w3-show";
+        } else {
+            x.className = x.className.replace(" w3-show", "");
+        }
+    }
+
     // define tags ("<tag_name>", <max_tags>)
     self.tags = new Map([
         ["category1", new Map([
@@ -252,12 +261,31 @@
         var tagDiv = document.createElement('div');
         tagDiv.id = "tagDiv";
         tagDiv.innerHTML = '';
+        /*
         self.tags.forEach(function (value, key, map) {
             value.forEach(function (value, key, map) {
                 var id = key + "_field";
                 tagDiv.innerHTML += key + ": <textarea id=" + id + "></textarea><br>";
             })
         });
+        */
+
+        tagDiv.innerHTML +=
+            "<div class='w3-accordion w3-light-grey'>" +
+                "<button onclick='accordionFunction(\"Demo1\")' class='w3-btn-block w3-left-align'>" +
+                    "Open Section 1" +
+                "</button>" +
+                "<div id='Demo1' class='w3-accordion-content w3-container'>" +
+                    "<p>Some text..</p>" +
+                "</div>" +
+                "<button onclick='accordionFunction(\"Demo2\")' class='w3-btn-block w3-left-align'>" +
+                    "Open Section 2" +
+                "</button>" +
+                "<div id='Demo2' class='w3-accordion-content w3-container'>" +
+                    "<p>Some text..</p>" +
+                "</div>" +
+            "</div>";
+
 
         //create selector
         selectionDiv = document.createElement('div');
@@ -303,14 +331,6 @@
         ruleController.rules.get(selection).appendInputFields(inputDiv, self.selectedRule);
 
         //add functions
-        /*
-        $('#tagField').tagEditor();
-        $('#tagField').tagEditor('addTag', self.selectedMesh.shape.relations.rule);
-        for (i=0; i<self.selectedMesh.shape.semantics.tags.length; i++) {
-            $('#tagField').tagEditor('addTag', self.selectedMesh.shape.semantics.tags[i]);
-        }
-        */
-
         self.tags.forEach(function (value, key, map) {
             value.forEach(function (value, key, map) {
                 var id = "#" + key + "_field";
@@ -318,6 +338,7 @@
                     $(id).tagEditor({
                         delimiter: " ,;",
                         placeholder: "Enter tags ...",
+                        clickDelete: true,
                         maxTags: value,
                         onChange: self.inputChanged
                     });
@@ -325,6 +346,7 @@
                     $(id).tagEditor({
                         delimiter: " ,;",
                         placeholder: "Enter tag ...",
+                        clickDelete: true,
                         maxTags: value,
                         onChange: self.inputChanged
                     });
