@@ -13,7 +13,7 @@
     dragging = false;
 
     ruleController = new TempRuleController(self);
-    postfixController = new PostfixController();
+    postfixController = new PostfixController(self);
 
     //create div container
     var uiDiv = document.createElement('div');
@@ -23,77 +23,6 @@
     uiDiv.style.bottom = "0";
     uiDiv.classList = "w3-light-grey";
     document.getElementById("graphRendererContainer").appendChild(uiDiv);
-
-    // define tags ("<tag_name>", <max_tags>  (( array .. dropdown, -1 .. double)) )
-    self.tags = new Map([
-        ["semantic", new Map([
-            ["Goal", 100],
-            ["goal", 100],
-            ["Fulfills", 100],
-            ["Tag", 1000],
-            ["Sync", 100],
-            ["Firstset", 100],
-            ["Set", 100]
-        ])],
-        ["appearence", new Map([
-            ["Asset", 1],//["choice1", "choice2", "choice3"]], // dropdown
-            ["Paint", 0] // dropdown farbe * [0..9/10]
-        ])],
-        ["transformations", new Map([
-            ["FirstOrientation", 0],
-            ["Orientation", 0], // dropdown
-            ["Reflect", 1]
-        ])],
-        ["predicates", new Map([
-            ["IfGoal", 100],
-            ["IfIs", 100],
-            ["IfHas", 100],
-            ["IfNotGoal", 100],
-            ["IfNotIs", 100],
-            ["IfNotHas", 100],
-            ["If", 1] // lambda (string)
-        ])],
-        ["other", new Map([
-            ["Probability", -1], // double
-            ["Name", 1]
-        ])]
-    ])
-
-    accordionFunction = function (target) {
-        self.tags.forEach(function (value, key, map) {
-            var id = key + "_content";
-            var x = document.getElementById(id);
-            if (id == target) {
-                if (x.className.indexOf("w3-show") == -1) {
-                    x.className += " w3-show";
-                } else {
-                    x.className = x.className.replace(" w3-show", "");
-                }
- //           } else {
-   //             if (x.className.indexOf("w3-show") != -1) {
-     //               x.className = x.className.replace(" w3-show", "");
-       //         }
-            }
-        });
-    }
-
-    dropdownOpenFunction = function(id) {
-        var x = document.getElementById(id);
-        if (x.className.indexOf("w3-show") == -1) 
-            x.className += " w3-show";
-        else 
-            x.className = x.className.replace(" w3-show", "");
-    }
-
-    self.applyTags = function (rule) {
-        self.tags.forEach(function (value, key, map) {
-            value.forEach(function (value, key, map) {
-                var id = "#" + key + "_field";
-                var taglist = $(id).tagEditor('getTags')[0].tags;
-                rule[key] = taglist;
-            });
-        });
-    }
 
     self.initCalls.push(function () {
         document.addEventListener('click', this.onDocumentMouseClick, false);
@@ -364,86 +293,7 @@
         var selection = selector.options[selector.selectedIndex].value;
         ruleController.rules.get(selection).appendInputFields(inputDiv, self.selectedRule);
 
-        //add functions
-        self.tags.forEach(function (value, key, map) {
-            value.forEach(function (value, key, map) {
-                var id = "#" + key + "_field";
-                // multiple tags possible
-                if (value != 1) {
-                    // editing rule
-                    if (self.selectedRule && key in self.selectedRule) {
-                        $(id).tagEditor({
-                            delimiter: ";",
-                            placeholder: "Enter tags ...",
-                            clickDelete: true,
-                            maxTags: value,
-                            onChange: self.inputChanged,
-                            initialTags: self.selectedRule[key]
-                        });
-                    // new rule
-                    } else {
-                        // tag is 'fulfills'
-                        if (key == "Fulfills") {
-                            var goalTags = ruleController.getRule(self.selectedMesh.shape);
-                            if (goalTags) goalTags = goalTags["Goal"];
-                            // and there are goals
-                            if (goalTags) {
-                                $(id).tagEditor({
-                                    delimiter: ";",
-                                    placeholder: "Enter tags ...",
-                                    clickDelete: true,
-                                    maxTags: value,
-                                    onChange: self.inputChanged,
-                                    initialTags: goalTags
-                                });
-                            // and there are no goals
-                            } else {
-                                $(id).tagEditor({
-                                    delimiter: ";",
-                                    placeholder: "Enter tags ...",
-                                    clickDelete: true,
-                                    maxTags: value,
-                                    onChange: self.inputChanged
-                                });
-                            }
-                        }
-                        // tag is not 'fulfills'
-                        else {
-                            $(id).tagEditor({
-                                delimiter: ";",
-                                placeholder: "Enter tags ...",
-                                clickDelete: true,
-                                maxTags: value,
-                                onChange: self.inputChanged
-                            });
-                        }
-                    }
-                // only one tag possible
-                } else {
-                    // editing rule
-                    if (self.selectedRule && key in self.selectedRule) {
-                        $(id).tagEditor({
-                            delimiter: ";",
-                            placeholder: "Enter tag ...",
-                            clickDelete: true,
-                            maxTags: value,
-                            onChange: self.inputChanged,
-                            initialTags: self.selectedRule[key]
-                        });
-                    // new rule
-                    } else {
-                        $(id).tagEditor({
-                            delimiter: ";",
-                            placeholder: "Enter tag ...",
-                            clickDelete: true,
-                            maxTags: value,
-                            onChange: self.inputChanged
-                        });
-                    }
-                }
-            })
-        });
-
+        //add function
         $('#rule_selector').change(function () {
             //remove old input fields
             var inputDiv = document.getElementById("inputDiv");
@@ -470,7 +320,7 @@
             var selection = selector.options[selector.selectedIndex].value;
 
             var rule = ruleController.rules.get(selection).createRuleDescriptor();
-            self.applyTags(rule);
+            postfixController.applyPostfixes(uiDiv, rule);
             ruleController.updateRule(self.selectedMesh.shape, rule);
 
 //            self.selectedMesh.shape.interaction.selected(false);
@@ -519,7 +369,7 @@
         } else {
             var selection = selector.options[selector.selectedIndex].value;
             self.selectedRule = ruleController.rules.get(selection).createRuleDescriptor();
-            self.applyTags(self.selectedRule);
+            postfixController.addAllPostfixes(uiDiv, self.selectedRule);
             ruleController.addRule(self.selectedMesh.shape, self.selectedRule);
             selector.disabled = false;
         }
@@ -537,7 +387,7 @@
         var selection = selector.options[selector.selectedIndex].value;
 
         var rule = ruleController.rules.get(selection).createRuleDescriptor();
-        self.applyTags(rule);
+        postfixController.addAllPostfixes(uiDiv, rule);
         ruleController.updateRule(self.selectedMesh.shape, rule);
 
         for (var i = self.handlesScene.children.length - 1; i >= 0; --i)

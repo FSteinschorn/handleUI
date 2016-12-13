@@ -185,24 +185,7 @@ function TempRuleController(renderer) {
         return selector.options[selector.selectedIndex].value;
     }
 
-    addTags = function (rule, ruleString) {
-        renderer.tags.forEach(function (value, key, map) {
-            value.forEach(function (value, key, map) {
-                var tagList = rule[key];
-                if (tagList.length != 0) {
-                    ruleString += "\n\t." + key + "(";
-                    for (var i = 0; i < tagList.length; i++) {
-                        ruleString += "\"" + tagList[i] + "\"";
-                        if (i != tagList.length - 1) ruleString += ", ";
-                    }
-                    ruleString += ")";
-                }
-            });
-        });
-        return ruleString;
-    }
-
-
+    addTags = function (rule, ruleString) { return renderer.postfixController.appendPostfixString(rule, ruleString); }
 
     inputChanged = function () { renderer.inputChanged(); }
 
