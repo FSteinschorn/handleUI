@@ -13,30 +13,86 @@
     dragging = false;
 
     ruleController = new TempRuleController(self);
+    postfixController = new PostfixController();
 
-    accordionFunction = function(id) {
-        var x = document.getElementById(id);
-        if (x.className.indexOf("w3-show") == -1) {
-            x.className += " w3-show";
-        } else {
-            x.className = x.className.replace(" w3-show", "");
-        }
-    }
+    //create div container
+    var uiDiv = document.createElement('div');
+    uiDiv.id = "uiDiv";
+    uiDiv.style.position = "absolute";
+    uiDiv.style.width = "100%";
+    uiDiv.style.bottom = "0";
+    uiDiv.classList = "w3-light-grey";
+    document.getElementById("graphRendererContainer").appendChild(uiDiv);
 
-    // define tags ("<tag_name>", <max_tags>)
+    // define tags ("<tag_name>", <max_tags>  (( array .. dropdown, -1 .. double)) )
     self.tags = new Map([
-        ["category1", new Map([
-            ["tag1", 100],
-            ["tag2", 1]
+        ["semantic", new Map([
+            ["Goal", 100],
+            ["goal", 100],
+            ["Fulfills", 100],
+            ["Tag", 1000],
+            ["Sync", 100],
+            ["Firstset", 100],
+            ["Set", 100]
         ])],
-        ["category2", new Map([
-            ["tag3", 100],
-            ["tag4", 1]
+        ["appearence", new Map([
+            ["Asset", 1],//["choice1", "choice2", "choice3"]], // dropdown
+            ["Paint", 0] // dropdown farbe * [0..9/10]
+        ])],
+        ["transformations", new Map([
+            ["FirstOrientation", 0],
+            ["Orientation", 0], // dropdown
+            ["Reflect", 1]
+        ])],
+        ["predicates", new Map([
+            ["IfGoal", 100],
+            ["IfIs", 100],
+            ["IfHas", 100],
+            ["IfNotGoal", 100],
+            ["IfNotIs", 100],
+            ["IfNotHas", 100],
+            ["If", 1] // lambda (string)
+        ])],
+        ["other", new Map([
+            ["Probability", -1], // double
+            ["Name", 1]
         ])]
     ])
 
-    self.applyTags = function (rule) {
+    accordionFunction = function (target) {
+        self.tags.forEach(function (value, key, map) {
+            var id = key + "_content";
+            var x = document.getElementById(id);
+            if (id == target) {
+                if (x.className.indexOf("w3-show") == -1) {
+                    x.className += " w3-show";
+                } else {
+                    x.className = x.className.replace(" w3-show", "");
+                }
+ //           } else {
+   //             if (x.className.indexOf("w3-show") != -1) {
+     //               x.className = x.className.replace(" w3-show", "");
+       //         }
+            }
+        });
+    }
 
+    dropdownOpenFunction = function(id) {
+        var x = document.getElementById(id);
+        if (x.className.indexOf("w3-show") == -1) 
+            x.className += " w3-show";
+        else 
+            x.className = x.className.replace(" w3-show", "");
+    }
+
+    self.applyTags = function (rule) {
+        self.tags.forEach(function (value, key, map) {
+            value.forEach(function (value, key, map) {
+                var id = "#" + key + "_field";
+                var taglist = $(id).tagEditor('getTags')[0].tags;
+                rule[key] = taglist;
+            });
+        });
     }
 
     self.initCalls.push(function () {
@@ -131,7 +187,7 @@
             node.shape.interaction.selected(true);
             self.selectedMesh = node;
 
-            self.initButtonsUI(event.clientX - self.container.offset().left, event.clientY - self.container.offset().top);
+            self.initButtonsUI();
 
             self.Update();
             self.RenderSingleFrame();
@@ -190,40 +246,52 @@
 
 
 
-    self.initButtonsUI = function (x, y) {
+    self.initButtonsUI = function () {
+        var ruleListDiv = document.createElement('div');
+        ruleListDiv.id = "ruleListDiv";
+        ruleListDiv.classList = "w3-container";
+        ruleListDiv.style = "position:relative;";
+        var history = ruleController.getRuleHistory(self.selectedMesh.shape);
+        if (history) for (var i = 0; i < history.length; i++) {
+            var ruleDiv = document.createElement('div');
+            ruleDiv.style = "height:2em;position:relative;";
+            ruleListDiv.appendChild(ruleDiv);
+            ruleDiv.innerHTML = "<span class='tag-tag'>" + ruleController.rules.get(history[i].type).generateShortString(history[i]) + "</span>";
+
+            if (i == history.length - 1) {
+                var delete_button = document.createElement("button");
+                delete_button.id = "deleteRule_Button";
+                delete_button.classList = "w3-btn";
+                delete_button.style = "height:2em;float:right;padding:3px 16px;"
+                var delete_button_text = document.createTextNode("Delete");
+
+                var edit_button = document.createElement("button");
+                edit_button.id = "editRule_Button";
+                edit_button.classList = "w3-btn";
+                edit_button.style = "height:2em;float:right;padding:3px 16px;"
+                var edit_button_text = document.createTextNode("Edit");
+
+                edit_button.appendChild(edit_button_text);
+                delete_button.appendChild(delete_button_text);
+                ruleDiv.appendChild(delete_button);
+                ruleDiv.appendChild(edit_button);
+            }
+        }
+
         //create div container
         var buttonDiv = document.createElement('div');
         buttonDiv.id = "buttonDiv";
-        buttonDiv.style.position = "relative";
-        buttonDiv.style.left = "" + (x-80) + "px";
-        buttonDiv.style.top = "-" + (y) + "px";
-        buttonDiv.style.z_index = -1;
-
         //create buttons
         var new_button = document.createElement("button");
         new_button.id = "newRule_Button";
+        new_button.classList = "w3-btn";
         var new_button_text = document.createTextNode("New");
-
-        if (ruleController.getRule(self.selectedMesh.shape) != null) {
-            var edit_button = document.createElement("button");
-            edit_button.id = "editRule_Button";
-            var edit_button_text = document.createTextNode("Edit");
-
-            var delete_button = document.createElement("button");
-            delete_button.id = "deleteRule_Button";
-            var delete_button_text = document.createTextNode("Delete");
-        }
 
         //put it together
         new_button.appendChild(new_button_text);
         buttonDiv.appendChild(new_button);
-        document.getElementById("basicRendererContainer").appendChild(buttonDiv);        
-        if (ruleController.getRule(self.selectedMesh.shape) != null) {
-            edit_button.appendChild(edit_button_text);
-            delete_button.appendChild(delete_button_text);
-            buttonDiv.appendChild(edit_button);
-            buttonDiv.appendChild(delete_button);
-        }
+        uiDiv.appendChild(ruleListDiv);
+        uiDiv.appendChild(buttonDiv);
 
         //add functions
         $("#newRule_Button").click(function () {
@@ -240,9 +308,8 @@
 
         $("#deleteRule_Button").click(function () {
             ruleController.removeRule(self.selectedMesh.shape);
-            self.selectedMesh.shape.interaction.selected(false);
-            self.selectedMesh = null;
             clearUI();
+            self.initButtonsUI();
             self.Update();
             self.OnUpdateCompleted();
         })
@@ -250,47 +317,15 @@
 
     self.initRuleUI = function () {
 
-        //create div container
-        var uiDiv = document.createElement('div');
-        uiDiv.id = "uiDiv";
-        uiDiv.style.position = "absolute";
-        uiDiv.style.bottom = "0";
-        uiDiv.style.backgroundColor = "red";
-
-        //create tag fields
-        var tagDiv = document.createElement('div');
-        tagDiv.id = "tagDiv";
-        tagDiv.innerHTML = '';
-        /*
-        self.tags.forEach(function (value, key, map) {
-            value.forEach(function (value, key, map) {
-                var id = key + "_field";
-                tagDiv.innerHTML += key + ": <textarea id=" + id + "></textarea><br>";
-            })
-        });
-        */
-
-        tagDiv.innerHTML +=
-            "<div class='w3-accordion w3-light-grey'>" +
-                "<button onclick='accordionFunction(\"Demo1\")' class='w3-btn-block w3-left-align'>" +
-                    "Open Section 1" +
-                "</button>" +
-                "<div id='Demo1' class='w3-accordion-content w3-container'>" +
-                    "<p>Some text..</p>" +
-                "</div>" +
-                "<button onclick='accordionFunction(\"Demo2\")' class='w3-btn-block w3-left-align'>" +
-                    "Open Section 2" +
-                "</button>" +
-                "<div id='Demo2' class='w3-accordion-content w3-container'>" +
-                    "<p>Some text..</p>" +
-                "</div>" +
-            "</div>";
-
-
+        if (self.selectedRule == null) creatingNewRule = true;
+        else creatingNewRule = false;
+                
         //create selector
         selectionDiv = document.createElement('div');
         selectionDiv.id = "selectionDiv";
-        var innerHTML = '<select id="rule_selector">';
+        var innerHTML;
+        if (creatingNewRule) innerHTML = '<select id="rule_selector">';
+        else innerHTML = '<select id="rule_selector" style="display:none">';
         ruleController.rules.forEach(function(value, key, map){
             innerHTML += '<option value="' + key + '">' + key + '</option>';        
         });
@@ -314,10 +349,9 @@
         //put it together
         uiDiv.appendChild(selectionDiv);
         uiDiv.appendChild(inputDiv);
-        uiDiv.appendChild(tagDiv);
+        postfixController.addAllPostfixes(uiDiv, self.selectedRule);
         uiDiv.appendChild(commit_button);
         uiDiv.appendChild(cancel_button);
-        document.getElementById("graphRendererContainer").appendChild(uiDiv);
 
         //remove old input fields
         var inputDiv = document.getElementById("inputDiv");
@@ -334,22 +368,78 @@
         self.tags.forEach(function (value, key, map) {
             value.forEach(function (value, key, map) {
                 var id = "#" + key + "_field";
+                // multiple tags possible
                 if (value != 1) {
-                    $(id).tagEditor({
-                        delimiter: " ,;",
-                        placeholder: "Enter tags ...",
-                        clickDelete: true,
-                        maxTags: value,
-                        onChange: self.inputChanged
-                    });
+                    // editing rule
+                    if (self.selectedRule && key in self.selectedRule) {
+                        $(id).tagEditor({
+                            delimiter: ";",
+                            placeholder: "Enter tags ...",
+                            clickDelete: true,
+                            maxTags: value,
+                            onChange: self.inputChanged,
+                            initialTags: self.selectedRule[key]
+                        });
+                    // new rule
+                    } else {
+                        // tag is 'fulfills'
+                        if (key == "Fulfills") {
+                            var goalTags = ruleController.getRule(self.selectedMesh.shape);
+                            if (goalTags) goalTags = goalTags["Goal"];
+                            // and there are goals
+                            if (goalTags) {
+                                $(id).tagEditor({
+                                    delimiter: ";",
+                                    placeholder: "Enter tags ...",
+                                    clickDelete: true,
+                                    maxTags: value,
+                                    onChange: self.inputChanged,
+                                    initialTags: goalTags
+                                });
+                            // and there are no goals
+                            } else {
+                                $(id).tagEditor({
+                                    delimiter: ";",
+                                    placeholder: "Enter tags ...",
+                                    clickDelete: true,
+                                    maxTags: value,
+                                    onChange: self.inputChanged
+                                });
+                            }
+                        }
+                        // tag is not 'fulfills'
+                        else {
+                            $(id).tagEditor({
+                                delimiter: ";",
+                                placeholder: "Enter tags ...",
+                                clickDelete: true,
+                                maxTags: value,
+                                onChange: self.inputChanged
+                            });
+                        }
+                    }
+                // only one tag possible
                 } else {
-                    $(id).tagEditor({
-                        delimiter: " ,;",
-                        placeholder: "Enter tag ...",
-                        clickDelete: true,
-                        maxTags: value,
-                        onChange: self.inputChanged
-                    });
+                    // editing rule
+                    if (self.selectedRule && key in self.selectedRule) {
+                        $(id).tagEditor({
+                            delimiter: ";",
+                            placeholder: "Enter tag ...",
+                            clickDelete: true,
+                            maxTags: value,
+                            onChange: self.inputChanged,
+                            initialTags: self.selectedRule[key]
+                        });
+                    // new rule
+                    } else {
+                        $(id).tagEditor({
+                            delimiter: ";",
+                            placeholder: "Enter tag ...",
+                            clickDelete: true,
+                            maxTags: value,
+                            onChange: self.inputChanged
+                        });
+                    }
                 }
             })
         });
@@ -383,9 +473,10 @@
             self.applyTags(rule);
             ruleController.updateRule(self.selectedMesh.shape, rule);
 
-            self.selectedMesh.shape.interaction.selected(false);
-            self.selectedMesh = null;
+//            self.selectedMesh.shape.interaction.selected(false);
+//            self.selectedMesh = null;
             clearUI();
+            self.initButtonsUI();
             self.Update();
             self.OnUpdateCompleted();
         })
@@ -396,17 +487,17 @@
             } else {
                 ruleController.updateRule(self.selectedMesh.shape, self.selectedRule)
             }
-            self.selectedMesh.shape.interaction.selected(false);
-            self.selectedMesh = null;
+//            self.selectedMesh.shape.interaction.selected(false);
+//            self.selectedMesh = null;
             clearUI();
+            self.initButtonsUI();
             self.Update();
             self.OnUpdateCompleted();
         })
 
         //set selector to current rule
         var selector = document.getElementById("rule_selector");
-        if (self.selectedRule != null) {
-            creatingNewRule = false;
+        if (!creatingNewRule) {
             for (i = 0; i < selector.options.length; i++) {
                 if (selector.options[i].value == self.selectedRule.type)
                     selector.selectedIndex = i;
@@ -426,7 +517,6 @@
             ruleController.rules.get(selection).createHandles(self.handlesScene, self.selectedMesh);
             handlesType = selection;
         } else {
-            creatingNewRule = true;
             var selection = selector.options[selector.selectedIndex].value;
             self.selectedRule = ruleController.rules.get(selection).createRuleDescriptor();
             self.applyTags(self.selectedRule);
@@ -464,8 +554,11 @@
     clearUI = function () {
         for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
             self.handlesScene.remove(self.handlesScene.children[i]);
-        removeRuleUI();
-        removeButtonUI();
+        for (var i = uiDiv.children.length - 1; i >= 0; --i) {
+            uiDiv.removeChild(uiDiv.childNodes[i]);
+        }
+//        removeRuleUI();
+//        removeButtonUI();
     }
 
     removeRuleUI = function () {

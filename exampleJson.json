@@ -1,0 +1,1332 @@
+[{
+		"FullSpanStart" : 0,
+		"FullSpanLength" : 6,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8374,
+		"SpanStart" : 0,
+		"SpanLength" : 5,
+		"Text" : "class",
+		"ValueText" : "class"
+	}, {
+		"FullSpanStart" : 6,
+		"FullSpanLength" : 7,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 6,
+		"SpanLength" : 6,
+		"Text" : "TRIEDA",
+		"ValueText" : "TRIEDA"
+	}, {
+		"FullSpanStart" : 13,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8205,
+		"SpanStart" : 13,
+		"SpanLength" : 1,
+		"Text" : "{",
+		"ValueText" : "{"
+	}, {
+		"FullSpanStart" : 15,
+		"FullSpanLength" : 5,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8318,
+		"SpanStart" : 15,
+		"SpanLength" : 4,
+		"Text" : "void",
+		"ValueText" : "void"
+	}, {
+		"FullSpanStart" : 20,
+		"FullSpanLength" : 6,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 20,
+		"SpanLength" : 6,
+		"Text" : "METODA",
+		"ValueText" : "METODA"
+	}, {
+		"FullSpanStart" : 26,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 26,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 27,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 27,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 29,
+		"FullSpanLength" : 3,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8205,
+		"SpanStart" : 29,
+		"SpanLength" : 1,
+		"Text" : "{",
+		"ValueText" : "{"
+	}, {
+		"FullSpanStart" : 32,
+		"FullSpanLength" : 6,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8354,
+		"SpanStart" : 34,
+		"SpanLength" : 3,
+		"Text" : "new",
+		"ValueText" : "new"
+	}, {
+		"FullSpanStart" : 38,
+		"FullSpanLength" : 5,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 38,
+		"SpanLength" : 5,
+		"Text" : "Axiom",
+		"ValueText" : "Axiom"
+	}, {
+		"FullSpanStart" : 43,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 43,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 44,
+		"FullSpanLength" : 26,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8511,
+		"SpanStart" : 44,
+		"SpanLength" : 26,
+		"Text" : "\"56caf5f3b28b680594a84ac1\"",
+		"ValueText" : "56caf5f3b28b680594a84ac1"
+	}, {
+		"FullSpanStart" : 70,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8216,
+		"SpanStart" : 70,
+		"SpanLength" : 1,
+		"Text" : ",",
+		"ValueText" : ","
+	}, {
+		"FullSpanStart" : 72,
+		"FullSpanLength" : 3,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8511,
+		"SpanStart" : 72,
+		"SpanLength" : 3,
+		"Text" : "\"A\"",
+		"ValueText" : "A"
+	}, {
+		"FullSpanStart" : 75,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 75,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 76,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8218,
+		"SpanStart" : 76,
+		"SpanLength" : 1,
+		"Text" : ".",
+		"ValueText" : "."
+	}, {
+		"FullSpanStart" : 77,
+		"FullSpanLength" : 8,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 77,
+		"SpanLength" : 8,
+		"Text" : "Restrict",
+		"ValueText" : "Restrict"
+	}, {
+		"FullSpanStart" : 85,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 85,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 86,
+		"FullSpanLength" : 6,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 86,
+		"SpanLength" : 6,
+		"Text" : "Source",
+		"ValueText" : "Source"
+	}, {
+		"FullSpanStart" : 92,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8218,
+		"SpanStart" : 92,
+		"SpanLength" : 1,
+		"Text" : ".",
+		"ValueText" : "."
+	}, {
+		"FullSpanStart" : 93,
+		"FullSpanLength" : 4,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 93,
+		"SpanLength" : 4,
+		"Text" : "This",
+		"ValueText" : "This"
+	}, {
+		"FullSpanStart" : 97,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 97,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 98,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8212,
+		"SpanStart" : 98,
+		"SpanLength" : 1,
+		"Text" : ";",
+		"ValueText" : ";"
+	}, {
+		"FullSpanStart" : 100,
+		"FullSpanLength" : 4,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8354,
+		"SpanStart" : 100,
+		"SpanLength" : 3,
+		"Text" : "new",
+		"ValueText" : "new"
+	}, {
+		"FullSpanStart" : 104,
+		"FullSpanLength" : 5,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 104,
+		"SpanLength" : 5,
+		"Text" : "Axiom",
+		"ValueText" : "Axiom"
+	}, {
+		"FullSpanStart" : 109,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 109,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 110,
+		"FullSpanLength" : 26,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8511,
+		"SpanStart" : 110,
+		"SpanLength" : 26,
+		"Text" : "\"56caf5f3b28b680594a84ac1\"",
+		"ValueText" : "56caf5f3b28b680594a84ac1"
+	}, {
+		"FullSpanStart" : 136,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8216,
+		"SpanStart" : 136,
+		"SpanLength" : 1,
+		"Text" : ",",
+		"ValueText" : ","
+	}, {
+		"FullSpanStart" : 138,
+		"FullSpanLength" : 3,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8511,
+		"SpanStart" : 138,
+		"SpanLength" : 3,
+		"Text" : "\"B\"",
+		"ValueText" : "B"
+	}, {
+		"FullSpanStart" : 141,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 141,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 142,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8218,
+		"SpanStart" : 142,
+		"SpanLength" : 1,
+		"Text" : ".",
+		"ValueText" : "."
+	}, {
+		"FullSpanStart" : 143,
+		"FullSpanLength" : 8,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 143,
+		"SpanLength" : 8,
+		"Text" : "Restrict",
+		"ValueText" : "Restrict"
+	}, {
+		"FullSpanStart" : 151,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 151,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 152,
+		"FullSpanLength" : 6,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 152,
+		"SpanLength" : 6,
+		"Text" : "Source",
+		"ValueText" : "Source"
+	}, {
+		"FullSpanStart" : 158,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8218,
+		"SpanStart" : 158,
+		"SpanLength" : 1,
+		"Text" : ".",
+		"ValueText" : "."
+	}, {
+		"FullSpanStart" : 159,
+		"FullSpanLength" : 4,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 159,
+		"SpanLength" : 4,
+		"Text" : "This",
+		"ValueText" : "This"
+	}, {
+		"FullSpanStart" : 163,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 163,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 164,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8212,
+		"SpanStart" : 164,
+		"SpanLength" : 1,
+		"Text" : ";",
+		"ValueText" : ";"
+	}, {
+		"FullSpanStart" : 166,
+		"FullSpanLength" : 5,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8354,
+		"SpanStart" : 167,
+		"SpanLength" : 3,
+		"Text" : "new",
+		"ValueText" : "new"
+	}, {
+		"FullSpanStart" : 171,
+		"FullSpanLength" : 5,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 171,
+		"SpanLength" : 5,
+		"Text" : "Rules",
+		"ValueText" : "Rules"
+	}, {
+		"FullSpanStart" : 176,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8218,
+		"SpanStart" : 176,
+		"SpanLength" : 1,
+		"Text" : ".",
+		"ValueText" : "."
+	}, {
+		"FullSpanStart" : 177,
+		"FullSpanLength" : 9,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 177,
+		"SpanLength" : 9,
+		"Text" : "Translate",
+		"ValueText" : "Translate"
+	}, {
+		"FullSpanStart" : 186,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 186,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 187,
+		"FullSpanLength" : 26,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8511,
+		"SpanStart" : 187,
+		"SpanLength" : 26,
+		"Text" : "\"56caf5f3b28b680594a84ac1\"",
+		"ValueText" : "56caf5f3b28b680594a84ac1"
+	}, {
+		"FullSpanStart" : 213,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8216,
+		"SpanStart" : 213,
+		"SpanLength" : 1,
+		"Text" : ",",
+		"ValueText" : ","
+	}, {
+		"FullSpanStart" : 215,
+		"FullSpanLength" : 4,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 215,
+		"SpanLength" : 4,
+		"Text" : "Vec3",
+		"ValueText" : "Vec3"
+	}, {
+		"FullSpanStart" : 219,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 219,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 220,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8509,
+		"SpanStart" : 220,
+		"SpanLength" : 1,
+		"Text" : "0",
+		"ValueText" : "0"
+	}, {
+		"FullSpanStart" : 221,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8216,
+		"SpanStart" : 221,
+		"SpanLength" : 1,
+		"Text" : ",",
+		"ValueText" : ","
+	}, {
+		"FullSpanStart" : 222,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8509,
+		"SpanStart" : 222,
+		"SpanLength" : 1,
+		"Text" : "1",
+		"ValueText" : "1"
+	}, {
+		"FullSpanStart" : 223,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8216,
+		"SpanStart" : 223,
+		"SpanLength" : 1,
+		"Text" : ",",
+		"ValueText" : ","
+	}, {
+		"FullSpanStart" : 224,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8509,
+		"SpanStart" : 224,
+		"SpanLength" : 1,
+		"Text" : "0",
+		"ValueText" : "0"
+	}, {
+		"FullSpanStart" : 225,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 225,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 226,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 226,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 228,
+		"FullSpanLength" : 5,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8218,
+		"SpanStart" : 232,
+		"SpanLength" : 1,
+		"Text" : ".",
+		"ValueText" : "."
+	}, {
+		"FullSpanStart" : 233,
+		"FullSpanLength" : 8,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 233,
+		"SpanLength" : 8,
+		"Text" : "Fulfills",
+		"ValueText" : "Fulfills"
+	}, {
+		"FullSpanStart" : 241,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 241,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 242,
+		"FullSpanLength" : 3,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8511,
+		"SpanStart" : 242,
+		"SpanLength" : 3,
+		"Text" : "\"A\"",
+		"ValueText" : "A"
+	}, {
+		"FullSpanStart" : 245,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 245,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 247,
+		"FullSpanLength" : 5,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8218,
+		"SpanStart" : 251,
+		"SpanLength" : 1,
+		"Text" : ".",
+		"ValueText" : "."
+	}, {
+		"FullSpanStart" : 252,
+		"FullSpanLength" : 4,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 252,
+		"SpanLength" : 4,
+		"Text" : "Goal",
+		"ValueText" : "Goal"
+	}, {
+		"FullSpanStart" : 256,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 256,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 257,
+		"FullSpanLength" : 3,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8511,
+		"SpanStart" : 257,
+		"SpanLength" : 3,
+		"Text" : "\"S\"",
+		"ValueText" : "S"
+	}, {
+		"FullSpanStart" : 260,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 260,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 261,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8218,
+		"SpanStart" : 261,
+		"SpanLength" : 1,
+		"Text" : ".",
+		"ValueText" : "."
+	}, {
+		"FullSpanStart" : 262,
+		"FullSpanLength" : 11,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 262,
+		"SpanLength" : 11,
+		"Text" : "RUIDprivate",
+		"ValueText" : "RUIDprivate"
+	}, {
+		"FullSpanStart" : 273,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 273,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 274,
+		"FullSpanLength" : 38,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8511,
+		"SpanStart" : 274,
+		"SpanLength" : 38,
+		"Text" : "\"5b7b0f06-d685-4e3a-9ebf-5a2d9ed68e49\"",
+		"ValueText" : "5b7b0f06-d685-4e3a-9ebf-5a2d9ed68e49"
+	}, {
+		"FullSpanStart" : 312,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 312,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 313,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8212,
+		"SpanStart" : 313,
+		"SpanLength" : 1,
+		"Text" : ";",
+		"ValueText" : ";"
+	}, {
+		"FullSpanStart" : 315,
+		"FullSpanLength" : 7,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8354,
+		"SpanStart" : 318,
+		"SpanLength" : 3,
+		"Text" : "new",
+		"ValueText" : "new"
+	}, {
+		"FullSpanStart" : 322,
+		"FullSpanLength" : 5,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 322,
+		"SpanLength" : 5,
+		"Text" : "Rules",
+		"ValueText" : "Rules"
+	}, {
+		"FullSpanStart" : 327,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8218,
+		"SpanStart" : 327,
+		"SpanLength" : 1,
+		"Text" : ".",
+		"ValueText" : "."
+	}, {
+		"FullSpanStart" : 328,
+		"FullSpanLength" : 9,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 328,
+		"SpanLength" : 9,
+		"Text" : "Translate",
+		"ValueText" : "Translate"
+	}, {
+		"FullSpanStart" : 337,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 337,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 338,
+		"FullSpanLength" : 26,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8511,
+		"SpanStart" : 338,
+		"SpanLength" : 26,
+		"Text" : "\"56caf5f3b28b680594a84ac1\"",
+		"ValueText" : "56caf5f3b28b680594a84ac1"
+	}, {
+		"FullSpanStart" : 364,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8216,
+		"SpanStart" : 364,
+		"SpanLength" : 1,
+		"Text" : ",",
+		"ValueText" : ","
+	}, {
+		"FullSpanStart" : 366,
+		"FullSpanLength" : 4,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 366,
+		"SpanLength" : 4,
+		"Text" : "Vec3",
+		"ValueText" : "Vec3"
+	}, {
+		"FullSpanStart" : 370,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 370,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 371,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8509,
+		"SpanStart" : 371,
+		"SpanLength" : 1,
+		"Text" : "0",
+		"ValueText" : "0"
+	}, {
+		"FullSpanStart" : 372,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8216,
+		"SpanStart" : 372,
+		"SpanLength" : 1,
+		"Text" : ",",
+		"ValueText" : ","
+	}, {
+		"FullSpanStart" : 373,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8202,
+		"SpanStart" : 373,
+		"SpanLength" : 1,
+		"Text" : "-",
+		"ValueText" : "-"
+	}, {
+		"FullSpanStart" : 374,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8509,
+		"SpanStart" : 374,
+		"SpanLength" : 1,
+		"Text" : "1",
+		"ValueText" : "1"
+	}, {
+		"FullSpanStart" : 375,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8216,
+		"SpanStart" : 375,
+		"SpanLength" : 1,
+		"Text" : ",",
+		"ValueText" : ","
+	}, {
+		"FullSpanStart" : 376,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8509,
+		"SpanStart" : 376,
+		"SpanLength" : 1,
+		"Text" : "0",
+		"ValueText" : "0"
+	}, {
+		"FullSpanStart" : 377,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 377,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 378,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 378,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 380,
+		"FullSpanLength" : 5,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8218,
+		"SpanStart" : 384,
+		"SpanLength" : 1,
+		"Text" : ".",
+		"ValueText" : "."
+	}, {
+		"FullSpanStart" : 385,
+		"FullSpanLength" : 8,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 385,
+		"SpanLength" : 8,
+		"Text" : "Fulfills",
+		"ValueText" : "Fulfills"
+	}, {
+		"FullSpanStart" : 393,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 393,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 394,
+		"FullSpanLength" : 3,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8511,
+		"SpanStart" : 394,
+		"SpanLength" : 3,
+		"Text" : "\"B\"",
+		"ValueText" : "B"
+	}, {
+		"FullSpanStart" : 397,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 397,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 399,
+		"FullSpanLength" : 5,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8218,
+		"SpanStart" : 403,
+		"SpanLength" : 1,
+		"Text" : ".",
+		"ValueText" : "."
+	}, {
+		"FullSpanStart" : 404,
+		"FullSpanLength" : 4,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 404,
+		"SpanLength" : 4,
+		"Text" : "Goal",
+		"ValueText" : "Goal"
+	}, {
+		"FullSpanStart" : 408,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 408,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 409,
+		"FullSpanLength" : 3,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8511,
+		"SpanStart" : 409,
+		"SpanLength" : 3,
+		"Text" : "\"S\"",
+		"ValueText" : "S"
+	}, {
+		"FullSpanStart" : 412,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 412,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 413,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8218,
+		"SpanStart" : 413,
+		"SpanLength" : 1,
+		"Text" : ".",
+		"ValueText" : "."
+	}, {
+		"FullSpanStart" : 414,
+		"FullSpanLength" : 11,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 414,
+		"SpanLength" : 11,
+		"Text" : "RUIDprivate",
+		"ValueText" : "RUIDprivate"
+	}, {
+		"FullSpanStart" : 425,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 425,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 426,
+		"FullSpanLength" : 38,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8511,
+		"SpanStart" : 426,
+		"SpanLength" : 38,
+		"Text" : "\"1750cfd0-6a10-4f1c-b822-f03931a47559\"",
+		"ValueText" : "1750cfd0-6a10-4f1c-b822-f03931a47559"
+	}, {
+		"FullSpanStart" : 464,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 464,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 465,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8212,
+		"SpanStart" : 465,
+		"SpanLength" : 1,
+		"Text" : ";",
+		"ValueText" : ";"
+	}, {
+		"FullSpanStart" : 467,
+		"FullSpanLength" : 7,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8354,
+		"SpanStart" : 470,
+		"SpanLength" : 3,
+		"Text" : "new",
+		"ValueText" : "new"
+	}, {
+		"FullSpanStart" : 474,
+		"FullSpanLength" : 5,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 474,
+		"SpanLength" : 5,
+		"Text" : "Rules",
+		"ValueText" : "Rules"
+	}, {
+		"FullSpanStart" : 479,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8218,
+		"SpanStart" : 479,
+		"SpanLength" : 1,
+		"Text" : ".",
+		"ValueText" : "."
+	}, {
+		"FullSpanStart" : 480,
+		"FullSpanLength" : 9,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 480,
+		"SpanLength" : 9,
+		"Text" : "Translate",
+		"ValueText" : "Translate"
+	}, {
+		"FullSpanStart" : 489,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 489,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 490,
+		"FullSpanLength" : 26,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8511,
+		"SpanStart" : 490,
+		"SpanLength" : 26,
+		"Text" : "\"56caf5f3b28b680594a84ac1\"",
+		"ValueText" : "56caf5f3b28b680594a84ac1"
+	}, {
+		"FullSpanStart" : 516,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8216,
+		"SpanStart" : 516,
+		"SpanLength" : 1,
+		"Text" : ",",
+		"ValueText" : ","
+	}, {
+		"FullSpanStart" : 518,
+		"FullSpanLength" : 4,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 518,
+		"SpanLength" : 4,
+		"Text" : "Vec3",
+		"ValueText" : "Vec3"
+	}, {
+		"FullSpanStart" : 522,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 522,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 523,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8509,
+		"SpanStart" : 523,
+		"SpanLength" : 1,
+		"Text" : "1",
+		"ValueText" : "1"
+	}, {
+		"FullSpanStart" : 524,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8216,
+		"SpanStart" : 524,
+		"SpanLength" : 1,
+		"Text" : ",",
+		"ValueText" : ","
+	}, {
+		"FullSpanStart" : 525,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8509,
+		"SpanStart" : 525,
+		"SpanLength" : 1,
+		"Text" : "0",
+		"ValueText" : "0"
+	}, {
+		"FullSpanStart" : 526,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8216,
+		"SpanStart" : 526,
+		"SpanLength" : 1,
+		"Text" : ",",
+		"ValueText" : ","
+	}, {
+		"FullSpanStart" : 527,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8509,
+		"SpanStart" : 527,
+		"SpanLength" : 1,
+		"Text" : "0",
+		"ValueText" : "0"
+	}, {
+		"FullSpanStart" : 528,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 528,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 529,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 529,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 531,
+		"FullSpanLength" : 5,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8218,
+		"SpanStart" : 535,
+		"SpanLength" : 1,
+		"Text" : ".",
+		"ValueText" : "."
+	}, {
+		"FullSpanStart" : 536,
+		"FullSpanLength" : 8,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 536,
+		"SpanLength" : 8,
+		"Text" : "Fulfills",
+		"ValueText" : "Fulfills"
+	}, {
+		"FullSpanStart" : 544,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 544,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 545,
+		"FullSpanLength" : 3,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8511,
+		"SpanStart" : 545,
+		"SpanLength" : 3,
+		"Text" : "\"S\"",
+		"ValueText" : "S"
+	}, {
+		"FullSpanStart" : 548,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 548,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 549,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8218,
+		"SpanStart" : 549,
+		"SpanLength" : 1,
+		"Text" : ".",
+		"ValueText" : "."
+	}, {
+		"FullSpanStart" : 550,
+		"FullSpanLength" : 11,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8508,
+		"SpanStart" : 550,
+		"SpanLength" : 11,
+		"Text" : "RUIDprivate",
+		"ValueText" : "RUIDprivate"
+	}, {
+		"FullSpanStart" : 561,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8200,
+		"SpanStart" : 561,
+		"SpanLength" : 1,
+		"Text" : "(",
+		"ValueText" : "("
+	}, {
+		"FullSpanStart" : 562,
+		"FullSpanLength" : 38,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8511,
+		"SpanStart" : 562,
+		"SpanLength" : 38,
+		"Text" : "\"44047512-356b-494d-86ee-5e8bf52ffbd1\"",
+		"ValueText" : "44047512-356b-494d-86ee-5e8bf52ffbd1"
+	}, {
+		"FullSpanStart" : 600,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8201,
+		"SpanStart" : 600,
+		"SpanLength" : 1,
+		"Text" : ")",
+		"ValueText" : ")"
+	}, {
+		"FullSpanStart" : 601,
+		"FullSpanLength" : 2,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8212,
+		"SpanStart" : 601,
+		"SpanLength" : 1,
+		"Text" : ";",
+		"ValueText" : ";"
+	}, {
+		"FullSpanStart" : 603,
+		"FullSpanLength" : 5,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8206,
+		"SpanStart" : 606,
+		"SpanLength" : 1,
+		"Text" : "}",
+		"ValueText" : "}"
+	}, {
+		"FullSpanStart" : 608,
+		"FullSpanLength" : 1,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8206,
+		"SpanStart" : 608,
+		"SpanLength" : 1,
+		"Text" : "}",
+		"ValueText" : "}"
+	}, {
+		"FullSpanStart" : 609,
+		"FullSpanLength" : 0,
+		"IsMissing" : false,
+		"Language" : "C#",
+		"RawKind" : 8496,
+		"SpanStart" : 609,
+		"SpanLength" : 0,
+		"Text" : "",
+		"ValueText" : ""
+	}
+]

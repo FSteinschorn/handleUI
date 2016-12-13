@@ -1,9 +1,10 @@
 .tag-editor { 
     background: #fafafa; 
     font-size: 12px;
-    width: 70%;
+    width: 80%;
     position: absolute;
     right: 0px;
+	top: 0px;
 }
 .tag-editor .tag-editor-tag {
     color: #fff; 
@@ -15,6 +16,10 @@
 }
 .tag-editor .tag-editor-delete { 
     display: none;
+}
+.tag-tag {
+	position: absolute;
+	top: 5px;
 }
 
 
@@ -54,7 +59,26 @@
 	cursor:pointer;
 	white-space:nowrap
 }
+.w3-btn-slim {
+	border:none;
+	display:inline-block;
+	outline:0;
+	padding:3px 16px;
+	vertical-align:middle;
+	overflow:hidden;
+	text-decoration:none!important;
+	color:#fff;
+	background-color:#337ab7;
+	text-align:center;
+	cursor:pointer;
+	white-space:nowrap
+	width: 80%;
+    position: absolute;
+    right: 0px;
+}
+
 .w3-btn:hover,.w3-btn-block:hover,.w3-btn-floating:hover,.w3-btn-floating-large:hover {
+	background-color:#286090;
 	box-shadow:0 8px 16px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19)
 }
 
@@ -74,21 +98,6 @@
 
 .w3-navbar a,.w3-topnav a,.w3-sidenav a,.w3-dropdown-content a,.w3-accordion-content a,.w3-dropnav a {
 	text-decoration:none!important
-}
-.w3-accordion-content {
-	cursor:auto;
-	display:none;
-	position:relative;
-	width:100%;
-	margin:0;
-	padding:0
-}
-.w3-accordion-content a {
-	padding:6px 16px;
-	display:block
-}
-.w3-accordion-content a:hover {
-	background-color:#ccc
 }
 
 .w3-container {
@@ -123,4 +132,14 @@
 .w3-hover-text-deep-purple,.w3-hover-text-red,.w3-hover-text-sand,.w3-hover-text-teal,.w3-hover-text-yellow,.w3-hover-text-white,.w3-hover-text-black,.w3-hover-text-grey,.w3-hover-text-light-grey,.w3-hover-text-dark-grey {
 	-webkit-transition:background-color .3s,color .15s,box-shadow .3s,opacity 0.3s,filter 0.3s;
 	transition:background-color .3s,color .15s,box-shadow .3s,opacity 0.3s,filter 0.3s
+}
+
+.w3-hide {
+	display:none!important
+}
+.w3-show-block,.w3-show {
+	display:block!important
+}
+.w3-show-inline-block {
+	display:inline-block!important
 }

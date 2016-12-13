@@ -62,6 +62,10 @@ function TempRuleController(renderer) {
         }
     }
 
+    self.getRuleHistory = function (shape) {
+        return storedRules[shape.id];
+    }
+
     self.getRule = function (shape) {
         storedRules[shape.id] = storedRules[shape.id] || [];
         var value = storedRules.get(shape.id);
@@ -181,6 +185,23 @@ function TempRuleController(renderer) {
         return selector.options[selector.selectedIndex].value;
     }
 
+    addTags = function (rule, ruleString) {
+        renderer.tags.forEach(function (value, key, map) {
+            value.forEach(function (value, key, map) {
+                var tagList = rule[key];
+                if (tagList.length != 0) {
+                    ruleString += "\n\t." + key + "(";
+                    for (var i = 0; i < tagList.length; i++) {
+                        ruleString += "\"" + tagList[i] + "\"";
+                        if (i != tagList.length - 1) ruleString += ", ";
+                    }
+                    ruleString += ")";
+                }
+            });
+        });
+        return ruleString;
+    }
+
 
 
     inputChanged = function () { renderer.inputChanged(); }
@@ -192,35 +213,31 @@ function TempRuleController(renderer) {
 
     self.rules.set("Translation", {
         generateRuleString: function (rule) {
-            var ruleString = "new Rules.Translate(Vec3(" + rule.x + ", " + rule.y + ", " + rule.z + "), " + getMode() + ")";
-            // add tags
+            var ruleString = "new Rules.Translate(Vec3(" + rule.x + ", " + rule.y + ", " + rule.z + "), " + rule.mode + ")";
+            ruleString = addTags(rule, ruleString);
             ruleString += ";";
             return ruleString;
+        },
+        generateShortString: function (rule) {
+            return ("Translation by (" + rule.x + ", " + rule.y + ", " + rule.z + "), " + rule.mode);
         },
         applyRule: function (rule, shape) {
             var matrix = new THREE.Matrix4();
             matrix.makeTranslation(parseFloat(rule.x), parseFloat(rule.y), parseFloat(rule.z)).transpose();
             mat = shape.appearance.transformation;
             var m = new THREE.Matrix4().fromArray(mat);
-            if (getMode() == "Mode.Local" || getMode() == "Mode.LocalMid") m.premultiply(matrix);
-            if (getMode() == "Mode.Global" || getMode() == "Mode.GlobalMid") m.multiply(matrix);
+            if (rule.mode == "Mode.Local" || rule.mode == "Mode.LocalMid") m.premultiply(matrix);
+            if (rule.mode == "Mode.Global" || rule.mode == "Mode.GlobalMid") m.multiply(matrix);
             shape.appearance.transformation = m.toArray();
-
-//            shape.appearance.transformation[3] += parseFloat(rule.x);
-//            shape.appearance.transformation[7] += parseFloat(rule.y);
-//            shape.appearance.transformation[11] += parseFloat(rule.z);
         },
         unapplyRule: function (rule, shape) {
             var matrix = new THREE.Matrix4();
             matrix.makeTranslation(-parseFloat(rule.x), -parseFloat(rule.y), -parseFloat(rule.z)).transpose();
             mat = shape.appearance.transformation;
             var m = new THREE.Matrix4().fromArray(mat);
-            if (getMode() == "Mode.Local" || getMode() == "Mode.LocalMid") m.premultiply(matrix);
-            if (getMode() == "Mode.Global" || getMode() == "Mode.GlobalMid") m.multiply(matrix);
+            if (rule.mode == "Mode.Local" || rule.mode == "Mode.LocalMid") m.premultiply(matrix);
+            if (rule.mode == "Mode.Global" || rule.mode == "Mode.GlobalMid") m.multiply(matrix);
             shape.appearance.transformation = m.toArray();
-//            shape.appearance.transformation[3] -= parseFloat(rule.x);
-//            shape.appearance.transformation[7] -= parseFloat(rule.y);
-//            shape.appearance.transformation[11] -= parseFloat(rule.z);
         },
         appendInputFields: function (parentDiv, rule) {
             var x_input = document.createElement("input");
@@ -244,11 +261,13 @@ function TempRuleController(renderer) {
             parentDiv.appendChild(x_input);
             parentDiv.appendChild(y_input);
             parentDiv.appendChild(z_input);
+            appendModeSelector(parentDiv);
+            if (rule) if (rule.mode) setModeSelector(rule.mode);
+            else setModeSelector("Local");
+
             $('#x_input_field').change(inputChanged);
             $('#y_input_field').change(inputChanged);
             $('#z_input_field').change(inputChanged);
-            appendModeSelector(parentDiv);
-            setModeSelector("Local");
 
             this.draggingHelpers.startPos = null;
             if (rule) if (rule.startPos) this.draggingHelpers.startPos = rule.startPos;
@@ -259,6 +278,7 @@ function TempRuleController(renderer) {
                 x: document.getElementById("x_input_field").value,
                 y: document.getElementById("y_input_field").value,
                 z: document.getElementById("z_input_field").value,
+                mode: getMode()
             }
             return rule;
         },
@@ -414,10 +434,13 @@ function TempRuleController(renderer) {
             var amount = null;
             if (rule.degrad == "deg") amount = "Deg(" + rule.amount + ")";
             else if (rule.degrad == "rad") amount = "Rad(" + rule.amount + ")";
-            var ruleString = "new Rules.Rotate(" + rule.axis + ", " + amount + "), " + getMode() + ")";
-            // add tags
+            var ruleString = "new Rules.Rotate(" + rule.axis + ", " + amount + ", " + rule.mode + ")";
+            ruleString = addTags(rule, ruleString);
             ruleString += ";";
             return ruleString;
+        },
+        generateShortString: function (rule) {
+            return ("Rotation by " + rule.amount + " " + rule.degrad + " on " + rule.axis + ", " + rule.mode);
         },
         applyRule: function (rule, shape) {
             var amount;
@@ -506,9 +529,10 @@ function TempRuleController(renderer) {
                         selector.selectedIndex = i;
                 }
             }
-
+            
             appendModeSelector(parentDiv);
-            setModeSelector("LocalMid");
+            if (rule) if (rule.mode) setModeSelector(rule.mode);
+            else setModeSelector("Local");
 
             $('#amount_input_field').change(inputChanged);
             $('#axis_selector').change(inputChanged);
@@ -521,6 +545,7 @@ function TempRuleController(renderer) {
                 type: "Rotation",
                 axis: selection,
                 amount: document.getElementById("amount_input_field").value,
+                mode: getMode()
             }
             selector = document.getElementById("degrad_selector");
             selection = selector.options[selector.selectedIndex].value;
@@ -694,6 +719,147 @@ function TempRuleController(renderer) {
             oldHandle = this.draggingHelpers.activeHandle;
             this.draggingHelpers.activeHandle = null;
             if (this.draggingHelpers.activeHandle != oldHandle) inputChanged();
+        }
+    });
+
+    // #################################################################################################################################
+    // ################################################## SPLIT ########################################################################
+    // #################################################################################################################################
+
+    nextIndex = 0;
+
+    addPart = function () {
+        button = document.getElementById("addPartButton");
+        partDiv = document.createElement('div');
+        partDiv.id = 'partDiv' + nextIndex;
+        var partname = 'part' + nextIndex + '_mode_selector';
+        innerHTML = '<select id=' + partname + '>';
+        innerHTML += '<option value="Relative">Relative</option>';
+        innerHTML += '<option value="Absolute">Absolute</option>';
+        innerHTML += '</select>';
+        partDiv.innerHTML += innerHTML;
+        amount_input = document.createElement("input");
+        amount_input.setAttribute('type', 'text');
+        var inputname = 'part' + nextIndex + '_amount_input_field';
+        amount_input.setAttribute('id', inputname);
+        partDiv.appendChild(amount_input);
+
+        var addPostfixName = 'part' + nextIndex + '_add_postfix_button';
+        addPostfixButton = document.createElement('button');
+        addPostfixButton.id = addPostfixName;
+        addPostfixButton.style = 'margin:0px 20px';
+        addPostfixButtonText = document.createTextNode('add Postfix');
+        addPostfixButton.appendChild(addPostfixButtonText);
+        partDiv.appendChild(addPostfixButton);
+
+        var removename = 'part' + nextIndex + '_remove_button';
+        removeButton = document.createElement('button');
+        removeButton.id = removename;
+        removeButton.style = 'position:absolute;right:5px';
+        removeButtonText = document.createTextNode('-');
+        removeButton.appendChild(removeButtonText);
+        partDiv.appendChild(removeButton);
+
+        button.parentNode.insertBefore(partDiv, button);
+        $('#' + partname).change(inputChanged);
+        $('#' + inputname).change(inputChanged);
+        $('#' + addPostfixName).click(addPostfix(partDiv.id))
+        $('#' + removename).click(function(id) {
+            return function () {
+                part = document.getElementById(id);
+                button.parentNode.removeChild(part);
+                inputChanged();
+            }
+        }(partDiv.id));
+        inputChanged();
+
+        nextIndex++;
+    };
+
+    addPostfix = function (partId) {
+        return function () {
+            part = document.getElementById(partId);
+            newDiv = document.createElement('div');
+            text = document.createTextNode('POSTFIXEDITOR GOES HERE');
+            newDiv.appendChild(text);
+            part.appendChild(newDiv);
+        }
+    }
+
+    self.rules.set("Split", {
+        generateRuleString: function (rule) {
+            var ruleString = "new Rules.Split(" + rule.axis + ",\n";
+            for (var part in rule.parts) {
+                ruleString += "\t\t" + rule.parts[part].mode + "(" + rule.parts[part].amount + ")\n"
+            }
+            ruleString += "\t\t)";
+            ruleString = addTags(rule, ruleString);
+            ruleString += ";";
+            return ruleString;
+        },
+        generateShortString: function (rule) {
+            var keys = Object.keys(rule.parts);
+            var size = keys.length;
+            return ("Split into " + size + " parts.");
+        },
+        applyRule: function (rule, shape) {
+            
+        },
+        unapplyRule: function (rule, shape) {
+           
+        },
+        appendInputFields: function (parentDiv, rule) {
+            var innerHTML = '<select id="axis_selector">';
+            innerHTML += '<option value="Axis.X">Axis.X</option>';
+            innerHTML += '<option value="Axis.Y">Axis.Y</option>';
+            innerHTML += '<option value="Axis.Z">Axis.Z</option>';
+            innerHTML += '</select>'
+            parentDiv.innerHTML += innerHTML;
+            
+            addPartButton = document.createElement('button');
+            addPartButton.id = "addPartButton";
+            var addPartButton_text = document.createTextNode("+");
+            addPartButton.appendChild(addPartButton_text);
+            parentDiv.appendChild(addPartButton);
+
+            $("#addPartButton").click(addPart);
+            addPart();
+            addPart();
+            $('#axis_selector').change(inputChanged);
+        },
+        createRuleDescriptor: function () {
+            var selector = document.getElementById("axis_selector");
+            var selection = selector.options[selector.selectedIndex].value;
+            var rule = {
+                type: "Split",
+                axis: selection,
+                parts: {}
+            }
+            for (var i = 0; i < nextIndex-1; i++) {
+                var name = 'part' + i + '_mode_selector';
+                modeSelector = document.getElementById(name);
+                if (modeSelector) {
+                    amountInput = document.getElementById('part' + i + '_amount_input_field');
+                    mode = modeSelector.options[modeSelector.selectedIndex].value;
+                    amount = amountInput.value;
+                    rule.parts['part' + i] = { mode: mode, amount: amount };
+                }
+            }
+            return rule;
+        },
+        draggingHelpers: {
+        },
+        createHandles: function (scene, shape) {
+        },
+        onMouseOverHandle: function (id) {
+        },
+        onMouseNotOverHandle: function () {
+        },
+        onHandlePressed: function (id, mouse, intersection, scene, camera) {
+        },
+        onHandleDragged: function (mouse) {
+        },
+        onHandleReleased: function () {
         }
     });
 
