@@ -1,9 +1,9 @@
 .tag-editor { 
     background: #fafafa; 
     font-size: 12px;
-    width: 80%;
+    width: 70%;
     position: absolute;
-    right: 0px;
+    right: 3em;
 	top: 0px;
 }
 .tag-editor .tag-editor-tag {

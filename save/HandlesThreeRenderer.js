@@ -4,7 +4,6 @@
     self.selectedMesh = null;
     self.selectedRule = null;
     self.handlesScene = null;
-    awlf.parsedRules = [];
 
     creatingNewRule = false;
 
@@ -120,14 +119,13 @@
                 for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
                     self.handlesScene.remove(self.handlesScene.children[i]);
                 clearUI();
-                self.initButtonsUI();
             }
 
             // create new selection and ui
             node.shape.interaction.selected(true);
             self.selectedMesh = node;
 
-//            self.initButtonsUI();
+            self.initButtonsUI();
 
             self.Update();
             self.RenderSingleFrame();
@@ -136,7 +134,7 @@
 
     self.parseCode = function () {
         var parsedCode = JSON.parse(lastGrammarResponse.parsedJSON);
-        self.parsedRules = [];
+        var parsedRules = [];
 
         var NOTHING = 0, RULE = 1, COMMENT = 2;
         var mode = NOTHING;
@@ -159,7 +157,7 @@
                     if (parsedCode[counter].Text == ';') {
                         mode = NOTHING;
                         [ruleDescriptor, postfixStart] = self.ruleController.parseRule(ruleBuffer);
-                        self.parsedRules.push(self.postfixController.parsePostfixes(ruleDescriptor, ruleBuffer.slice(postfixStart)));
+                        parsedRules.push(self.postfixController.parsePostfixes(ruleDescriptor, ruleBuffer.slice(postfixStart)));
                     } else {
                         ruleBuffer.push(parsedCode[counter]);
                     }
@@ -174,7 +172,7 @@
             }
         }
 
-        self.initButtonsUI();
+        self.initButtonsUI(parsedRules);
     }
 
     self.onDocumentMouseMove = function onDocumentMouseMove(event) {
@@ -222,7 +220,6 @@
                         self.handlesScene.remove(self.handlesScene.children[i]);
 
                     clearUI();
-                    self.initButtonsUI();
 
                     self.Update();
                     self.RenderSingleFrame();
@@ -235,17 +232,19 @@
 
 
 
-    self.initButtonsUI = function () {
+    self.initButtonsUI = function (parsedRules) {
+        if (!parsedRules) parsedRules = [];
+
         var ruleListDiv = document.createElement('div');
         ruleListDiv.id = "ruleListDiv";
         ruleListDiv.classList = "w3-container";
         ruleListDiv.style = "position:relative;";
 
-        for (var i = 0; i < self.parsedRules.length; i++) {
+        for (var i = 0; i < parsedRules.length; i++) {
             var ruleDiv = document.createElement('div');
             ruleDiv.style = "height:2em;position:relative;";
             ruleListDiv.appendChild(ruleDiv);
-            ruleDiv.innerHTML = "<span class='tag-tag'>" + self.ruleController.generateShortString(self.parsedRules[i]) + "</span>";
+            ruleDiv.innerHTML = "<span class='tag-tag'>" + self.ruleController.generateShortString(parsedRules[i]) + "</span>";
 
             var delete_button = document.createElement("button");
             delete_button.id = "deleteRule_Button";
@@ -268,7 +267,7 @@
         if (self.selectedMesh) {
             var history = self.ruleController.getRuleHistory(self.selectedMesh.shape);
         }
-        if (history) for (var i = self.parsedRules.length; i < history.length; i++) {
+        if (history) for (var i = parsedRules.length; i < history.length; i++) {
             var ruleDiv = document.createElement('div');
             ruleDiv.style = "height:2em;position:relative;";
             ruleListDiv.appendChild(ruleDiv);
