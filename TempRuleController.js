@@ -6,6 +6,9 @@ function TempRuleController(renderer) {
     storedRules = new Map();
     meshes = new Map();
 
+    tmpRules = [];
+    parsedRules = [];
+
     self.previewScene = new THREE.Scene();
 
     var INPUTTYPE = {
@@ -55,8 +58,7 @@ function TempRuleController(renderer) {
     }
 
     self.addRule = function (shape, rule) {
-        storedRules[shape.id] = storedRules[shape.id] || [];
-        storedRules[shape.id].push(rule);
+        tmpRules.push(rule);
 
         self.rules.get(rule.type).applyRule(rule, shape);
         if (meshes[shape.id])
@@ -67,31 +69,72 @@ function TempRuleController(renderer) {
         editor.setValue(editor.getValue() + "\n\n" + self.rules.get(rule.type).generateRuleString(rule), 1);
     }
 
-    self.removeRule = function (shape) {
-        if (storedRules[shape.id]) {
-            removedRule = storedRules[shape.id].pop();
-
-            self.rules.get(removedRule.type).unapplyRule(removedRule, shape);
-            self.rules.get(removedRule.type).removePreview(shape);
-            if (storedRules[shape.id].length != 0)
-                self.rules.get(removedRule.type).addPreview(shape);
+    self.removeRule = function (rule, shape) {
+        if (rule.wasParsed && !rule.edited) {
             var editor = ace.edit("code_text_ace");
-            editor.setValue(editor.getValue().replace("\n\n" + self.rules.get(removedRule.type).generateRuleString(removedRule), ""));
+            var oldstr = editor.getValue();
+            var ruleLength = rule.end - rule.start;
+            editor.setValue(oldstr.substr(0, rule.start) + oldstr.substr(rule.end), 1);
+
+            var index = renderer.ruleIndex;
+            for (var j = index; j < parsedRules.length; j++) {
+                parsedRules[j].start -= ruleLength;
+                parsedRules[j].end -= ruleLength;
+            }
+            rule.deleted = true;
+        } else {
+            var index = tmpRules.indexOf(rule)
+            if (index != -1) {
+                tmpRules.splice(index, 1);
+
+                var editor = ace.edit("code_text_ace");
+                editor.setValue(editor.getValue().replace("\n\n" + self.rules.get(rule.type).generateRuleString(rule), ""));
+            }
+        }
+        if (shape) {
+            self.rules.get(rule.type).unapplyRule(rule, shape.shape);
+            self.rules.get(rule.type).removePreview(shape.shape);
         }
     }
 
-    self.updateRule = function (shape, rule) {
-        if (storedRules[shape.id]) {
-            removedRule = storedRules[shape.id].pop();
-            storedRules[shape.id].push(rule);
+    self.updateRule = function (shape, oldrule, newrule) {
+        if (!oldrule) return;
+        if (!newrule) return;
+        if (!shape) return;
+        var index;
+        if (!newrule.wasParsed || newrule.edited) {
+            index = tmpRules.indexOf(oldrule)
+            if (index != -1) {
+                tmpRules.splice(index, 1);
+                tmpRules.push(newrule);
+            }
+        }
 
-            self.rules.get(removedRule.type).unapplyRule(removedRule, shape);
-            self.rules.get(removedRule.type).removePreview(shape);
-            self.rules.get(rule.type).applyRule(rule, shape);
-            self.rules.get(rule.type).addPreview(shape);
+        self.rules.get(oldrule.type).unapplyRule(oldrule, shape);
+        self.rules.get(oldrule.type).removePreview(shape);
+        self.rules.get(newrule.type).applyRule(newrule, shape);
+        self.rules.get(newrule.type).addPreview(shape);
 
-            var editor = ace.edit("code_text_ace");
-            editor.setValue(editor.getValue().replace(self.rules.get(removedRule.type).generateRuleString(removedRule), self.rules.get(rule.type).generateRuleString(rule)));
+        var editor = ace.edit("code_text_ace");
+        var newString = self.rules.get(newrule.type).generateRuleString(newrule);
+        
+        if (newrule.wasParsed && !newrule.edited) {
+            var oldstr = editor.getValue();
+            var ruleLength = uneditedRule.end - uneditedRule.start;
+            editor.setValue(oldstr.substr(0, uneditedRule.start) + oldstr.substr(uneditedRule.end), 1);
+
+            var index = renderer.ruleIndex;
+            parsedRules[index].edited = true;
+            newrule.edited = true;
+            for (var j = index + 1; j < parsedRules.length; j++) {
+                parsedRules[j].start -= ruleLength;
+                parsedRules[j].end -= ruleLength;
+            }
+            editor.setValue(editor.getValue() + "\n\n" + self.rules.get(newrule.type).generateRuleString(newrule), 1);
+            tmpRules.push(newrule);
+        } else {
+            var oldString = self.rules.get(oldrule.type).generateRuleString(oldrule);
+            editor.setValue(editor.getValue().replace(oldString, newString));
         }
     }
 
@@ -103,25 +146,35 @@ function TempRuleController(renderer) {
             var position = 0;
         } else {
             [parsedRule, position] = rule.parseCode(ruleBuffer);
-            if (ruleBuffer[position].Text == 'Mode') {
-                parsedRule.mode = 'Mode.' + ruleBuffer[position + 2].Text;
-                position += 3;
+            var counter = position;
+            while (counter < ruleBuffer.length) {
+                if (ruleBuffer[position].Text == "Mode") {
+
+                }
+                counter += 1;
             }
         }
         return [parsedRule, position];
     }
 
-    self.getRuleHistory = function (shape) {
-        return storedRules[shape.id];
+    self.setParsedRules = function(rules) {
+        parsedRules = rules;
     }
 
-    self.getRule = function (shape) {
-        storedRules[shape.id] = storedRules[shape.id] || [];
-        var value = storedRules.get(shape.id);
-        if (storedRules.get(shape.id) != []) {
-            return storedRules[shape.id][storedRules[shape.id].length - 1];
-        }
-        return null;
+    self.getParsedRules = function () {
+        return parsedRules;
+    }
+
+    self.getRuleHistory = function (shape) {
+        return self.getAllTmpRules[shape.id];
+    }
+
+    self.getAllTmpRules = function () {
+        return tmpRules;
+    }
+
+    self.getRuleByIndex = function (indey) {
+        return tmpRules[index];
     }
 
     addPreview = function (shape) {
@@ -270,7 +323,8 @@ function TempRuleController(renderer) {
             };
             abstractRule.appendInputFields = function (parentDiv, rule) {
             };
-            abstractRule.createRuleDescriptor = function () {
+            abstractRule.createRuleDescriptor = function (oldRule) {
+                if (oldRule) return oldRule;
                 var rule = {
                     type: "Dummy"
                 }
@@ -301,6 +355,7 @@ function TempRuleController(renderer) {
                 }
                 return [rule, 0];
             };
+            abstractRule.generatesMultipleShapes = false;
         }
 
 
@@ -604,11 +659,16 @@ function TempRuleController(renderer) {
                     customRule.onselectionChange();
                 };
 
-                customRule.createRuleDescriptor = function () {
-                    var rule = {
-                        type: config.type,
-                        selections: []
+                customRule.createRuleDescriptor = function (oldRule) {
+                    if (oldRule) {
+                        var rule  = jQuery.extend(true, {}, oldRule)
+                    } else {
+                        var rule = {};
                     }
+                    rule.tags = {};
+                    rule.selections = [];
+                    rule.type = config.type;
+                    rule.mode = null;
 
                     if (config.mode) {
                         rule.mode = getMode();
@@ -676,28 +736,66 @@ function TempRuleController(renderer) {
                         selections: []
                     };
 
-                    var counter = 4;
-                    var minus = false;
-                    // parse input variables
-                    for (var i = 0; i < config.options.length; i++) {
-                        switch (config.options[i].inputType) {
+                    var counter = 0;
+                    if (ruleBuffer[0].Text == config.type) counter += 2;
 
-                            case INPUTTYPE.STRING:
-                            case INPUTTYPE.RAW:
-                            case INPUTTYPE.DROPDOWN:
+                    var optionIndex = 0;
+                    var minus = false;
+                    var current = null;
+                    // parse input variables
+                    while (optionIndex < config.options.length && counter < ruleBuffer.length) {
+                        current = ruleBuffer[counter];
+
+                        switch (config.options[optionIndex].inputType) {
+
                             case INPUTTYPE.TAG:
-                                rule.selections.push(ruleBuffer[counter].ValueText);
-                                counter += 2;
+                            case INPUTTYPE.STRING:
+                                if (current.RawKind == 8511) {
+                                    rule.selections.push(current.Text.substring(1, (current.Text.length-1)));
+                                    optionIndex += 1;
+                                }
+                                counter += 1;
+                                break;
+
+                            case INPUTTYPE.RAW:
+                                if (current.Text == '-' && current.RawKind == 8202) {
+                                    minus = true;
+                                } else if (current.RawKind == 8509 ||
+                                    current.RawKind == 8511 ||
+                                    current.RawKind == 8323) {
+                                    if (minus) rule.selections.push('-' + current.Text);
+                                    else rule.selections.push(current.Text);
+                                    minus = false;
+                                    optionIndex += 1;
+                                }
+                                counter += 1;
+                                break;
+
+                            case INPUTTYPE.DROPDOWN:
+                                if (current.RawKind == 8508) {
+                                    if (ruleBuffer[counter + 1].Text == '.' && ruleBuffer[counter + 2].RawKind == 8508) {
+                                        rule.selections.push(current.Text + '.' + ruleBuffer[counter + 2].Text);
+                                        counter += 3;
+                                    } else {
+                                        rule.selections.push(current.Text);
+                                        counter += 1;
+                                    }
+                                    optionIndex += 1;
+                                } else {
+                                    counter += 1;
+                                }
                                 break;
 
                             case INPUTTYPE.DOUBLE:
-                                if (ruleBuffer[counter].ValueText == '-') {
+                                if (current.Text == '-' && current.RawKind == 8202) {
                                     minus = true;
-                                    counter++;
+                                } else if (current.RawKind == 8509) {
+                                    if (minus) rule.selections.push('-' + current.Text);
+                                    else rule.selections.push(current.Text);
+                                    minus = false;
+                                    optionIndex += 1;
                                 }
-                                rule.selections.push(minus ? -1 * ruleBuffer[counter].ValueText : ruleBuffer[counter].ValueText);
-                                minus = false;
-                                counter += 2;
+                                counter += 1;
                                 break;
 
                             case INPUTTYPE.TAGS:        // TODO: NOT CORRECT!!!! ONLY WORKS AS LAST INPUT PARAMETER
@@ -709,34 +807,23 @@ function TempRuleController(renderer) {
                                 break;
 
                             case INPUTTYPE.VEC3:
-                                var vec3 = [];
-
-                                if (ruleBuffer[counter + 2].ValueText == '-') {
+                                if (current.Text == '-' && current.RawKind == 8202) {
                                     minus = true;
-                                    counter++;
+                                } else if (current.Text == "Vec3" && current.RawKind == 8508) {
+                                    var vec3 = [];
+                                } else if (current.RawKind == 8509) {
+                                    if (minus) vec3.push('-' + current.Text)
+                                    else vec3.push(current.Text)
+                                    minus = false;
+                                } else if (current.Text == ")" && current.RawKind == 8201) {
+                                    rule.selections.push(vec3);
+                                    optionIndex += 1;
                                 }
-                                vec3.push(minus ? -1 * ruleBuffer[counter + 2].ValueText : ruleBuffer[counter + 2].ValueText);
-                                minus = false;
-
-                                if (ruleBuffer[counter + 4].ValueText == '-') {
-                                    minus = true;
-                                    counter++;
-                                }
-                                vec3.push(minus ? -1 * ruleBuffer[counter + 4].ValueText : ruleBuffer[counter + 4].ValueText);
-                                minus = false;
-
-                                if (ruleBuffer[counter + 6].ValueText == '-') {
-                                    minus = true;
-                                    counter++;
-                                }
-                                vec3.push(minus ? -1 * ruleBuffer[counter + 6].ValueText : ruleBuffer[counter + 6].ValueText);
-                                minus = false;
-
-                                rule.selections.push(vec3);
-                                counter += 9;
+                                counter += 1;
                                 break;
 
                             default:
+                                counter += 1;
                                 break;
 
                         }
@@ -931,19 +1018,22 @@ function TempRuleController(renderer) {
         // #################################################################################################################################
 
         {
-            var scale = jQuery.extend(true, {}, abstractRule)
-            scale.generateRuleString = function (rule) {
-                var ruleString = "new Rules.Scale(Vec3(" + rule.x + ", " + rule.y + ", " + rule.z + "), " + rule.mode + ")";
-                ruleString = addTags(rule, ruleString);
-                ruleString += ";";
-                return ruleString;
-            };
-            scale.generateShortString = function (rule) {
-                return ("Scale by (" + rule.x + ", " + rule.y + ", " + rule.z + "), " + rule.mode);
-            };
+            var scaleConfig = {
+                type: 'Scale',
+                mode: true,
+                options: [
+                    {
+                        label: 'Vector',
+                        inputType: INPUTTYPE.VEC3,
+                        values: [1, 1, 1]
+                    }
+                ]
+            }
+            var scale = generateCustomRule(scaleConfig);
+            
             scale.applyRule = function (rule, shape) {
                 var matrix = new THREE.Matrix4();
-                matrix.makeScale(parseFloat(rule.x), parseFloat(rule.y), parseFloat(rule.z));
+                matrix.makeScale(parseFloat(rule.selections[0][0]), parseFloat(rule.selections[0][1]), parseFloat(rule.selections[0][2]));
                 mat = shape.appearance.transformation;
                 var m = new THREE.Matrix4().fromArray(mat).transpose();
                 if (rule.mode == "Mode.Local" || rule.mode == "Mode.LocalMid") m.premultiply(matrix);
@@ -952,56 +1042,14 @@ function TempRuleController(renderer) {
             };
             scale.unapplyRule = function (rule, shape) {
                 var matrix = new THREE.Matrix4();
-                matrix.makeScale(1 / parseFloat(rule.x), 1 / parseFloat(rule.y), 1 / parseFloat(rule.z));
+                matrix.makeScale(1 / parseFloat(rule.selections[0][0]), 1 / parseFloat(rule.selections[0][1]), 1 / parseFloat(rule.selections[0][2]));
                 mat = shape.appearance.transformation;
                 var m = new THREE.Matrix4().fromArray(mat).transpose();
                 if (rule.mode == "Mode.Local" || rule.mode == "Mode.LocalMid") m.premultiply(matrix);
                 if (rule.mode == "Mode.Global" || rule.mode == "Mode.GlobalMid") m.multiply(matrix);
                 shape.appearance.transformation = m.transpose().toArray();
             };
-            scale.appendInputFields = function (parentDiv, rule) {
-                var x_input = document.createElement("input");
-                x_input.setAttribute('type', 'text');
-                x_input.setAttribute('id', 'x_input_field');
-                var y_input = document.createElement("input");
-                y_input.setAttribute('type', 'text');
-                y_input.setAttribute('id', 'y_input_field');
-                var z_input = document.createElement("input");
-                z_input.setAttribute('type', 'text');
-                z_input.setAttribute('id', 'z_input_field');
-                if (rule) {
-                    x_input.setAttribute('value', rule.x);
-                    y_input.setAttribute('value', rule.y);
-                    z_input.setAttribute('value', rule.z);
-                } else {
-                    x_input.setAttribute('value', '1');
-                    y_input.setAttribute('value', '1');
-                    z_input.setAttribute('value', '1');
-                }
-                parentDiv.appendChild(x_input);
-                parentDiv.appendChild(y_input);
-                parentDiv.appendChild(z_input);
-                appendModeSelector(parentDiv);
-                if (rule) if (rule.mode) setModeSelector(rule.mode);
-                else setModeSelector("Local");
-
-                $('#x_input_field').change(inputChanged);
-                $('#y_input_field').change(inputChanged);
-                $('#z_input_field').change(inputChanged);
-
-                this.draggingHelpers.startPos = null;
-                if (rule) if (rule.startPos) this.draggingHelpers.startPos = rule.startPos;
-            };
-            scale.createRuleDescriptor = function () {
-                var rule = {
-                    type: "Scale",
-                    x: document.getElementById("x_input_field").value,
-                    y: document.getElementById("y_input_field").value,
-                    z: document.getElementById("z_input_field").value,
-                    mode: getMode()
-                }
-                return rule;
-            };
+            
             scale.draggingHelpers = {
                 ids: {
                     x: 0,
@@ -1094,9 +1142,9 @@ function TempRuleController(renderer) {
                     end: end
                 }
 
-                this.draggingHelpers.startValues.x = parseFloat(document.getElementById("x_input_field").value);
-                this.draggingHelpers.startValues.y = parseFloat(document.getElementById("y_input_field").value);
-                this.draggingHelpers.startValues.z = parseFloat(document.getElementById("z_input_field").value);
+                this.draggingHelpers.startValues.x = parseFloat(document.getElementById("vec3_0_elem0").value);
+                this.draggingHelpers.startValues.y = parseFloat(document.getElementById("vec3_0_elem1").value);
+                this.draggingHelpers.startValues.z = parseFloat(document.getElementById("vec3_0_elem2").value);
                 this.draggingHelpers.cam = camera;
                 this.draggingHelpers.intersection = intersection;
                 this.draggingHelpers.arrowPos = arrowPos;
@@ -1136,17 +1184,17 @@ function TempRuleController(renderer) {
                     case 'x':
                         var newSize = this.draggingHelpers.startSizeX * this.draggingHelpers.startValues.x + length;
                         var scale = newSize / this.draggingHelpers.startSizeX;
-                        document.getElementById("x_input_field").value = scale.round();
+                        document.getElementById("vec3_0_elem0").value = scale.round();
                         break;
                     case 'y':
                         var scale = this.draggingHelpers.startSizeY * this.draggingHelpers.startValues.y + length;
                         scale = scale / this.draggingHelpers.startSizeY;
-                        document.getElementById("y_input_field").value = scale.round();
+                        document.getElementById("vec3_0_elem1").value = scale.round();
                         break;
                     case 'z':
                         var scale = this.draggingHelpers.startSizeZ * this.draggingHelpers.startValues.z + length;
                         scale = scale / this.draggingHelpers.startSizeZ;
-                        document.getElementById("z_input_field").value = scale.round();
+                        document.getElementById("vec3_0_elem2").value = scale.round();
                         break;
                 }
                 inputChanged();
@@ -1164,16 +1212,19 @@ function TempRuleController(renderer) {
         // #################################################################################################################################
 
         {
-            var grow = jQuery.extend(true, {}, abstractRule)
-            grow.generateRuleString = function (rule) {
-                var ruleString = "new Rules.Grow(Vec3(" + rule.x + ", " + rule.y + ", " + rule.z + "), " + rule.mode + ")";
-                ruleString = addTags(rule, ruleString);
-                ruleString += ";";
-                return ruleString;
-            };
-            grow.generateShortString = function (rule) {
-                return ("Grow by (" + rule.x + ", " + rule.y + ", " + rule.z + "), " + rule.mode);
-            };
+            var growConfig = {
+                type: 'Grow',
+                mode: true,
+                options: [
+                    {
+                        label: 'Vector',
+                        inputType: INPUTTYPE.VEC3,
+                        values: [0, 0, 0]
+                    }
+                ]
+            }
+            var grow = generateCustomRule(growConfig);
+    
             grow.applyRule = function (rule, shape) {
                 var transform = shape.appearance.transformation;
                 var xDir = new THREE.Vector3(transform[0], transform[1], transform[2]);
@@ -1182,9 +1233,9 @@ function TempRuleController(renderer) {
                 var sizeX = xDir.length();
                 var sizeY = yDir.length();
                 var sizeZ = zDir.length();
-                var scaleX = 1 + parseFloat(rule.x) / sizeX;
-                var scaleY = 1 + parseFloat(rule.y) / sizeY;
-                var scaleZ = 1 + parseFloat(rule.z) / sizeZ;
+                var scaleX = 1 + parseFloat(rule.selections[0][0]) / sizeX;
+                var scaleY = 1 + parseFloat(rule.selections[0][1]) / sizeY;
+                var scaleZ = 1 + parseFloat(rule.selections[0][2]) / sizeZ;
 
                 var matrix = new THREE.Matrix4();
                 matrix.makeScale(scaleX, scaleY, scaleZ);
@@ -1202,9 +1253,9 @@ function TempRuleController(renderer) {
                 var sizeX = xDir.length();
                 var sizeY = yDir.length();
                 var sizeZ = zDir.length();
-                var scaleX = sizeX / (sizeX - parseFloat(rule.x));
-                var scaleY = sizeY / (sizeY - parseFloat(rule.y));
-                var scaleZ = sizeZ / (sizeZ - parseFloat(rule.z));
+                var scaleX = sizeX / (sizeX - parseFloat(rule.selections[0][0]));
+                var scaleY = sizeY / (sizeY - parseFloat(rule.selections[0][1]));
+                var scaleZ = sizeZ / (sizeZ - parseFloat(rule.selections[0][2]));
 
                 var matrix = new THREE.Matrix4();
                 matrix.makeScale(1 / scaleX, 1 / scaleY, 1 / scaleZ);
@@ -1213,49 +1264,6 @@ function TempRuleController(renderer) {
                 if (rule.mode == "Mode.Local" || rule.mode == "Mode.LocalMid") m.premultiply(matrix);
                 if (rule.mode == "Mode.Global" || rule.mode == "Mode.GlobalMid") m.multiply(matrix);
                 shape.appearance.transformation = m.transpose().toArray();
-            };
-            grow.appendInputFields = function (parentDiv, rule) {
-                var x_input = document.createElement("input");
-                x_input.setAttribute('type', 'text');
-                x_input.setAttribute('id', 'x_input_field');
-                var y_input = document.createElement("input");
-                y_input.setAttribute('type', 'text');
-                y_input.setAttribute('id', 'y_input_field');
-                var z_input = document.createElement("input");
-                z_input.setAttribute('type', 'text');
-                z_input.setAttribute('id', 'z_input_field');
-                if (rule) {
-                    x_input.setAttribute('value', rule.x);
-                    y_input.setAttribute('value', rule.y);
-                    z_input.setAttribute('value', rule.z);
-                } else {
-                    x_input.setAttribute('value', '0');
-                    y_input.setAttribute('value', '0');
-                    z_input.setAttribute('value', '0');
-                }
-                parentDiv.appendChild(x_input);
-                parentDiv.appendChild(y_input);
-                parentDiv.appendChild(z_input);
-                appendModeSelector(parentDiv);
-                if (rule) if (rule.mode) setModeSelector(rule.mode);
-                else setModeSelector("Local");
-
-                $('#x_input_field').change(inputChanged);
-                $('#y_input_field').change(inputChanged);
-                $('#z_input_field').change(inputChanged);
-
-                this.draggingHelpers.startPos = null;
-                if (rule) if (rule.startPos) this.draggingHelpers.startPos = rule.startPos;
-            };
-            grow.createRuleDescriptor = function () {
-                var rule = {
-                    type: "Grow",
-                    x: document.getElementById("x_input_field").value,
-                    y: document.getElementById("y_input_field").value,
-                    z: document.getElementById("z_input_field").value,
-                    mode: getMode()
-                }
-                return rule;
             };
             grow.draggingHelpers = {
                 ids: {
@@ -1349,9 +1357,9 @@ function TempRuleController(renderer) {
                     end: end
                 }
 
-                this.draggingHelpers.startValues.x = parseFloat(document.getElementById("x_input_field").value);
-                this.draggingHelpers.startValues.y = parseFloat(document.getElementById("y_input_field").value);
-                this.draggingHelpers.startValues.z = parseFloat(document.getElementById("z_input_field").value);
+                this.draggingHelpers.startValues.x = parseFloat(document.getElementById("vec3_0_elem0").value);
+                this.draggingHelpers.startValues.y = parseFloat(document.getElementById("vec3_0_elem1").value);
+                this.draggingHelpers.startValues.z = parseFloat(document.getElementById("vec3_0_elem2").value);
                 this.draggingHelpers.cam = camera;
                 this.draggingHelpers.intersection = intersection;
                 this.draggingHelpers.arrowPos = arrowPos;
@@ -1392,19 +1400,19 @@ function TempRuleController(renderer) {
                         var scale = this.draggingHelpers.startSizeX + length;
                         scale = scale / this.draggingHelpers.startSizeX;
                         var grow = scale * this.draggingHelpers.sizeX - this.draggingHelpers.sizeX;
-                        document.getElementById("x_input_field").value = (this.draggingHelpers.startValues.x + length).round();
+                        document.getElementById("vec3_0_elem0").value = (this.draggingHelpers.startValues.x + length).round();
                         break;
                     case 'y':
                         var scale = this.draggingHelpers.startSizeY + length;
                         scale = scale / this.draggingHelpers.startSizeY;
                         var grow = scale * this.draggingHelpers.sizeY - this.draggingHelpers.sizeY;
-                        document.getElementById("y_input_field").value = (this.draggingHelpers.startValues.y + length).round();
+                        document.getElementById("vec3_0_elem1").value = (this.draggingHelpers.startValues.y + length).round();
                         break;
                     case 'z':
                         var scale = this.draggingHelpers.startSizeZ + length;
                         scale = scale / this.draggingHelpers.startSizeZ;
                         var grow = scale * this.draggingHelpers.sizeZ - this.draggingHelpers.sizeZ;
-                        document.getElementById("z_input_field").value = (this.draggingHelpers.startValues.z + length).round();
+                        document.getElementById("vec3_0_elem2").value = (this.draggingHelpers.startValues.z + length).round();
                         break;
                 }
                 inputChanged();
@@ -2058,6 +2066,9 @@ function TempRuleController(renderer) {
                     nextIndex: 0,
                     epsilon: 0.001
                 }
+
+                split.generatesMultipleShapes = true;
+
                 split.addPart = function (settings) {
                     button = document.getElementById("addPartButton");
                     partDiv = document.createElement('div');
@@ -2566,7 +2577,7 @@ function TempRuleController(renderer) {
 
         {
             var turns = ["Turn.X90", "Turn.X180", "Turn.X270", "Turn.Y90", "Turn.Y180", "Turn.Y270", "Turn.Z90", "Turn.Z180", "Turn.Z270"];
-            var orientationConfig = {
+            self.orientationConfig = {
                 type: 'Orientation',
                 mode: false,
                 options: [
@@ -2585,7 +2596,7 @@ function TempRuleController(renderer) {
 
         {
             var axes = ["Axis.X", "Axis.Y", "Axis.Z"];
-            var reflectionConfig = {
+            self.reflectionConfig = {
                 type: 'Reflect',
                 mode: true,
                 options: [
@@ -2615,7 +2626,7 @@ function TempRuleController(renderer) {
         "Material.Teal", "Material.Green", "Material.LightGreen", "Material.Lime",
         "Material.Yellow", "Material.Amber", "Material.Orange", "Material.DeepOrange",
         "Material.Brown", "Material.Grey", "Material.BlueGrey"];
-            var paintConfig = {
+            self.paintConfig = {
                 type: 'Paint',
                 mode: false,
                 options: [
@@ -2632,7 +2643,7 @@ function TempRuleController(renderer) {
                 ]
             }
 
-            var paint = generateCustomRule(paintConfig);
+            var paint = generateCustomRule(self.paintConfig);
             paint.generateRuleString = function (rule) {
                 var ruleString = "new Rules.Paint(" + rule.selections[0];
                 if (rule.selections[1] != null) ruleString += '(' + rule.selections[1] + ')';
@@ -2650,7 +2661,7 @@ function TempRuleController(renderer) {
                 var selector = document.getElementById('dropdown0');
                 var toneSelector = document.getElementById('dropdown1');
                 var toneLabel = document.getElementById('label1');
-                if (selector.selectedIndex > 18) {
+                if (selector.selectedIndex > 19) {
                     toneSelector.style.display = 'inline';
                     toneLabel.style.display = 'inline';
                 } else {
@@ -2708,7 +2719,7 @@ function TempRuleController(renderer) {
 
         {
             var saturationConfig = {
-                type: 'Saturation',
+                type: 'Saturate',
                 mode: true,
                 options: [
                     {
@@ -2735,7 +2746,7 @@ function TempRuleController(renderer) {
         "Primitive.Plane", "Primitive.Prism", "Primitive.Gable", "Primitive.Ring",
         "Primitive.Sphere", "Primitive.Tetrahedron", "Primitive.Torus", "Primitive.TorusKnot"];
 
-            var assetConfig = {
+            self.assetConfig = {
                 type: 'Asset',
                 mode: false,
                 options: [
@@ -2807,24 +2818,269 @@ function TempRuleController(renderer) {
             }
         }
 
+        // #################################################################################################################################
+        // ##################################################### Concat ####################################################################
+        // #################################################################################################################################
+
+        {
+            var concat = jQuery.extend(true, {}, abstractRule)
+
+            concat.generateRuleString = function (rule) {
+                var output = "new Rules.Concat(";
+                for (var i = 0; i < rule.selections.length; i++) {
+                    output += "\n";
+                    output += self.rules.get(rule.selections[i].type).generateRuleString(rule.selections[i]);
+                    output = output.slice(0, -1);
+                    output += ",";
+                }
+                output = output.slice(0, -1);
+                output += "\n);";
+                return output;
+            };
+
+            concat.generateShortString = function (rule) {
+                var output = "Concat of ";
+                output += rule.selections.length;
+                output += " rules";
+                return output;
+            };
+
+            concat.applyRule = function (rule, shape) {
+                for (var i = 0; i < rule.selections.length; i++) {
+                    self.rules.get(rule.selections[i].type).applyRule(rule.selections[i], shape);
+                    if (rule.selections[i].wasParsed) {
+                        parsedRules[rule.selections[i].index].inConcat = true;
+                    } else {
+                        tmpRules[rule.selections[i].index].inConcat = true;
+                    }
+                }
+            };
+
+            concat.unapplyRule = function (rule, shape) {
+                for (var i = rule.selections.length-1; i >= 0; i--) {
+                    self.rules.get(rule.selections[i].type).unapplyRule(rule.selections[i], shape);
+                }
+            };
+
+            concat.dummy = { Type: "Concat" };
+            concat.appendInputFields = function (parentDiv, rule, dontUpdateFromRule) {
+                if (!rule || !concat.draggingHelpers.selections) {
+                    concat.draggingHelpers.selections = [];
+                    rule = concat.dummy;
+                } else if (rule && rule.selections && !dontUpdateFromRule) {
+                    concat.draggingHelpers.selections = rule.selections.slice();
+                }
+
+                while (parentDiv.hasChildNodes()) {
+                    parentDiv.removeChild(parentDiv.lastChild);
+                }
+
+
+                // list current selection
+                var selectionListDiv = document.createElement('div');
+                selectionListDiv.id = "concatRuleSelectionDiv";
+                selectionListDiv.classList = "w3-container";
+                selectionListDiv.style = "position:relative; border-bottom: 1px solid black;";
+
+                for (var i = 0; i < concat.draggingHelpers.selections.length; i++) {
+                    var ruleDiv = document.createElement('div');
+                    ruleDiv.style = "height:2em;position:relative;";
+                    selectionListDiv.appendChild(ruleDiv);
+                    ruleDiv.innerHTML = "<span class='tag-tag'>" + self.generateShortString(concat.draggingHelpers.selections[i]) + "</span>";
+
+                    if (i != 0 &&
+                        !concat.draggingHelpers.selections[i].generatesMultipleShapes) {
+                        var up_button = document.createElement("button");
+                        up_button.id = "up_Button_" + i;
+                        up_button.classList = "w3-btn";
+                        up_button.style = "height:2em;float:right;padding:3px 16px;"
+                        var up_button_text = document.createTextNode("up");
+
+                        up_button.appendChild(up_button_text);
+                        ruleDiv.appendChild(up_button);
+                    }
+
+                    if (i != concat.draggingHelpers.selections.length - 1 &&
+                        !concat.draggingHelpers.selections[i + 1].generatesMultipleShapes) {
+                        var down_button = document.createElement("button");
+                        down_button.id = "down_Button_" + i;
+                        down_button.classList = "w3-btn";
+                        down_button.style = "height:2em;float:right;padding:3px 16px;"
+                        var down_button_text = document.createTextNode("down");
+
+                        down_button.appendChild(down_button_text);
+                        ruleDiv.appendChild(down_button);
+                    }
+
+                    var remove_button = document.createElement("button");
+                    remove_button.id = "removeRule_Button_" + i;
+                    remove_button.classList = "w3-btn";
+                    remove_button.style = "height:2em;float:right;padding:3px 16px;"
+                    var remove_button_text = document.createTextNode("remove");
+
+                    remove_button.appendChild(remove_button_text);
+                    ruleDiv.appendChild(remove_button);
+                }
+
+                parentDiv.appendChild(selectionListDiv);
+
+                // up button function
+                for (var i = 0; i < concat.draggingHelpers.selections.length; i++) {
+                    $("#up_Button_" + i).click(function (i) {
+                        return function () {
+                            var tmp = concat.draggingHelpers.selections[i];
+                            concat.draggingHelpers.selections[i] = concat.draggingHelpers.selections[i - 1];
+                            concat.draggingHelpers.selections[i - 1] = tmp;
+
+                            inputChanged();
+                            concat.appendInputFields(parentDiv, rule, true);
+                        };
+                    }(i))
+                }
+
+                // down button function
+                for (var i = 0; i < concat.draggingHelpers.selections.length; i++) {
+                    $("#down_Button_" + i).click(function (i) {
+                        return function () {
+                            var tmp = concat.draggingHelpers.selections[i];
+                            concat.draggingHelpers.selections[i] = concat.draggingHelpers.selections[i + 1];
+                            concat.draggingHelpers.selections[i + 1] = tmp;
+
+                            inputChanged();
+                            concat.appendInputFields(parentDiv, rule, true);
+                        };
+                    }(i))
+                }
+
+                // remove button function
+                for (var i = 0; i < concat.draggingHelpers.selections.length; i++) {
+                    $("#removeRule_Button_" + i).click(function (i) {
+                        return function () {
+                            parsedRules[concat.draggingHelpers.selections[i].index].inConcat = false;
+                            concat.draggingHelpers.selections.splice(i, 1);
+                            
+                            inputChanged();
+                            concat.appendInputFields(parentDiv, rule, true);
+                        };
+                    }(i))
+                }
+                
+                // list available rules
+                var ruleListDiv = document.createElement('div');
+                ruleListDiv.id = "concatRuleListDiv";
+                ruleListDiv.classList = "w3-container";
+                ruleListDiv.style = "position:relative;";
+
+                var lastAdded = null;
+                for (var i = 0; i < parsedRules.length; i++) {
+                    if (!parsedRules[i].deleted &&
+                        !parsedRules[i].edited &&
+                        !parsedRules[i].inConcat &&
+                        parsedRules[i] != rule &&
+                        !(lastAdded && lastAdded.generatesMultipleShapes)) {
+
+                        var ruleDiv = document.createElement('div');
+                        ruleDiv.style = "height:2em;position:relative;";
+                        ruleListDiv.appendChild(ruleDiv);
+                        ruleDiv.innerHTML = "<span class='tag-tag'>" + self.generateShortString(parsedRules[i]) + "</span>";
+                        
+                        var add_button = document.createElement("button");
+                        add_button.id = "addRule_Button_" + i;
+                        add_button.classList = "w3-btn";
+                        add_button.style = "height:2em;float:right;padding:3px 16px;"
+                        var add_button_text = document.createTextNode("add");
+
+                        lastAdded = parsedRules[i];
+
+                        add_button.appendChild(add_button_text);
+                        ruleDiv.appendChild(add_button);
+                    }
+                }
+                for (var i = 0; i < tmpRules.length; i++) {
+                    if (tmpRules[i] != rule &&
+                        tmpRules[i] != concat.createRuleDescriptor() &&
+                        !tmpRules[i].inConcat &&
+                        !(lastAdded && lastAdded.generatesMultipleShapes)) {
+                        var ruleDiv = document.createElement('div');
+                        ruleDiv.style = "height:2em;position:relative;";
+                        ruleListDiv.appendChild(ruleDiv);
+                        ruleDiv.innerHTML = "<span class='tag-tag'>" + self.generateShortString(tmpRules[i]) + "</span>";
+
+                        var add_button = document.createElement("button");
+                        add_button.id = "addRule_Button_" + (i + parsedRules.length);
+                        add_button.classList = "w3-btn";
+                        add_button.style = "height:2em;float:right;padding:3px 16px;"
+                        var add_button_text = document.createTextNode("add");
+
+                        lastAdded = parsedRules[i];
+
+                        add_button.appendChild(add_button_text);
+                        ruleDiv.appendChild(add_button);
+                    }
+                }
+
+                parentDiv.appendChild(ruleListDiv);
+
+                // add buttons functions
+                for (var i = 0; i < parsedRules.length; i++) {
+                    $("#addRule_Button_" + i).click(function (i) {
+                        return function () {
+                            parsedRules[i].index = i;
+                            concat.draggingHelpers.selections.push(parsedRules[i]);
+                            parsedRules[i].inConcat = true;
+                            inputChanged();
+
+                            concat.appendInputFields(parentDiv, rule, true);
+                        };
+                    }(i))
+                }
+                for (var i = 0; i < tmpRules.length; i++) {
+                    $("#addRule_Button_" + (i + parsedRules.length)).click(function (i) {
+                        return function () {
+                            tmpRules[i].index = i;
+                            concat.draggingHelpers.selections.push(tmpRules[i]);
+                            tmpRules[i].inConcat = true;
+                            inputChanged();
+
+                            concat.appendInputFields(parentDiv, rule, true);
+                        };
+                    }(i))
+                }
+            };
+
+            concat.createRuleDescriptor = function (oldRule) {
+                if (!concat.draggingHelpers.selections) concat.draggingHelpers.selections = [];
+                if (oldRule) {
+                    var rule = jQuery.extend(true, {}, oldRule)
+                } else {
+                    var rule = {};
+                }
+                rule.tags = {};
+                rule.mode = null;
+                rule.type = "Concat";
+                rule.selections = concat.draggingHelpers.selections.slice();
+                return rule;
+            }
+        }
     }
 
 
     self.rules.set(translateConfig.type, translation);
-    self.rules.set("Scale", scale);
-    self.rules.set("Grow", grow);
+    self.rules.set(scaleConfig.type, scale);
+    self.rules.set(growConfig.type, grow);
     self.rules.set(sizeConfig.type, sizeRule);
     self.rules.set("Rotation", rotation);
-    self.rules.set(orientationConfig.type, generateCustomRule(orientationConfig));
-    self.rules.set(reflectionConfig.type, generateCustomRule(reflectionConfig));
+    self.rules.set(self.orientationConfig.type, generateCustomRule(self.orientationConfig));
+    self.rules.set(self.reflectionConfig.type, generateCustomRule(self.reflectionConfig));
     self.rules.set("Split", split);
-    self.rules.set(paintConfig.type, paint);
+    self.rules.set(self.paintConfig.type, paint);
     self.rules.set(hueConfig.type, generateCustomRule(hueConfig));
     self.rules.set(saturationConfig.type, generateCustomRule(saturationConfig));
     self.rules.set(attributeConfig.type, generateCustomRule(attributeConfig));
-    self.rules.set(assetConfig.type, generateCustomRule(assetConfig));
+    self.rules.set(self.assetConfig.type, generateCustomRule(self.assetConfig));
     self.rules.set(GoalConfig.type, generateCustomRule(GoalConfig));
     self.rules.set(goalConfig.type, generateCustomRule(goalConfig));
+    self.rules.set("Concat", concat);
 
 return self;
 }

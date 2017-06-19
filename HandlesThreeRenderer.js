@@ -4,9 +4,14 @@
     self.selectedMesh = null;
     self.selectedRule = null;
     self.handlesScene = null;
-    awlf.parsedRules = [];
+    self.parsedRules = [];
 
     creatingNewRule = false;
+
+    uneditedRule = null;
+    uneditedCode = null;
+    currentRuleWasParsed = false;
+    self.ruleIndex = 0;
 
     handlesType = null;
     handleId = 0;
@@ -33,7 +38,7 @@
     scrollDiv.appendChild(uiDiv);
     document.getElementById("graphRendererContainer").appendChild(scrollDiv);
 
-    self.codeParseInitialized = false;
+    self.codeParseNeeded = true;
 
     self.initCalls.push(function () {
         document.addEventListener('click', this.onDocumentMouseClick, false);
@@ -44,6 +49,14 @@
         self.handlesScene = new THREE.Scene();
 
         ace.edit("code_text_ace").$blockScrolling = Infinity;
+
+        var goButton = document.getElementById("parse-button");
+        goButton.addEventListener("click", function () {
+            clearUI();
+            self.selectedMesh = null;
+            self.selectedRule = null;
+            self.codeParseNeeded = true;
+        }, false);
     });
 
     self.wireframeHitCallback = function (intersects) {
@@ -102,6 +115,11 @@
         this.renderer.context.disable(this.renderer.context.DEPTH_TEST);
         this.renderer.render(self.handlesScene, this.camera);
         this.renderer.context.enable(this.renderer.context.DEPTH_TEST);
+
+        if (self.codeParseNeeded == true && (typeof lastGrammarResponse != 'undefined') && lastGrammarResponse != null) {
+            self.codeParseNeeded = false;
+            self.parseCode();
+        }
     });
 
     self.onDocumentMouseDown = function onDocumentMouseClick(event) {
@@ -135,38 +153,53 @@
     }
 
     self.parseCode = function () {
+        if (lastGrammarResponse.parsedJSON == "") {
+            self.initButtonsUI();
+            return;
+        }
         var parsedCode = JSON.parse(lastGrammarResponse.parsedJSON);
-        self.parsedRules = [];
+        var parsedRules = [];
 
-        var NOTHING = 0, RULE = 1, COMMENT = 2;
+        var NOTHING = 0, RULE = 1;
         var mode = NOTHING;
 
-        var counter = 0;
+        var counter = 0, ruleStart;
         var ruleBuffer;
+        var expectedRulesStart = null;
+        var current = null;
         while (counter < parsedCode.length) {
+            current = parsedCode[counter];
             switch (mode) {
                 case NOTHING:
-                    if (parsedCode[counter].Text == 'new' && parsedCode[counter + 1].Text == 'Rules') {
+                    if (current.Text == 'new' && current.RawKind == 8354) {
+                        expectedRulesStart = current.SpanStart + current.SpanLength + 1;
+                        ruleStart = current.SpanStart;
+                        counter += 1;
+                    }
+                    else if (current.Text == 'Rules' && current.RawKind == 8508 && current.SpanStart == expectedRulesStart) {
                         mode = RULE;
                         ruleBuffer = [];
-                        counter += 3;
+                        counter += 2;
                     } else {
                         counter += 1;
                     }
                     break;
 
                 case RULE:
-                    if (parsedCode[counter].Text == ';') {
+                    if (current.Text == ';' && current.RawKind == 8212) {
                         mode = NOTHING;
                         [ruleDescriptor, postfixStart] = self.ruleController.parseRule(ruleBuffer);
-                        self.parsedRules.push(self.postfixController.parsePostfixes(ruleDescriptor, ruleBuffer.slice(postfixStart)));
+                        var rule = self.postfixController.parsePostfixes(ruleDescriptor, ruleBuffer.slice(postfixStart));
+                        rule.start = ruleStart;
+                        rule.end = current.SpanStart + current.SpanLength;
+                        rule.deleted = false;
+                        rule.edited = false;
+                        rule.wasParsed = true;
+                        parsedRules.push(rule);
                     } else {
-                        ruleBuffer.push(parsedCode[counter]);
+                        ruleBuffer.push(current);
                     }
                     counter += 1;
-                    break;
-
-                case COMMENT:
                     break;
 
                 default:
@@ -174,14 +207,19 @@
             }
         }
 
+        self.ruleController.setParsedRules(parsedRules);
+
+        clearUI();
         self.initButtonsUI();
     }
 
     self.onDocumentMouseMove = function onDocumentMouseMove(event) {
+        /*
         if (self.codeParseInitialized == false && (typeof lastGrammarResponse != 'undefined') && lastGrammarResponse != null) {
             self.codeParseInitialized = true;
             self.parseCode();
         }
+        */
 
         var offset = self.container.offset();
         var cullLeft = event.clientX < offset.left;
@@ -241,55 +279,68 @@
         ruleListDiv.classList = "w3-container";
         ruleListDiv.style = "position:relative;";
 
-        for (var i = 0; i < self.parsedRules.length; i++) {
-            var ruleDiv = document.createElement('div');
-            ruleDiv.style = "height:2em;position:relative;";
-            ruleListDiv.appendChild(ruleDiv);
-            ruleDiv.innerHTML = "<span class='tag-tag'>" + self.ruleController.generateShortString(self.parsedRules[i]) + "</span>";
+        var parsedRules = self.ruleController.getParsedRules();
+        for (var i = 0; i < parsedRules.length; i++) {
+            if (!parsedRules[i].deleted && !parsedRules[i].edited && !parsedRules[i].inConcat) {
+                var ruleDiv = document.createElement('div');
+                ruleDiv.style = "height:2em;position:relative;";
+                ruleListDiv.appendChild(ruleDiv);
+                ruleDiv.innerHTML = "<span class='tag-tag'>" + self.ruleController.generateShortString(parsedRules[i]) + "</span>";
 
-            var delete_button = document.createElement("button");
-            delete_button.id = "deleteRule_Button";
-            delete_button.classList = "w3-btn";
-            delete_button.style = "height:2em;float:right;padding:3px 16px;"
-            var delete_button_text = document.createTextNode("Delete");
+                if (self.selectedMesh) {
+                    var edit_button = document.createElement("button");
+                    edit_button.id = "editRule_Button_" + i;
+                    edit_button.classList = "w3-btn";
+                    edit_button.style = "height:2em;float:right;padding:3px 16px;"
+                    var edit_button_text = document.createTextNode("Edit");
 
-            var edit_button = document.createElement("button");
-            edit_button.id = "editRule_Button";
-            edit_button.classList = "w3-btn";
-            edit_button.style = "height:2em;float:right;padding:3px 16px;"
-            var edit_button_text = document.createTextNode("Edit");
+                    edit_button.appendChild(edit_button_text);
+                    ruleDiv.appendChild(edit_button);
+                }
 
-            edit_button.appendChild(edit_button_text);
-            delete_button.appendChild(delete_button_text);
-            ruleDiv.appendChild(delete_button);
-            ruleDiv.appendChild(edit_button);
+                var delete_button = document.createElement("button");
+                delete_button.id = "deleteRule_Button_" + i;
+                delete_button.classList = "w3-btn";
+                delete_button.style = "height:2em;float:right;padding:3px 16px;"
+                var delete_button_text = document.createTextNode("Delete");
+
+                delete_button.appendChild(delete_button_text);
+                ruleDiv.appendChild(delete_button);
+            }
         }
-
+        /*
         if (self.selectedMesh) {
             var history = self.ruleController.getRuleHistory(self.selectedMesh.shape);
         }
-        if (history) for (var i = self.parsedRules.length; i < history.length; i++) {
-            var ruleDiv = document.createElement('div');
-            ruleDiv.style = "height:2em;position:relative;";
-            ruleListDiv.appendChild(ruleDiv);
-            ruleDiv.innerHTML = "<span class='tag-tag'>" + self.ruleController.generateShortString(history[i]) + "</span>";
+        */
+        var tmpRules = self.ruleController.getAllTmpRules();
+        if (tmpRules) for (var i = 0; i < tmpRules.length; i++) {
+            if (!tmpRules[i].inConcat) {
+                var ruleDiv = document.createElement('div');
+                ruleDiv.style = "height:2em;position:relative;";
+                ruleListDiv.appendChild(ruleDiv);
+                ruleDiv.innerHTML = "<span class='tag-tag'>" + self.ruleController.generateShortString(tmpRules[i]) + "</span>";
 
-            var delete_button = document.createElement("button");
-            delete_button.id = "deleteRule_Button";
-            delete_button.classList = "w3-btn";
-            delete_button.style = "height:2em;float:right;padding:3px 16px;"
-            var delete_button_text = document.createTextNode("Delete");
+                if (self.selectedMesh) {
+                    var edit_button = document.createElement("button");
+                    edit_button.id = "editRule_Button_" + (i + parsedRules.lenght);
+                    edit_button.classList = "w3-btn";
+                    edit_button.style = "height:2em;float:right;padding:3px 16px;"
+                    var edit_button_text = document.createTextNode("Edit");
 
-            var edit_button = document.createElement("button");
-            edit_button.id = "editRule_Button";
-            edit_button.classList = "w3-btn";
-            edit_button.style = "height:2em;float:right;padding:3px 16px;"
-            var edit_button_text = document.createTextNode("Edit");
+                    edit_button.appendChild(edit_button_text);
+                    ruleDiv.appendChild(edit_button);
+                }
 
-            edit_button.appendChild(edit_button_text);
-            delete_button.appendChild(delete_button_text);
-            ruleDiv.appendChild(delete_button);
-            ruleDiv.appendChild(edit_button);
+                var delete_button = document.createElement("button");
+                delete_button.id = "deleteRule_Button_" + (i + parsedRules.lenght);
+                delete_button.classList = "w3-btn";
+                delete_button.style = "height:2em;float:right;padding:3px 16px;"
+                var delete_button_text = document.createTextNode("Delete");
+
+                delete_button.appendChild(delete_button_text);
+                ruleDiv.appendChild(delete_button);
+            }
         }
 
         //create div container
@@ -311,25 +362,64 @@
         uiDiv.appendChild(buttonDiv);
 
         //add functions
-        $("#newRule_Button").click(function () {
-            self.selectedRule = null;
-            clearUI();
-            self.initRuleUI();
-        })
+        if (self.selectedMesh) {
+            $("#newRule_Button").click(function () {
+                self.selectedRule = null;
+                clearUI();
+                self.initRuleUI();
+            })
+        }
 
-        $("#editRule_Button").click(function () {
-            self.selectedRule = self.ruleController.getRule(self.selectedMesh.shape);
-            clearUI();
-            self.initRuleUI();
-        })
 
-        $("#deleteRule_Button").click(function () {
-            self.ruleController.removeRule(self.selectedMesh.shape);
-            clearUI();
-            self.initButtonsUI();
-            self.Update();
-            self.OnUpdateCompleted();
-        })
+        //parsed rules
+        for (var i = 0; i < parsedRules.length; i++) {            
+            if (self.selectedMesh) {
+                $("#editRule_Button_" + i).click(function (i) {
+                    return function () {
+                        self.selectedRule = parsedRules[i];
+                        uneditedRule = self.selectedRule;
+                        var editor = ace.edit("code_text_ace");
+                        uneditedCode = editor.getValue();
+                        self.ruleIndex = i;
+                        clearUI();
+                        self.initRuleUI();
+                    };
+                } (i))
+            }
+            $("#deleteRule_Button_" + i).click(function (i) {
+                return function () {
+                    self.ruleController.removeRule(parsedRules[i], self.selectedMesh);
+                    clearUI();
+                    self.initButtonsUI();
+                    self.Update();
+                    self.OnUpdateCompleted();
+                };
+            } (i))
+        }
+
+
+        //tmp rules
+        if (tmpRules) for (var i = 0; i < tmpRules.length; i++) {
+            if (self.selectedMesh) {
+                $("#editRule_Button_" + (i + parsedRules.lenght)).click(function (i) {
+                    return function () {
+                        self.selectedRule = tmpRules[i];
+                        uneditedRule = self.selectedRule;
+                        clearUI();
+                        self.initRuleUI();
+                    };
+                } (i))
+            }
+            $("#deleteRule_Button_" + (i + parsedRules.lenght)).click(function (i) {
+                return function () {
+                    self.ruleController.removeRule(tmpRules[i], self.selectedMesh);
+                    clearUI();
+                    self.initButtonsUI();
+                    self.Update();
+                    self.OnUpdateCompleted();
+                };
+            } (i))
+        }
     }
 
     self.initRuleUI = function () {
@@ -363,7 +453,9 @@
         cancel_button.appendChild(cancel_buttonn_text);
 
         //get goals of current shape
-        var goals = Object.keys(self.selectedMesh.shape.semantics.goals);
+        if (self.selectedMesh.shape.semantics.goal) {
+            var goals = Object.keys(self.selectedMesh.shape.semantics.goals);
+        }
 
         //put it together
         uiDiv.appendChild(selectionDiv);
@@ -378,10 +470,44 @@
             inputDiv.removeChild(inputDiv.lastChild);
         }
 
-        //create new input fields
+        //set selector to current rule
         var selector = document.getElementById("rule_selector");
+        if (!creatingNewRule) {
+            for (i = 0; i < selector.options.length; i++) {
+                if (selector.options[i].value == self.selectedRule.type)
+                    selector.selectedIndex = i;
+            }
+            selector.disabled = true;
+            /*
+            //remove old input fields
+            var inputDiv = document.getElementById("inputDiv");
+            while (inputDiv.hasChildNodes()) {
+                inputDiv.removeChild(inputDiv.lastChild);
+            }
+            //create new input fields
+            var selector = document.getElementById("rule_selector");
+            var selection = selector.options[selector.selectedIndex].value;
+            self.ruleController.rules.get(selection).appendInputFields(inputDiv, self.selectedRule);
+            //create handles
+
+            self.handlesScene.remove(self.handlesScene.children);
+            self.ruleController.rules.get(selection).createHandles(self.handlesScene, self.selectedMesh);
+            handlesType = selection;
+            */
+        }
+
+        //create new input fields
         var selection = selector.options[selector.selectedIndex].value;
         self.ruleController.rules.get(selection).appendInputFields(inputDiv, self.selectedRule);
+
+        //create new rule if necessary
+        if (creatingNewRule) {
+            self.selectedRule = self.ruleController.rules.get(selection).createRuleDescriptor(null);
+            var postfixDiv = document.getElementById("postfixDiv");
+            if (postfixDiv) self.postfixController.applyPostfixes(postfixDiv, self.selectedRule);
+            self.ruleController.addRule(self.selectedMesh.shape, self.selectedRule);
+            selector.disabled = false;
+        }
 
         //add function
         $('#rule_selector').change(function () {
@@ -391,28 +517,25 @@
                 inputDiv.removeChild(inputDiv.lastChild);
             }
 
-            //change temporary rule to edit
-            var selector = document.getElementById("rule_selector");
-            var selection = selector.options[selector.selectedIndex].value;
-            if (creatingNewRule)
-                self.selectedRule = null;
+            self.inputChanged();
 
             //create new input fields
+            var selector = document.getElementById("rule_selector");
+            var selection = selector.options[selector.selectedIndex].value;
             handlesType = selection;
-            self.ruleController.rules.get(selection).appendInputFields(inputDiv, self.selectedRule);
-
-            //update handles and preview
-            self.inputChanged();
+            self.ruleController.rules.get(selection).appendInputFields(inputDiv, null);
         });
 
         $("#commit_Button").click(function () {
             var selector = document.getElementById("rule_selector");
             var selection = selector.options[selector.selectedIndex].value;
 
-            var rule = self.ruleController.rules.get(selection).createRuleDescriptor();
+            var rule = self.ruleController.rules.get(selection).createRuleDescriptor(self.selectedRule);
             var postfixDiv = document.getElementById("postfixDiv");
             if (postfixDiv) self.postfixController.applyPostfixes(postfixDiv, rule);
-            self.ruleController.updateRule(self.selectedMesh.shape, rule);
+            self.ruleController.updateRule(self.selectedMesh.shape, self.selectedRule, rule);
+
+            self.selectedRule = null;
 
 //            self.selectedMesh.shape.interaction.selected(false);
 //            self.selectedMesh = null;
@@ -424,10 +547,18 @@
 
         $("#cancel_Button").click(function () {
             if (creatingNewRule) {
-                self.ruleController.removeRule(self.selectedMesh.shape);
+                self.ruleController.removeRule(self.selectedRule);
             } else {
-                self.ruleController.updateRule(self.selectedMesh.shape, self.selectedRule)
+                if (currentRuleWasParsed) {
+                    self.ruleController.removeRule(self.selectedRule);
+                    var editor = ace.edit("code_text_ace");
+                    editor.setValue(uneditedCode);
+                } else {
+                    self.ruleController.updateRule(self.selectedMesh.shape, self.selectedRule, uneditedRule);
+                }
+                
             }
+            self.selectedRule = null;
 //            self.selectedMesh.shape.interaction.selected(false);
 //            self.selectedMesh = null;
             clearUI();
@@ -436,35 +567,7 @@
             self.OnUpdateCompleted();
         })
 
-        //set selector to current rule
-        var selector = document.getElementById("rule_selector");
-        if (!creatingNewRule) {
-            for (i = 0; i < selector.options.length; i++) {
-                if (selector.options[i].value == self.selectedRule.type)
-                    selector.selectedIndex = i;
-            }
-            selector.disabled = true;
-            //remove old input fields
-            var inputDiv = document.getElementById("inputDiv");
-            while (inputDiv.hasChildNodes()) {
-                inputDiv.removeChild(inputDiv.lastChild);
-            }
-            //create new input fields
-            var selector = document.getElementById("rule_selector");
-            var selection = selector.options[selector.selectedIndex].value;
-            self.ruleController.rules.get(selection).appendInputFields(inputDiv, self.selectedRule);
-            //create handles
-            self.handlesScene.remove(self.handlesScene.children);
-            self.ruleController.rules.get(selection).createHandles(self.handlesScene, self.selectedMesh);
-            handlesType = selection;
-        } else {
-            var selection = selector.options[selector.selectedIndex].value;
-            self.selectedRule = self.ruleController.rules.get(selection).createRuleDescriptor();
-            var postfixDiv = document.getElementById("postfixDiv");
-            if (postfixDiv) self.postfixController.applyPostfixes(postfixDiv, self.selectedRule);
-            self.ruleController.addRule(self.selectedMesh.shape, self.selectedRule);
-            selector.disabled = false;
-        }
+        
 
         //create handles
         self.handlesScene.remove(self.handlesScene.children);
@@ -478,10 +581,11 @@
         var selector = document.getElementById("rule_selector");
         var selection = selector.options[selector.selectedIndex].value;
 
-        var rule = self.ruleController.rules.get(selection).createRuleDescriptor();
+        var rule = self.ruleController.rules.get(selection).createRuleDescriptor(self.selectedRule);
         var postfixDiv = document.getElementById("postfixDiv");
         if (postfixDiv) self.postfixController.applyPostfixes(postfixDiv, rule);
-        self.ruleController.updateRule(self.selectedMesh.shape, rule);
+        self.ruleController.updateRule(self.selectedMesh.shape, self.selectedRule, rule);
+        self.selectedRule = rule;
 
         while (self.handlesScene.children.length > 0) {
             self.handlesScene.remove(self.handlesScene.children[0]);

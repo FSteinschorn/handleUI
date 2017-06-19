@@ -104,6 +104,7 @@ function PostfixController(renderer) {
         div.style = 'position:relative;height:2em;left:2em';
 
         var id = makeid();
+        var ids = [id];
 
         if (type.constructor == Array) {
             var selector_id = makeid();
@@ -114,12 +115,104 @@ function PostfixController(renderer) {
             }
             innerHTML += '</select>';
             div.innerHTML = "<span class='tag-tag'>" + innerHTML + ": </span>"
-            div.innerHTML += "<textarea id=" + id + " name=" + type[0] + "></textarea>";
+            var currentType = type[0];
         } else {
             div.innerHTML = "<span class='tag-tag'>" + type + ": </span>"
-            div.innerHTML += "<textarea id=" + id + " name=" + type + "></textarea>";
+            var currentType = type;
         }
-        
+
+        switch (currentType) {
+
+            case 'Paint':
+                var innerHTML = '<select id=' + id + ' name=' + currentType + '>';
+                innerHTML += '<option vaule ="none">none</options>';
+                for (var j = 0; j < renderer.ruleController.paintConfig.options[0].values.length; j++) {
+                    innerHTML += '<option vaule ="' + renderer.ruleController.paintConfig.options[0].values[j] + '">' + renderer.ruleController.paintConfig.options[0].values[j] + '</options>';
+                }
+                innerHTML += '</select>'
+                var id2 = makeid();
+                ids.push(id2);
+                innerHTML += '<select id=' + id2 + '>';
+                for (var j = 0; j < 10; j++) {
+                    innerHTML += '<option vaule ="' + j + '">' + j + '</options>';
+                }
+                innerHTML += '</select>'
+                div.innerHTML += innerHTML;
+                break;
+
+            case 'Asset':
+                var innerHTML = '<select id=' + id + ' name=' + currentType + '>';
+                innerHTML += '<option vaule ="none">none</options>';
+                for (var j = 0; j < renderer.ruleController.assetConfig.options[0].values.length; j++) {
+                    innerHTML += '<option vaule ="' + renderer.ruleController.assetConfig.options[0].values[j] + '">' + renderer.ruleController.assetConfig.options[0].values[j] + '</options>';
+                }
+                innerHTML += '</select>'
+                div.innerHTML += innerHTML;
+                break;
+
+            case 'FirstOrientation':
+            case 'Orientation':
+                var innerHTML = '<select id=' + id + ' name=' + currentType + '>';
+                innerHTML += '<option vaule ="none">none</options>';
+                for (var j = 0; j < renderer.ruleController.orientationConfig.options[0].values.length; j++) {
+                    innerHTML += '<option vaule ="' + renderer.ruleController.orientationConfig.options[0].values[j] + '">' + renderer.ruleController.orientationConfig.options[0].values[j] + '</options>';
+                }
+                innerHTML += '</select>'
+                div.innerHTML += innerHTML;
+                break;
+
+            case 'Reflect':
+                var innerHTML = '<select id=' + id + ' name=' + currentType + '>';
+                innerHTML += '<option vaule ="none">none</options>';
+                for (var j = 0; j < renderer.ruleController.reflectionConfig.options[0].values.length; j++) {
+                    innerHTML += '<option vaule ="' + renderer.ruleController.reflectionConfig.options[0].values[j] + '">' + renderer.ruleController.reflectionConfig.options[0].values[j] + '</options>';
+                }
+                innerHTML += '</select>'
+                div.innerHTML += innerHTML;
+                break;
+
+            case 'Set':
+            case 'Firstset':
+                var id2 = makeid();
+                ids.push(id2);
+                var id3 = makeid();
+                ids.push(id3);
+                var keyInput = document.createElement("input");
+                keyInput.type = "text";
+                keyInput.id = id;
+                keyInput.name = currentType;
+                div.appendChild(keyInput);
+                var innerHTML = '<select id=' + id2 + '>';
+                innerHTML += '<option vaule ="none">none</options>';
+                innerHTML += '<option vaule ="bool">bool</options>';
+                innerHTML += '<option vaule ="int">int</options>';
+                innerHTML += '<option vaule ="double">double</options>';
+                innerHTML += '<option vaule ="none">string</options>';
+                innerHTML += '</select>'
+                div.innerHTML += innerHTML;
+                var valueInput = document.createElement("input");
+                valueInput.type = "text";
+                valueInput.id = id3;
+                div.appendChild(valueInput);
+                break;
+
+            case 'Probability':
+                var input = document.createElement("input");
+                input.type = "text";
+                input.id = id;
+                input.classList += "postfixInput";
+                input.name = currentType;
+                div.appendChild(input);
+                break;
+
+            default:
+                var textfield = document.createElement("textarea");
+                textfield.id = id;
+                textfield.setAttribute("name", currentType);
+                div.appendChild(textfield);
+                //div.innerHTML += '<textfield id=' + id + ' name=' + currentType + '>';
+        }
+
         if (deleteButton) {
             var button = document.createElement('button');
             button.style = 'position:absolute;width:1.5em;right:1em';
@@ -131,7 +224,7 @@ function PostfixController(renderer) {
         }
 
         parentDiv.appendChild(div);
-        addFunction(type, id, settings, changeFunction, fulfills);
+        addFunction(type, ids, settings, changeFunction, fulfills);
 
         if (deleteButton) {
             $('#' + removeButtonId).click(function (div) {
@@ -155,13 +248,13 @@ function PostfixController(renderer) {
                 var selection = selector.options[selector.selectedIndex];
                 textarea = document.getElementById(id);
                 textarea.setAttribute("name", '' + selection.label);
-                addFunction(selection.label, id, settings, changeFunction, fulfills);
+                addFunction(selection.label, [id], settings, changeFunction, fulfills);
                 inputChanged();
             });
 
         }
 
-        return id;
+        return ids;
     }
 
     // create full postfix ui as accordion
@@ -196,7 +289,8 @@ function PostfixController(renderer) {
         self.postfixes.forEach(function (value, key, map) {
             var id = key + "_content";
             var x = document.getElementById(id);
-            if (x.querySelector('.tag-editor-tag') !== null) {
+            if ((x.querySelector('.tag-editor-tag') != null) ||
+                (x.querySelector('.postfixUsed') != null)) {
                 accordionFunction(id);
             }
         });
@@ -208,110 +302,230 @@ function PostfixController(renderer) {
         id ... id of textarea to add function to
         settings ... the javascript object to look for existing tags in
     **/
-    addFunction = function (type, id, settings, changeFunction, fulfills) {
+    addFunction = function (type, ids, settings, changeFunction, fulfills) {
         if (!changeFunction) changeFunction = renderer.inputChanged;
-        var id = "#" + id;
 
-        //check for existing tag editor
-        var oldTags = $(id).tagEditor('getTags') || [];
-        if (oldTags.length != 0) oldTags = oldTags[0].tags || [];
-        $(id).tagEditor('destroy');
+        switch (type) {
 
-        //check for given input
-        if (settings && !oldTags.length > 0) {
-            for (var i = 0; i < Object.keys(settings.tags).length; i++) {
-                if (settings.tags[i].type == type) oldTags = settings.tags[i].tags;
-            }
-        }
+            case 'Paint':
+                var selector = document.getElementById(ids[0]);
+                var toneSelector = document.getElementById(ids[1]);                
+                if (selector) {
+                    // hide toneSlector
+                    toneSelector.style.display = 'none';
 
-        // multiple tags possible
-        if (self.postfixesPlain.get(type) != 1) {
-            // editing rule
-            if (settings && type in settings) {
-                $(id).tagEditor({
-                    delimiter: ";",
-                    placeholder: "Enter tags ...",
-                    clickDelete: true,
-                    maxTags: self.postfixesPlain.get(type),
-                    onChange: changeFunction,
-                    initialTags: settings[type] || oldTags
-                });
-            // new rule
-            } else {
-                if (oldTags.length != 0) {
-                    $(id).tagEditor({
-                        delimiter: ";",
-                        placeholder: "Enter tags ...",
-                        clickDelete: true,
-                        maxTags: self.postfixesPlain.get(type),
-                        onChange: changeFunction,
-                        initialTags: oldTags
+                    // add event listeners
+                    selector.addEventListener("change", function () {
+                            if (selector.selectedIndex > 18) {
+                                toneSelector.style.display = 'inline';
+                            } else {
+                                toneSelector.style.display = 'none';
+                            }
+                            changeFunction();
                     });
-                } else {
-                    if (type == 'Fulfills' && fulfills) {
+                    toneSelector.addEventListener("change", changeFunction);
+
+                    // fill existing values
+                    if (settings) {
+                        for (var i = 0; i < Object.keys(settings.tags).length; i++) {
+                            if (settings.tags[i].type == 'Paint')
+                                for (var j = 0; j < selector.options.length; j++) {
+                                    if (selector.options[j].label == settings.tags[i].tags[0]) {
+                                        selector.selectedIndex = j;
+                                        if (selector.className.indexOf("postfixUsed") == -1) {
+                                            selector.className += " postfixUsed";
+                                        }
+                                        if (j > 20) {
+                                            toneSelector.selectedIndex = settings.tags[i].tags[1];
+                                            toneSelector.style.display = 'inline';
+                                        }
+                                    }
+                                }
+                        }
+                    }
+                }
+                break;
+
+            case 'Asset':
+            case 'FirstOrientation':
+            case 'Orientation':
+            case 'Reflect':
+                var selector = document.getElementById(ids[0]);
+                if (selector) {
+                    // add event listeners
+                    selector.addEventListener("change", changeFunction);
+
+                    // fill existing values
+                    if (settings) {
+                        for (var i = 0; i < Object.keys(settings.tags).length; i++) {
+                            if (settings.tags[i].type == type)
+                                for (var j = 0; j < selector.options.length; j++) {
+                                    if (selector.options[j].label == settings.tags[i].tags[0]) {
+                                        selector.selectedIndex = j;
+                                        if (selector.className.indexOf("postfixUsed") == -1) {
+                                            selector.className += " postfixUsed";
+                                        }
+                                    }
+                                }
+                        }
+                    }
+                }
+                break;
+
+            case 'Set':
+            case 'Firstset':
+                var keyField = document.getElementById(ids[0]);
+                var selector = document.getElementById(ids[1]);
+                var valueField = document.getElementById(ids[2]);
+                if (keyField) {
+                    // add event listeners
+                    selector.addEventListener('input', changeFunction);
+                    keyField.addEventListener('input', changeFunction);
+                    valueField.addEventListener('input', changeFunction);
+
+                    // fill existing values
+                    if (settings) {
+                        for (var i = 0; i < Object.keys(settings.tags).length; i++) {
+                            if (settings.tags[i].type == type) {
+                                for (var j = 0; j < selector.options.length; j++) {
+                                    if (selector.options[j].label == settings.tags[i].tags[1]) {
+                                        selector.selectedIndex = j;
+                                        if (selector.className.indexOf("postfixUsed") == -1) {
+                                            selector.className += " postfixUsed";
+                                        }
+                                    }
+                                }
+                                keyField.value = settings.tags[i].tags[0];
+                                valueField.value = settings.tags[i].tags[2];
+                            }
+                        }
+                    }
+                }
+                break;
+
+            case 'Probability':
+                var textField = document.getElementById(ids[0]);
+                if (textField) {
+                    textField.addEventListener('input', changeFunction);
+                    if (settings) {
+                        for (var i = 0; i < Object.keys(settings.tags).length; i++) {
+                            if (settings.tags[i].type == type) {
+                                textField.value = settings.tags[i].tags[0];
+                                if (textField.className.indexOf("postfixUsed") == -1) {
+                                    textField.className += " postfixUsed";
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
+
+            // tags
+            default:
+                var id = "#" + ids[0];
+
+                //check for existing tag editor
+                var oldTags = $(id).tagEditor('getTags') || [];
+                if (oldTags.length != 0) oldTags = oldTags[0].tags || [];
+                $(id).tagEditor('destroy');
+
+                //check for given input
+                if (settings && !oldTags.length > 0) {
+                    for (var i = 0; i < Object.keys(settings.tags).length; i++) {
+                        if (settings.tags[i].type == type) oldTags = settings.tags[i].tags;
+                    }
+                }
+
+                // multiple tags possible
+                if (self.postfixesPlain.get(type) != 1) {
+                    // editing rule
+                    if (settings && type in settings) {
                         $(id).tagEditor({
                             delimiter: ";",
                             placeholder: "Enter tags ...",
                             clickDelete: true,
                             maxTags: self.postfixesPlain.get(type),
                             onChange: changeFunction,
-                            initialTags: fulfills
+                            initialTags: settings[type] || oldTags
                         });
+                        // new rule
                     } else {
-                        $(id).tagEditor({
-                            delimiter: ";",
-                            placeholder: "Enter tags ...",
-                            clickDelete: true,
-                            maxTags: self.postfixesPlain.get(type),
-                            onChange: changeFunction
-                        });
+                        if (oldTags.length != 0) {
+                            $(id).tagEditor({
+                                delimiter: ";",
+                                placeholder: "Enter tags ...",
+                                clickDelete: true,
+                                maxTags: self.postfixesPlain.get(type),
+                                onChange: changeFunction,
+                                initialTags: oldTags
+                            });
+                        } else {
+                            if (type == 'Fulfills' && fulfills) {
+                                $(id).tagEditor({
+                                    delimiter: ";",
+                                    placeholder: "Enter tags ...",
+                                    clickDelete: true,
+                                    maxTags: self.postfixesPlain.get(type),
+                                    onChange: changeFunction,
+                                    initialTags: fulfills
+                                });
+                            } else {
+                                $(id).tagEditor({
+                                    delimiter: ";",
+                                    placeholder: "Enter tags ...",
+                                    clickDelete: true,
+                                    maxTags: self.postfixesPlain.get(type),
+                                    onChange: changeFunction
+                                });
+                            }
+                        }
                     }
-                }
-            }
-            // only one tag possible
-        } else {
-            // editing rule
-            if (settings && type in settings) {
-                $(id).tagEditor({
-                    delimiter: ";",
-                    placeholder: "Enter tag ...",
-                    clickDelete: true,
-                    maxTags: self.postfixesPlain.get(type),
-                    onChange: changeFunction,
-                    initialTags: settings[type] || oldTags
-                });
-                // new rule
-            } else {
-                if (oldTags.length != 0) {
-                    $(id).tagEditor({
-                        delimiter: ";",
-                        placeholder: "Enter tag ...",
-                        clickDelete: true,
-                        maxTags: self.postfixesPlain.get(type),
-                        onChange: changeFunction,
-                        initialTags: oldTags
-                    });
+                    // only one tag possible
                 } else {
-                    if (type == 'Fulfills' && fulfills) {
+                    // editing rule
+                    if (settings && type in settings) {
                         $(id).tagEditor({
                             delimiter: ";",
                             placeholder: "Enter tag ...",
                             clickDelete: true,
                             maxTags: self.postfixesPlain.get(type),
                             onChange: changeFunction,
-                            initialTags: fulfills
+                            initialTags: settings[type] || oldTags
                         });
+                        // new rule
                     } else {
-                        $(id).tagEditor({
-                            delimiter: ";",
-                            placeholder: "Enter tag ...",
-                            clickDelete: true,
-                            maxTags: self.postfixesPlain.get(type),
-                            onChange: changeFunction
-                        });
+                        if (oldTags.length != 0) {
+                            $(id).tagEditor({
+                                delimiter: ";",
+                                placeholder: "Enter tag ...",
+                                clickDelete: true,
+                                maxTags: self.postfixesPlain.get(type),
+                                onChange: changeFunction,
+                                initialTags: oldTags
+                            });
+                        } else {
+                            if (type == 'Fulfills' && fulfills) {
+                                $(id).tagEditor({
+                                    delimiter: ";",
+                                    placeholder: "Enter tag ...",
+                                    clickDelete: true,
+                                    maxTags: self.postfixesPlain.get(type),
+                                    onChange: changeFunction,
+                                    initialTags: fulfills
+                                });
+                            } else {
+                                $(id).tagEditor({
+                                    delimiter: ";",
+                                    placeholder: "Enter tag ...",
+                                    clickDelete: true,
+                                    maxTags: self.postfixesPlain.get(type),
+                                    onChange: changeFunction
+                                });
+                            }
+                        }
                     }
                 }
-            }
+                break;
         }
     }
 
@@ -330,9 +544,82 @@ function PostfixController(renderer) {
         while (i--) {
             if (postfixList[i] == parentDiv.name) {
                 var id = parentDiv.id;
-                var taglist = $('#' + id).tagEditor('getTags')[0].tags;
-                if (taglist.length != 0) parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: taglist };
-            }
+
+                switch (parentDiv.name) {
+
+                    case 'Paint':
+                        var selector = document.getElementById(id);
+                        var material = selector.options[selector.selectedIndex].label;
+                        if (material == "none") break;
+                        if (selector.selectedIndex > 20) {
+                            var toneSelector = selector.nextSibling;
+                            var tone = toneSelector.options[toneSelector.selectedIndex].label;
+                            parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [material, tone] };
+                        } else {
+                            parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [material] };
+                        }
+                        break;
+
+                    case 'Asset':
+                    case 'FirstOrientation':
+                    case 'Orientation':
+                    case 'Reflect':
+                        var selector = document.getElementById(id);
+                        var tag = selector.options[selector.selectedIndex].label;
+                        if (tag == "none") break;
+                        parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [tag] };
+                        break;
+
+                    case 'Set':
+                    case 'Firstset':
+                        var keyField = document.getElementById(id);
+                        var selector = keyField.nextSibling;
+                        var valueField = selector.nextSibling;
+                        var key = keyField.value;
+                        var type = selector.options[selector.selectedIndex].label;
+                        var value = valueField.value;
+                        switch (type) {
+                            case 'bool':
+                                if (value == 'True' || value == 'true' || value == 'TRUE' || (!isNaN(value) && Number.parseFloat(value) != 0)) {
+                                    parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [key, type, true] };
+                                } else {
+                                    parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [key, type, false] };
+                                }
+                                break;
+                            case 'int':
+                                if (!isNaN(value)) {
+                                    parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [key, type, Number.parseInt(value)] };
+                                }
+                                break;
+                            case 'double':
+                                if (!isNaN(value)) {
+                                    parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [key, type, Number.parseFloat(value)] };
+                                }
+                                break;
+                            case 'string':
+                                parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [key, type, value] };
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+
+                    case 'Probability':
+                        var textField = document.getElementById(id);
+                        var string = textField.value;
+                        if (!isNaN(string) && string != "") {
+                            parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [Number.parseFloat(string)] };
+                        } else if (string != "") {
+                            parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [0.0] };
+                        }
+                        break;
+
+                    default:
+                        var taglist = $('#' + id).tagEditor('getTags')[0].tags;
+                        if (taglist && (taglist.length != 0)) parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: taglist };
+                        break;
+                }
+             }
         }
         for (var child = 0; child < parentDiv.childNodes.length; child++) {
             self.applyPostfixes(parentDiv.childNodes[child], parentObject);
@@ -350,9 +637,67 @@ function PostfixController(renderer) {
             var type = parentObject['tags'][i]['type'];
             var tags = parentObject['tags'][i]['tags'];
             ruleString += "\n" + indString + "." + type + "(";
-            for (var j = 0; j < tags.length; j++) {
-                ruleString += "\"" + tags[j] + "\"";
-                if (j != tags.length - 1) ruleString += ", ";
+
+            switch (type) {
+                
+                case 'Paint':
+                    ruleString += tags[0];
+                    if (tags.length > 1) ruleString += '(' + tags[1] + ')';
+                    break;
+
+                case 'Asset':
+                case 'FirstOrientation':
+                case 'Orientation':
+                case 'Reflect':
+                case 'Probability':
+                case 'If':
+                    ruleString += tags[0];
+                    break;
+
+                case 'Set':
+                case 'Firstset':
+                    var modifiedTag = tags[0];
+                    var index = modifiedTag.indexOf("\"");
+                    while (index != -1) {
+                        modifiedTag = modifiedTag.substring(0, index) + "\\" + modifiedTag.substring(index, modifiedTag.length);
+                        var oldIndex = index;
+                        index = modifiedTag.substring(index + 2, modifiedTag.length).indexOf("\"");
+                        if (index != -1) index += 2 + oldIndex;
+                    }
+
+                    ruleString += "\"" + modifiedTag + "\"";
+                    ruleString += ', ';
+
+                    var modifiedTag = tags[2];
+                    if (tags[1] == 'string') {
+                        ruleString += "\"";
+                        var index = modifiedTag.indexOf("\"");
+                        while (index != -1) {
+                            modifiedTag = modifiedTag.substring(0, index) + "\\" + modifiedTag.substring(index, modifiedTag.length);
+                            var oldIndex = index;
+                            index = modifiedTag.substring(index + 2, modifiedTag.length).indexOf("\"");
+                            if (index != -1) index += 2 + oldIndex;
+                        }
+                    }
+
+                    ruleString += modifiedTag;
+                    if (tags[1] == 'string') ruleString += "\"";
+                    break;
+
+                default:
+                    for (var j = 0; j < tags.length; j++) {
+                        var modifiedTag = tags[j];
+                        var index = modifiedTag.indexOf("\"");
+                        while(index != -1) {
+                            modifiedTag = modifiedTag.substring(0, index) + "\\" + modifiedTag.substring(index, modifiedTag.length);
+                            var oldIndex = index;
+                            index = modifiedTag.substring(index + 2, modifiedTag.length).indexOf("\"");
+                            if (index != -1) index += 2 + oldIndex;
+                        }
+                        ruleString += "\"" + modifiedTag + "\"";
+                        if (j != tags.length - 1) ruleString += ", ";
+                    }
+                    break;
             }
             ruleString += ")";
         }
@@ -363,7 +708,7 @@ function PostfixController(renderer) {
     // rule ... rule desriptor to append the parsed postfixes to
     // code ... array of code elements containing postfixes
     self.parsePostfixes = function (rule, code) {
-        var OUTSIDE = 1, INSIDE = 2;
+        var OUTSIDE = 1, INSIDE = 2, POINT = 3;
 
         if (!('tags' in rule)) {
             rule['tags'] = {};
@@ -375,35 +720,142 @@ function PostfixController(renderer) {
         while (counter < code.length) {
             switch (mode) {
                 case OUTSIDE:
-                    if (code[counter].ValueText == '.' && self.postfixesPlain.get(code[counter + 1].ValueText) != undefined) {
-                        postfixType = code[counter + 1].ValueText;
+                    if (code[counter].Text == '.' && code[counter].RawKind == 8218) {
+                        mode = POINT;
+                    }
+                    counter += 1;
+                    break;
+                    
+                case POINT:
+                    if (code[counter].RawKind == 8508 && self.postfixesPlain.get(code[counter].Text) != undefined) {
+                        postfixType = code[counter].Text;
                         taglist = [];
                         mode = INSIDE;
-                        counter += 3;
-                    } else {
-                        counter += 1;
                     }
+                    counter += 1;
                     break;
+
                 case INSIDE:
-                        // argument seperator
-                    if (code[counter].ValueText == ',') {
-                        counter += 1;
-                        // end of arguments
-                    } else if (code[counter].ValueText == ')') {
-                        if (taglist.length != 0) rule['tags'][Object.keys(rule['tags']).length] = { type: postfixType, tags: taglist };
-                        mode = OUTSIDE;
-                        counter += 1;
-                        // enum types
-                    } else if (code[counter + 1].ValueText == '.' && code[counter + 2].ValueText != ',' && code[counter + 3].ValueText != ')') {
-                        taglist.push(code[counter].ValueText + '.' + code[code + 2].ValueText);
-                        counter += 3;
-                        // other argument
-                    } else {
-                        taglist.push(code[counter].ValueText);
-                        counter += 1;
+                    switch (postfixType) {
+
+                        case 'Paint':
+                            // first argument
+                            if (code[counter].RawKind == 8508 &&
+                                        code[counter + 1].Text == '.' && code[counter + 1].RawKind == 8218 &&
+                                        code[counter + 2].RawKind == 8508) {
+                                taglist.push(code[counter].Text + '.' + code[counter + 2].Text);
+                                counter += 3;
+                            // end of arguments
+                            } else if (code[counter].Text == ')' && code[counter].RawKind == 8201) {
+                                if (taglist.length != 0) rule['tags'][Object.keys(rule['tags']).length] = { type: postfixType, tags: taglist };
+                                mode = OUTSIDE;
+                                counter += 1;
+                            // second argument
+                            } else if (code[counter].RawKind == 8509) {
+                                taglist.push(code[counter].Text);
+                                counter += 1;
+                            } else {
+                                counter += 1;
+                            }
+                            break;
+
+                        case 'Asset':
+                        case 'FirstOrientation':
+                        case 'Orientation':
+                        case 'Reflect':
+                            // argument
+                            if (code[counter].RawKind == 8508 &&
+                                        code[counter + 1].Text == '.' && code[counter + 1].RawKind == 8218 &&
+                                        code[counter + 2].RawKind == 8508) {
+                                taglist.push(code[counter].Text + '.' + code[counter + 2].Text);
+                                counter += 3;
+                            // end of arguments
+                            } else if (code[counter].Text == ')' && code[counter].RawKind == 8201) {
+                                if (taglist.length != 0) rule['tags'][Object.keys(rule['tags']).length] = { type: postfixType, tags: taglist };
+                                mode = OUTSIDE;
+                                counter += 1;
+                            } else {
+                                counter += 1;
+                            }
+                            break;
+
+                        case 'Probability':
+                            if (code[counter].Text == ')' && code[counter].RawKind == 8201) {
+                                if (taglist.length != 0) rule['tags'][Object.keys(rule['tags']).length] = { type: postfixType, tags: taglist };
+                                mode = OUTSIDE;
+                                counter += 1;
+                            } else if (code[counter].RawKind == 8509) {
+                                taglist.push(code[counter].Text);
+                                counter += 1;
+                            } else {
+                                counter += 1;
+                            }
+                            break;
+
+                        case 'Set':
+                        case 'Firstset':
+                            // end of arguments
+                            if (code[counter].Text == ')' && code[counter].RawKind == 8201) {
+                                if (taglist.length != 0) rule['tags'][Object.keys(rule['tags']).length] = { type: postfixType, tags: taglist };
+                                mode = OUTSIDE;
+                                counter += 1;
+                            // found number
+                            } else if (code[counter].RawKind == 8509) {
+                                if (code[counter].Text % 1 == 0) {
+                                    taglist.push("int");
+                                } else {
+                                    taglist.push("double");
+                                }
+                                taglist.push(code[counter].Text);
+                                counter += 1;
+                            // found string
+                            } else if (code[counter].RawKind == 8511) {
+                                if (taglist.length == 1) {
+                                        taglist.push("string");
+                                }
+                                taglist.push(code[counter].Text.substring(1, (code[counter].Text.length - 1)));
+                                counter += 1;
+                            // found true
+                            } else if (code[counter].RawKind == 8323) {
+                                taglist.push("bool");
+                                taglist.push(code[counter].Text);
+                                counter += 1;
+                            // found false
+                            } else if (code[counter].RawKind == 8324) {
+                                taglist.push("bool");
+                                taglist.push(code[counter].Text);
+                                counter += 1;
+                            } else {
+                                counter += 1;
+                            }
+                            break;
+
+                        default:
+                            // end of list
+                            if (code[counter].Text == ')' && code[counter].RawKind == 8201) {
+                                if (taglist.length != 0) rule['tags'][Object.keys(rule['tags']).length] = { type: postfixType, tags: taglist };
+                                mode = OUTSIDE;
+                                counter += 1;
+                                // enum types
+                            } else if (code[counter].RawKind == 8508 &&
+                                        code[counter + 1].Text == '.' && code[counter + 1].RawKind == 8218 &&
+                                        code[counter + 2].RawKind == 8508) {
+                                taglist.push(code[counter].Text + '.' + code[counter + 2].Text);
+                                counter += 3;
+                                // other argument
+                            } else if (code[counter].RawKind == 8511) {
+                                taglist.push(code[counter].Text.substring(1, (code[counter].Text.length - 1)));
+                                counter += 1;
+                            } else {
+                                counter += 1;
+                            }
+                            break;
                     }
-                        break;
+                    
+                    break;
+
                 default:
+                    counter += 1;
                     break;
             }
         }
