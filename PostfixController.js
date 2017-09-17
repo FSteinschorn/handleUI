@@ -708,6 +708,7 @@ function PostfixController(renderer) {
     // rule ... rule desriptor to append the parsed postfixes to
     // code ... array of code elements containing postfixes
     self.parsePostfixes = function (rule, code) {
+        /*
         var OUTSIDE = 1, INSIDE = 2, POINT = 3;
 
         if (!('tags' in rule)) {
@@ -862,6 +863,7 @@ function PostfixController(renderer) {
 
 
         return rule;
+         */
     }
 
     return self;
