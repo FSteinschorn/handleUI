@@ -122,6 +122,8 @@
         }
     });
 
+
+
     self.onDocumentMouseDown = function onDocumentMouseClick(event) {
         if (overHandle) {
             self.selectedRule.onHandlePressed(handleId, self.mouse, self.intersection, self.handlesScene, self.camera, self.selectedMesh.shape);
@@ -450,7 +452,7 @@
         //put it together
         uiDiv.appendChild(selectionDiv);
         uiDiv.appendChild(inputDiv);
-        // self.postfixController.addAllPostfixes(uiDiv, self.selectedRule, goals);
+        self.postfixController.addAllPostfixes(uiDiv, self.selectedRule, goals);
         uiDiv.appendChild(commit_button);
         uiDiv.appendChild(cancel_button);
 
@@ -543,7 +545,10 @@
 
     self.inputChanged = function () {
         var postfixDiv = document.getElementById("postfixDiv");
-        if (postfixDiv) self.postfixController.applyPostfixes(postfixDiv, self.selectedRule);
+        if (postfixDiv) {
+            self.selectedRule.postfixes = {};
+            self.postfixController.applyPostfixes(postfixDiv, self.selectedRule);
+        }
         self.ruleController.updateRule(self.selectedMesh.shape, self.selectedRule);
 
         while (self.handlesScene.children.length > 0) {

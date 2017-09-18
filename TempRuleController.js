@@ -101,8 +101,6 @@ function TempRuleController(renderer) {
         if (!rule) return;
         if (!shape) return;
 
-        var editor = ace.edit("code_text_ace");
-        var oldString = rule.generateRuleString();  // old string to replace
 
         // update rule
         removePreview(shape);
@@ -111,10 +109,12 @@ function TempRuleController(renderer) {
         rule.applyRule(shape);
         addPreview(shape);
 
+        var editor = ace.edit("code_text_ace");
+        var oldString = rule.getLastRuleString();  // old string to replace
         var newString = rule.generateRuleString();  // new string to replace old one
         
         if (rule.wasParsed && !rule.edited) {
-            var oldString = editor.getValue();
+            oldString = editor.getValue();
             var ruleLength = rule.end - rule.start;
             editor.setValue(oldString.substr(0, rule.start) + oldString.substr(rule.end), 1);
 
@@ -311,7 +311,11 @@ function TempRuleController(renderer) {
             abstractRule.type = 'abstract';
             abstractRule.generateRuleString = function () {
                 var ruleString = "string generation not implemented yet";
+                abstractRule.lastRuleString = ruleString;
                 return ruleString;
+            };
+            abstractRule.getLastRuleString = function () {
+                return abstractRule.lastRuleString;
             };
             abstractRule.generateShortString = function () {
                 return "short not implemented yet";
@@ -394,7 +398,14 @@ function TempRuleController(renderer) {
                     ruleString += ")";
                     ruleString = addTags(customRule, ruleString);
                     ruleString += ";";
+
+                    customRule.lastRuleString = ruleString;
+
                     return ruleString;
+                };
+
+                customRule.getLastRuleString = function () {
+                    return customRule.lastRuleString;
                 };
 
                 customRule.generateShortString = function () {
@@ -807,6 +818,7 @@ function TempRuleController(renderer) {
                 customRule.storeCurrentState = function () {
                     customRule.storedState = JSON.parse(JSON.stringify(customRule.selections));
                     if (config.mode) customRule.storedMode = customRule.mode;
+                    customRule.storedPostfixes = JSON.parse(JSON.stringify(customRule.postfixes));
                 };
 
                 customRule.setStoredState = function () {
@@ -857,6 +869,8 @@ function TempRuleController(renderer) {
                     if (config.mode && customRule.storedMode) {
                         setModeSelector(customRule.storedMode)
                     }
+
+                    customRule.postfixes = JSON.parse(JSON.stringify(customRule.storedPostfixes));
                 };
 
                 return customRule;

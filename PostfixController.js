@@ -109,7 +109,6 @@ function PostfixController(renderer) {
         if (type.constructor == Array) {
             var selector_id = makeid();
             innerHTML = '<select id=' + selector_id + '>';
-            var i = type.length;
             for (var i = 0; i < type.length; i++) {
                 innerHTML += '<option value="' + type[i] + '">' + type[i] + '</option>';
             }
@@ -129,14 +128,14 @@ function PostfixController(renderer) {
                 for (var j = 0; j < renderer.ruleController.paintConfig.options[0].values.length; j++) {
                     innerHTML += '<option vaule ="' + renderer.ruleController.paintConfig.options[0].values[j] + '">' + renderer.ruleController.paintConfig.options[0].values[j] + '</options>';
                 }
-                innerHTML += '</select>'
+                innerHTML += '</select>';
                 var id2 = makeid();
                 ids.push(id2);
                 innerHTML += '<select id=' + id2 + '>';
                 for (var j = 0; j < 10; j++) {
                     innerHTML += '<option vaule ="' + j + '">' + j + '</options>';
                 }
-                innerHTML += '</select>'
+                innerHTML += '</select>';
                 div.innerHTML += innerHTML;
                 break;
 
@@ -146,7 +145,7 @@ function PostfixController(renderer) {
                 for (var j = 0; j < renderer.ruleController.assetConfig.options[0].values.length; j++) {
                     innerHTML += '<option vaule ="' + renderer.ruleController.assetConfig.options[0].values[j] + '">' + renderer.ruleController.assetConfig.options[0].values[j] + '</options>';
                 }
-                innerHTML += '</select>'
+                innerHTML += '</select>';
                 div.innerHTML += innerHTML;
                 break;
 
@@ -157,7 +156,7 @@ function PostfixController(renderer) {
                 for (var j = 0; j < renderer.ruleController.orientationConfig.options[0].values.length; j++) {
                     innerHTML += '<option vaule ="' + renderer.ruleController.orientationConfig.options[0].values[j] + '">' + renderer.ruleController.orientationConfig.options[0].values[j] + '</options>';
                 }
-                innerHTML += '</select>'
+                innerHTML += '</select>';
                 div.innerHTML += innerHTML;
                 break;
 
@@ -167,7 +166,7 @@ function PostfixController(renderer) {
                 for (var j = 0; j < renderer.ruleController.reflectionConfig.options[0].values.length; j++) {
                     innerHTML += '<option vaule ="' + renderer.ruleController.reflectionConfig.options[0].values[j] + '">' + renderer.ruleController.reflectionConfig.options[0].values[j] + '</options>';
                 }
-                innerHTML += '</select>'
+                innerHTML += '</select>';
                 div.innerHTML += innerHTML;
                 break;
 
@@ -188,7 +187,7 @@ function PostfixController(renderer) {
                 innerHTML += '<option vaule ="int">int</options>';
                 innerHTML += '<option vaule ="double">double</options>';
                 innerHTML += '<option vaule ="none">string</options>';
-                innerHTML += '</select>'
+                innerHTML += '</select>';
                 div.innerHTML += innerHTML;
                 var valueInput = document.createElement("input");
                 valueInput.type = "text";
@@ -258,7 +257,7 @@ function PostfixController(renderer) {
     }
 
     // create full postfix ui as accordion
-    self.addAllPostfixes = function (parentDiv, ruleDescriptor, fulfills) {
+    self.addAllPostfixes = function (parentDiv, rule, fulfills) {
         var postfixDiv = document.createElement('div');
         postfixDiv.id = "postfixDiv";
         var idList = new Map();
@@ -273,16 +272,16 @@ function PostfixController(renderer) {
             category = accordion.childNodes[category_counter];
             category_counter += 2;
             value.forEach(function (value, key, map) {
-                var postfixId = self.addPostfix(category, ruleDescriptor, key, deleteButton = false, changeFunction = null, fulfills);
+                var postfixId = self.addPostfix(category, rule, key, deleteButton = false, changeFunction = null, fulfills);
                 idList.set(postfixId, [key, value]);
-            })
+            });
             postfix_counter = 0;
         });
 
         parentDiv.appendChild(postfixDiv);
 
         idList.forEach(function(value, key, map) {
-            addFunction(value[0], key, ruleDescriptor, null, fulfills);
+            addFunction(value[0], key, rule, null, fulfills);
         });
         
         // open postfix-categories with entries
@@ -295,13 +294,11 @@ function PostfixController(renderer) {
             }
         });
         
-    }
+    };
 
-    /**
-        type ... the type of postfix (Goal, goal, ...); can be array
-        id ... id of textarea to add function to
-        settings ... the javascript object to look for existing tags in
-    **/
+    // type ... the type of postfix (Goal, goal, ...); can be array
+    // id ... id of textarea to add function to
+    // settings ... the javascript object to look for existing postfixes in
     addFunction = function (type, ids, settings, changeFunction, fulfills) {
         if (!changeFunction) changeFunction = renderer.inputChanged;
 
@@ -327,16 +324,16 @@ function PostfixController(renderer) {
 
                     // fill existing values
                     if (settings) {
-                        for (var i = 0; i < Object.keys(settings.tags).length; i++) {
-                            if (settings.tags[i].type == 'Paint')
+                        for (var i = 0; i < Object.keys(settings.postfixes).length; i++) {
+                            if (settings.postfixes[i].type == 'Paint')
                                 for (var j = 0; j < selector.options.length; j++) {
-                                    if (selector.options[j].label == settings.tags[i].tags[0]) {
+                                    if (selector.options[j].label == settings.postfixes[i].tags[0]) {
                                         selector.selectedIndex = j;
                                         if (selector.className.indexOf("postfixUsed") == -1) {
                                             selector.className += " postfixUsed";
                                         }
                                         if (j > 20) {
-                                            toneSelector.selectedIndex = settings.tags[i].tags[1];
+                                            toneSelector.selectedIndex = settings.postfixes[i].tags[1];
                                             toneSelector.style.display = 'inline';
                                         }
                                     }
@@ -357,10 +354,10 @@ function PostfixController(renderer) {
 
                     // fill existing values
                     if (settings) {
-                        for (var i = 0; i < Object.keys(settings.tags).length; i++) {
-                            if (settings.tags[i].type == type)
+                        for (var i = 0; i < Object.keys(settings.postfixes).length; i++) {
+                            if (settings.postfixes[i].type == type)
                                 for (var j = 0; j < selector.options.length; j++) {
-                                    if (selector.options[j].label == settings.tags[i].tags[0]) {
+                                    if (selector.options[j].label == settings.postfixes[i].tags[0]) {
                                         selector.selectedIndex = j;
                                         if (selector.className.indexOf("postfixUsed") == -1) {
                                             selector.className += " postfixUsed";
@@ -385,18 +382,18 @@ function PostfixController(renderer) {
 
                     // fill existing values
                     if (settings) {
-                        for (var i = 0; i < Object.keys(settings.tags).length; i++) {
-                            if (settings.tags[i].type == type) {
+                        for (var i = 0; i < Object.keys(settings.postfixes).length; i++) {
+                            if (settings.postfixes[i].type == type) {
                                 for (var j = 0; j < selector.options.length; j++) {
-                                    if (selector.options[j].label == settings.tags[i].tags[1]) {
+                                    if (selector.options[j].label == settings.postfixes[i].tags[1]) {
                                         selector.selectedIndex = j;
                                         if (selector.className.indexOf("postfixUsed") == -1) {
                                             selector.className += " postfixUsed";
                                         }
                                     }
                                 }
-                                keyField.value = settings.tags[i].tags[0];
-                                valueField.value = settings.tags[i].tags[2];
+                                keyField.value = settings.postfixes[i].tags[0];
+                                valueField.value = settings.postfixes[i].tags[2];
                             }
                         }
                     }
@@ -408,9 +405,9 @@ function PostfixController(renderer) {
                 if (textField) {
                     textField.addEventListener('input', changeFunction);
                     if (settings) {
-                        for (var i = 0; i < Object.keys(settings.tags).length; i++) {
-                            if (settings.tags[i].type == type) {
-                                textField.value = settings.tags[i].tags[0];
+                        for (var i = 0; i < Object.keys(settings.postfixes).length; i++) {
+                            if (settings.postfixes[i].type == type) {
+                                textField.value = settings.postfixes[i].tags[0];
                                 if (textField.className.indexOf("postfixUsed") == -1) {
                                     textField.className += " postfixUsed";
                                 }
@@ -431,8 +428,8 @@ function PostfixController(renderer) {
 
                 //check for given input
                 if (settings && !oldTags.length > 0) {
-                    for (var i = 0; i < Object.keys(settings.tags).length; i++) {
-                        if (settings.tags[i].type == type) oldTags = settings.tags[i].tags;
+                    for (var i = 0; i < Object.keys(settings.postfixes).length; i++) {
+                        if (settings.postfixes[i].type == type) oldTags = settings.postfixes[i].tags;
                     }
                 }
 
@@ -533,8 +530,8 @@ function PostfixController(renderer) {
     // parentDiv ... the dom element in which to search
     // parentObject ... the javascript object in which to write
     self.applyPostfixes = function (parentDiv, parentObject) {
-        if (! ('tags' in parentObject)) {
-            parentObject['tags'] = {};
+        if (! ('postfixes' in parentObject)) {
+            parentObject['postfixes'] = {};
         }
         postfixList = []
         self.postfixesPlain.forEach(function (value, key, map) {
@@ -554,9 +551,9 @@ function PostfixController(renderer) {
                         if (selector.selectedIndex > 20) {
                             var toneSelector = selector.nextSibling;
                             var tone = toneSelector.options[toneSelector.selectedIndex].label;
-                            parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [material, tone] };
+                            parentObject['postfixes'][Object.keys(parentObject['postfixes']).length] = { type: parentDiv.name, tags: [material, tone] };
                         } else {
-                            parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [material] };
+                            parentObject['postfixes'][Object.keys(parentObject['postfixes']).length] = { type: parentDiv.name, tags: [material] };
                         }
                         break;
 
@@ -567,7 +564,7 @@ function PostfixController(renderer) {
                         var selector = document.getElementById(id);
                         var tag = selector.options[selector.selectedIndex].label;
                         if (tag == "none") break;
-                        parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [tag] };
+                        parentObject['postfixes'][Object.keys(parentObject['postfixes']).length] = { type: parentDiv.name, tags: [tag] };
                         break;
 
                     case 'Set':
@@ -581,23 +578,23 @@ function PostfixController(renderer) {
                         switch (type) {
                             case 'bool':
                                 if (value == 'True' || value == 'true' || value == 'TRUE' || (!isNaN(value) && Number.parseFloat(value) != 0)) {
-                                    parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [key, type, true] };
+                                    parentObject['postfixes'][Object.keys(parentObject['postfixes']).length] = { type: parentDiv.name, tags: [key, type, true] };
                                 } else {
-                                    parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [key, type, false] };
+                                    parentObject['postfixes'][Object.keys(parentObject['postfixes']).length] = { type: parentDiv.name, tags: [key, type, false] };
                                 }
                                 break;
                             case 'int':
                                 if (!isNaN(value)) {
-                                    parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [key, type, Number.parseInt(value)] };
+                                    parentObject['postfixes'][Object.keys(parentObject['postfixes']).length] = { type: parentDiv.name, tags: [key, type, Number.parseInt(value)] };
                                 }
                                 break;
                             case 'double':
                                 if (!isNaN(value)) {
-                                    parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [key, type, Number.parseFloat(value)] };
+                                    parentObject['postfixes'][Object.keys(parentObject['postfixes']).length] = { type: parentDiv.name, tags: [key, type, Number.parseFloat(value)] };
                                 }
                                 break;
                             case 'string':
-                                parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [key, type, value] };
+                                parentObject['postfixes'][Object.keys(parentObject['postfixes']).length] = { type: parentDiv.name, tags: [key, type, value] };
                                 break;
                             default:
                                 break;
@@ -608,15 +605,15 @@ function PostfixController(renderer) {
                         var textField = document.getElementById(id);
                         var string = textField.value;
                         if (!isNaN(string) && string != "") {
-                            parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [Number.parseFloat(string)] };
+                            parentObject['postfixes'][Object.keys(parentObject['postfixes']).length] = { type: parentDiv.name, tags: [Number.parseFloat(string)] };
                         } else if (string != "") {
-                            parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: [0.0] };
+                            parentObject['postfixes'][Object.keys(parentObject['postfixes']).length] = { type: parentDiv.name, tags: [0.0] };
                         }
                         break;
 
                     default:
                         var taglist = $('#' + id).tagEditor('getTags')[0].tags;
-                        if (taglist && (taglist.length != 0)) parentObject['tags'][Object.keys(parentObject['tags']).length] = { type: parentDiv.name, tags: taglist };
+                        if (taglist && (taglist.length != 0)) parentObject['postfixes'][Object.keys(parentObject['postfixes']).length] = { type: parentDiv.name, tags: taglist };
                         break;
                 }
              }
@@ -629,13 +626,13 @@ function PostfixController(renderer) {
 
     // append postfix string representation in parentObject to ruleString
     self.appendPostfixString = function (parentObject, ruleString, indentation) {
-        if (!('tags' in parentObject)) return ruleString;
+        if (!('postfixes' in parentObject)) return ruleString;
         if (!indentation) indentation = 1;
         var indString = "";
         for (var i = 0; i < indentation; i++) indString += "\t";
-        for (var i = 0; i < Object.keys(parentObject['tags']).length; i++) {
-            var type = parentObject['tags'][i]['type'];
-            var tags = parentObject['tags'][i]['tags'];
+        for (var i = 0; i < Object.keys(parentObject['postfixes']).length; i++) {
+            var type = parentObject['postfixes'][i]['type'];
+            var tags = parentObject['postfixes'][i]['tags'];
             ruleString += "\n" + indString + "." + type + "(";
 
             switch (type) {
@@ -708,11 +705,10 @@ function PostfixController(renderer) {
     // rule ... rule desriptor to append the parsed postfixes to
     // code ... array of code elements containing postfixes
     self.parsePostfixes = function (rule, code) {
-        /*
         var OUTSIDE = 1, INSIDE = 2, POINT = 3;
 
-        if (!('tags' in rule)) {
-            rule['tags'] = {};
+        if (!('postfixes' in rule)) {
+            rule['postfixes'] = {};
         }
 
         var mode = OUTSIDE;
@@ -748,7 +744,7 @@ function PostfixController(renderer) {
                                 counter += 3;
                             // end of arguments
                             } else if (code[counter].Text == ')' && code[counter].RawKind == 8201) {
-                                if (taglist.length != 0) rule['tags'][Object.keys(rule['tags']).length] = { type: postfixType, tags: taglist };
+                                if (taglist.length != 0) rule['postfixes'][Object.keys(rule['postfixes']).length] = { type: postfixType, tags: taglist };
                                 mode = OUTSIDE;
                                 counter += 1;
                             // second argument
@@ -772,7 +768,7 @@ function PostfixController(renderer) {
                                 counter += 3;
                             // end of arguments
                             } else if (code[counter].Text == ')' && code[counter].RawKind == 8201) {
-                                if (taglist.length != 0) rule['tags'][Object.keys(rule['tags']).length] = { type: postfixType, tags: taglist };
+                                if (taglist.length != 0) rule['postfixes'][Object.keys(rule['postfixes']).length] = { type: postfixType, tags: taglist };
                                 mode = OUTSIDE;
                                 counter += 1;
                             } else {
@@ -782,7 +778,7 @@ function PostfixController(renderer) {
 
                         case 'Probability':
                             if (code[counter].Text == ')' && code[counter].RawKind == 8201) {
-                                if (taglist.length != 0) rule['tags'][Object.keys(rule['tags']).length] = { type: postfixType, tags: taglist };
+                                if (taglist.length != 0) rule['postfixes'][Object.keys(rule['postfixes']).length] = { type: postfixType, tags: taglist };
                                 mode = OUTSIDE;
                                 counter += 1;
                             } else if (code[counter].RawKind == 8509) {
@@ -797,7 +793,7 @@ function PostfixController(renderer) {
                         case 'Firstset':
                             // end of arguments
                             if (code[counter].Text == ')' && code[counter].RawKind == 8201) {
-                                if (taglist.length != 0) rule['tags'][Object.keys(rule['tags']).length] = { type: postfixType, tags: taglist };
+                                if (taglist.length != 0) rule['postfixes'][Object.keys(rule['postfixes']).length] = { type: postfixType, tags: taglist };
                                 mode = OUTSIDE;
                                 counter += 1;
                             // found number
@@ -834,7 +830,7 @@ function PostfixController(renderer) {
                         default:
                             // end of list
                             if (code[counter].Text == ')' && code[counter].RawKind == 8201) {
-                                if (taglist.length != 0) rule['tags'][Object.keys(rule['tags']).length] = { type: postfixType, tags: taglist };
+                                if (taglist.length != 0) rule['postfixes'][Object.keys(rule['postfixes']).length] = { type: postfixType, tags: taglist };
                                 mode = OUTSIDE;
                                 counter += 1;
                                 // enum types
@@ -863,8 +859,7 @@ function PostfixController(renderer) {
 
 
         return rule;
-         */
-    }
+    };
 
     return self;
 }
