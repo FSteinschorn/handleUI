@@ -366,6 +366,7 @@
                 $("#editRule_Button_" + i).click(function (i) {
                     return function () {
                         self.selectedRule = parsedRules[i];
+                        self.selectedRule.storeCurrentState();
                         var editor = ace.edit("code_text_ace");
                         uneditedCode = editor.getValue();
                         self.ruleIndex = i;
@@ -392,6 +393,7 @@
                 $("#editRule_Button_" + (i + parsedRules.lenght)).click(function (i) {
                     return function () {
                         self.selectedRule = tmpRules[i];
+                        self.selectedRule.storeCurrentState();
                         uneditedRule = self.selectedRule;
                         clearUI();
                         self.initRuleUI();
@@ -512,14 +514,15 @@
 
         $("#cancel_Button").click(function () {
             if (creatingNewRule) {
-                self.ruleController.removeRule(self.selectedRule);
+                self.ruleController.removeRule(self.selectedRule, self.selectedMesh);
             } else {
                 if (currentRuleWasParsed) {
                     self.ruleController.removeRule(self.selectedRule);
                     var editor = ace.edit("code_text_ace");
                     editor.setValue(uneditedCode);
                 } else {
-                    self.ruleController.updateRule(self.selectedMesh.shape, self.selectedRule, uneditedRule);
+                    self.selectedRule.setStoredState();
+                    self.ruleController.updateRule(self.selectedMesh.shape, self.selectedRule);
                 }
                 
             }

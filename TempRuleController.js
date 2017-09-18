@@ -316,37 +316,29 @@ function TempRuleController(renderer) {
             abstractRule.generateShortString = function () {
                 return "short not implemented yet";
             };
-            abstractRule.applyRule = function (shape) {
-            };
-            abstractRule.unapplyRule = function (shape) {
-            };
-            abstractRule.appendInputFields = function (parentDiv) {
-            };
-            abstractRule.updateRule = function () {
-            };
-            abstractRule.draggingHelpers = {
-            };
+            abstractRule.applyRule = function (shape) {};
+            abstractRule.unapplyRule = function (shape) {};
+            abstractRule.appendInputFields = function (parentDiv) {};
+            abstractRule.updateRule = function () {};
+            abstractRule.draggingHelpers = {};
             abstractRule.createHandles = function (scene, shape) {
                 this.draggingHelpers.scene = scene;
                 var colors = [0xAA0000, 0x00AA00, 0x0000AA];
                 var ids = buildStandardAxes(scene, shape, colors, true);
             };
-            abstractRule.onMouseOverHandle = function (id) {
-            };
-            abstractRule.onMouseNotOverHandle = function () {
-            };
-            abstractRule.onHandlePressed = function (id, mouse, intersection, scene, camera, shape) {
-            };
-            abstractRule.onHandleDragged = function (mouse) {
-            };
-            abstractRule.onHandleReleased = function () {
-            };
+            abstractRule.onMouseOverHandle = function (id) {};
+            abstractRule.onMouseNotOverHandle = function () {};
+            abstractRule.onHandlePressed = function (id, mouse, intersection, scene, camera, shape) {};
+            abstractRule.onHandleDragged = function (mouse) {};
+            abstractRule.onHandleReleased = function () {};
             abstractRule.addPreview = addPreview;
             abstractRule.removePreview = removePreview;
             abstractRule.parseCode = function (ruleBuffer) {
                 return 0;
             };
             abstractRule.generatesMultipleShapes = false;
+            abstractRule.storeCurrentState = function() {};
+            abstractRule.setStoredState = function() {};
         }
 
 
@@ -388,7 +380,7 @@ function TempRuleController(renderer) {
 
                 customRule.selections = {};
                 for (var i = 0; i < config.options.length; i++) {
-                    customRule.selections[i] = config.options[i].values;
+                    customRule.selections[i] = JSON.parse(JSON.stringify(config.options[i].values));
                 }
 
                 customRule.generateRuleString = function () {
@@ -812,6 +804,61 @@ function TempRuleController(renderer) {
                     return counter;
                 };
 
+                customRule.storeCurrentState = function () {
+                    customRule.storedState = JSON.parse(JSON.stringify(customRule.selections));
+                    if (config.mode) customRule.storedMode = customRule.mode;
+                };
+
+                customRule.setStoredState = function () {
+                    for (var i = 0; i < config.options.length; i++) {
+                        switch (config.options[i].inputType) {
+
+                            case INPUTTYPE.STRING:
+                            case INPUTTYPE.DOUBLE:
+                            case INPUTTYPE.RAW:
+                                var id = "input_field" + i;
+                                var input = document.getElementById(id);
+                                input.value = customRule.storedState[i];
+                                break;
+
+                            case INPUTTYPE.DROPDOWN:
+                                var id = "dropdown" + i;
+                                var input = document.getElementById(id);
+                                input.value = customRule.storedState[i];
+                                break;
+
+                            case INPUTTYPE.TAG:
+                                // TODO: set tags
+                                break;
+
+                            case INPUTTYPE.TAGS:
+                                // TODO: set tags
+                                break;
+
+                            case INPUTTYPE.VEC3:
+                                var id = "vec3_" + i + "_elem0";
+                                input = document.getElementById(id);
+                                input.value = customRule.storedState[i][0];
+                                id = "vec3_" + i + "_elem1";
+                                input = document.getElementById(id);
+                                input.value = customRule.storedState[i][1];
+                                id = "vec3_" + i + "_elem2";
+                                input = document.getElementById(id);
+                                input.value = customRule.storedState[i][2];
+                                break;
+
+                            default:
+                                break;
+
+                        }
+
+                    }
+
+                    if (config.mode && customRule.storedMode) {
+                        setModeSelector(customRule.storedMode)
+                    }
+                };
+
                 return customRule;
 
             }
@@ -976,8 +1023,6 @@ function TempRuleController(renderer) {
                     var angle = diff.normalize().angleTo(direction.normalize());
                     if (angle > (0.5 * Math.PI)) length *= -1;
 
-                    translation.unapplyRule(translation.draggingHelpers.shape);
-                    removePreview(translation.draggingHelpers.shape);
                     switch (translation.draggingHelpers.activeHandle) {
                         case 'x':
                             document.getElementById("vec3_0_elem0").value = '' + (translation.draggingHelpers.startValues.x + length).round();
