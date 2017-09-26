@@ -101,7 +101,6 @@ function TempRuleController(renderer) {
         if (!rule) return;
         if (!shape) return;
 
-
         // update rule
         removePreview(shape);
         rule.unapplyRule(shape);
@@ -176,7 +175,7 @@ function TempRuleController(renderer) {
     };
 
     addPreview = function (shape) {
-        var geo, matrix;
+        var geo;
         var t = shape.appearance.transformation;
         var matrix = new THREE.Matrix4().set(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8], t[9], t[10], t[11], t[12], t[13], t[14], t[15]);
         var positiveDeterminant = matrix.determinant() > 0.0;
@@ -328,7 +327,7 @@ function TempRuleController(renderer) {
             abstractRule.createHandles = function (scene, shape) {
                 this.draggingHelpers.scene = scene;
                 var colors = [0xAA0000, 0x00AA00, 0x0000AA];
-                var ids = buildStandardAxes(scene, shape, colors, true);
+                this.draggingHelpers.arrowIds = buildStandardAxes(scene, shape, colors, true);
             };
             abstractRule.onMouseOverHandle = function (id) {};
             abstractRule.onMouseNotOverHandle = function () {};
@@ -354,9 +353,9 @@ function TempRuleController(renderer) {
             /*
 
             config = {
-                type: String,
-                mode: bool,
-                options: [
+                type: String,                           name of the rule
+                mode: bool,                             add mode selector? (local, global, etc.)
+                options: [                              list of needed rule parameters
                     {
                         label: String | null,
                         inputType: INPUTTYPE,
@@ -366,14 +365,14 @@ function TempRuleController(renderer) {
                 ]
             }
 
-            inputType - values_type:
+            inputType - values:
             DROPDOWN - [option1, option2, ...]
-            VEC3 - [x,y,z]
+            VEC3 - [double, double, double]
             STRING - string
             TAG - string
             RAW - string
             DOUBLE - double
-            TAGS - [tag1, tag2, ...]            
+            TAGS - [string, string, ...]
 
             */
             generateCustomRule = function (config) {
@@ -384,7 +383,14 @@ function TempRuleController(renderer) {
 
                 customRule.selections = {};
                 for (var i = 0; i < config.options.length; i++) {
-                    customRule.selections[i] = JSON.parse(JSON.stringify(config.options[i].values));
+                    switch (config.options[i].inputType) {
+                        case INPUTTYPE.DROPDOWN:
+                            customRule.selections[i] = JSON.parse(JSON.stringify(config.options[i].values[0]));
+                            break;
+                        default:
+                            customRule.selections[i] = JSON.parse(JSON.stringify(config.options[i].values));
+                            break;
+                    }
                 }
 
                 customRule.generateRuleString = function () {
@@ -493,7 +499,7 @@ function TempRuleController(renderer) {
                             case INPUTTYPE.DROPDOWN:
                                 var id = "dropdown" + i;
                                 var selector = document.getElementById(id);
-                                customRule.selections[i] = parseFloat(selector.value);
+                                customRule.selections[i] = selector.value;
                                 break;
 
                             case INPUTTYPE.TAG:
@@ -525,7 +531,11 @@ function TempRuleController(renderer) {
                     if (config.mode) {
                         customRule.mode = getMode();
                     }
+
+                    customRule.additionalUpdates();
                 };
+
+                customRule.additionalUpdates = function() { };
 
                 customRule.afterInputCreation = function (parentDiv) { };
 
@@ -609,8 +619,10 @@ function TempRuleController(renderer) {
                     }
 
                     for (var i = 0; i < config.options.length; i++) {
+                        var current = config.options[i];
+
                         // add listeners
-                        switch (config.options[i].inputType) {
+                        switch (current.inputType) {
 
                             case INPUTTYPE.STRING:
                             case INPUTTYPE.DOUBLE:
@@ -650,7 +662,7 @@ function TempRuleController(renderer) {
                         }
 
                         // fill values
-                        switch (config.options[i].inputType) {
+                        switch (current.inputType) {
                             case INPUTTYPE.STRING:
                             case INPUTTYPE.DOUBLE:
                             case INPUTTYPE.RAW:
@@ -713,8 +725,6 @@ function TempRuleController(renderer) {
 
                     customRule.onselectionChange();
                 };
-                
-                customRule.createHandles = function (scene, shape) { };
 
                 customRule.parseCode = function (ruleBuffer) {
                     customRule.selections = [];
@@ -1076,7 +1086,7 @@ function TempRuleController(renderer) {
                         values: [1, 1, 1]
                     }
                 ]
-            }
+            };
 
             generateScaleRule = function () {
 
@@ -1087,8 +1097,8 @@ function TempRuleController(renderer) {
                     matrix.makeScale(parseFloat(scale.selections[0][0]), parseFloat(scale.selections[0][1]), parseFloat(scale.selections[0][2]));
                     mat = shape.appearance.transformation;
                     var m = new THREE.Matrix4().fromArray(mat).transpose();
-                    if (scale.mode == "Mode.Local" || scale.mode == "Mode.LocalMid") m.premultiply(matrix);
-                    if (scale.mode == "Mode.Global" || scale.mode == "Mode.GlobalMid") m.multiply(matrix);
+                    if (scale.mode == "Mode.Local" || scale.mode == "Mode.LocalMid") m.multiply(matrix);
+                    if (scale.mode == "Mode.Global" || scale.mode == "Mode.GlobalMid") m.premultiply(matrix);
                     shape.appearance.transformation = m.transpose().toArray();
                 };
                 scale.unapplyRule = function (shape) {
@@ -1096,8 +1106,8 @@ function TempRuleController(renderer) {
                     matrix.makeScale(1 / parseFloat(scale.selections[0][0]), 1 / parseFloat(scale.selections[0][1]), 1 / parseFloat(scale.selections[0][2]));
                     mat = shape.appearance.transformation;
                     var m = new THREE.Matrix4().fromArray(mat).transpose();
-                    if (scale.mode == "Mode.Local" || scale.mode == "Mode.LocalMid") m.premultiply(matrix);
-                    if (scale.mode == "Mode.Global" || scale.mode == "Mode.GlobalMid") m.multiply(matrix);
+                    if (scale.mode == "Mode.Local" || scale.mode == "Mode.LocalMid") m.multiply(matrix);
+                    if (scale.mode == "Mode.Global" || scale.mode == "Mode.GlobalMid") m.premultiply(matrix);
                     shape.appearance.transformation = m.transpose().toArray();
                 };
                 scale.draggingHelpers = {
@@ -1281,7 +1291,7 @@ function TempRuleController(renderer) {
 
                 var grow = generateCustomRule(self.growConfig);
 
-                grow.applyRule = function (rule, shape) {
+                grow.applyRule = function (shape) {
                     var transform = shape.appearance.transformation;
                     var xDir = new THREE.Vector3(transform[0], transform[1], transform[2]);
                     var yDir = new THREE.Vector3(transform[4], transform[5], transform[6]);
@@ -1289,19 +1299,19 @@ function TempRuleController(renderer) {
                     var sizeX = xDir.length();
                     var sizeY = yDir.length();
                     var sizeZ = zDir.length();
-                    var scaleX = 1 + parseFloat(rule.selections[0][0]) / sizeX;
-                    var scaleY = 1 + parseFloat(rule.selections[0][1]) / sizeY;
-                    var scaleZ = 1 + parseFloat(rule.selections[0][2]) / sizeZ;
+                    var scaleX = 1 + parseFloat(grow.selections[0][0]) / sizeX;
+                    var scaleY = 1 + parseFloat(grow.selections[0][1]) / sizeY;
+                    var scaleZ = 1 + parseFloat(grow.selections[0][2]) / sizeZ;
 
                     var matrix = new THREE.Matrix4();
                     matrix.makeScale(scaleX, scaleY, scaleZ);
                     mat = shape.appearance.transformation;
                     var m = new THREE.Matrix4().fromArray(mat).transpose();
-                    if (rule.mode == "Mode.Local" || rule.mode == "Mode.LocalMid") m.premultiply(matrix);
-                    if (rule.mode == "Mode.Global" || rule.mode == "Mode.GlobalMid") m.multiply(matrix);
+                    if (grow.mode == "Mode.Local" || grow.mode == "Mode.LocalMid") m.premultiply(matrix);
+                    if (grow.mode == "Mode.Global" || grow.mode == "Mode.GlobalMid") m.multiply(matrix);
                     shape.appearance.transformation = m.transpose().toArray();
                 };
-                grow.unapplyRule = function (rule, shape) {
+                grow.unapplyRule = function (shape) {
                     var transform = shape.appearance.transformation;
                     var xDir = new THREE.Vector3(transform[0], transform[1], transform[2]);
                     var yDir = new THREE.Vector3(transform[4], transform[5], transform[6]);
@@ -1309,16 +1319,16 @@ function TempRuleController(renderer) {
                     var sizeX = xDir.length();
                     var sizeY = yDir.length();
                     var sizeZ = zDir.length();
-                    var scaleX = sizeX / (sizeX - parseFloat(rule.selections[0][0]));
-                    var scaleY = sizeY / (sizeY - parseFloat(rule.selections[0][1]));
-                    var scaleZ = sizeZ / (sizeZ - parseFloat(rule.selections[0][2]));
+                    var scaleX = sizeX / (sizeX - parseFloat(grow.selections[0][0]));
+                    var scaleY = sizeY / (sizeY - parseFloat(grow.selections[0][1]));
+                    var scaleZ = sizeZ / (sizeZ - parseFloat(grow.selections[0][2]));
 
                     var matrix = new THREE.Matrix4();
                     matrix.makeScale(1 / scaleX, 1 / scaleY, 1 / scaleZ);
                     mat = shape.appearance.transformation;
                     var m = new THREE.Matrix4().fromArray(mat).transpose();
-                    if (rule.mode == "Mode.Local" || rule.mode == "Mode.LocalMid") m.premultiply(matrix);
-                    if (rule.mode == "Mode.Global" || rule.mode == "Mode.GlobalMid") m.multiply(matrix);
+                    if (grow.mode == "Mode.Local" || grow.mode == "Mode.LocalMid") m.premultiply(matrix);
+                    if (grow.mode == "Mode.Global" || grow.mode == "Mode.GlobalMid") m.multiply(matrix);
                     shape.appearance.transformation = m.transpose().toArray();
                 };
                 grow.draggingHelpers = {
@@ -1504,63 +1514,19 @@ function TempRuleController(renderer) {
                         values: null
                     }
                 ]
-            }
+            };
 
             generateSizeRule = function () {
 
                 var sizeRule = generateCustomRule(self.sizeConfig);
 
-                sizeRule.changedAxis = function () {
-                    var selector = document.getElementById('dropdown0');
-                    selection = selector.options[selector.selectedIndex].label;
-                    switch (selection) {
-                        case 'Axis.X':
-                            sizeRule.draggingHelpers.initialSize = sizeRule.draggingHelpers.initialSizeX;
-                            break;
-                        case 'Axis.Y':
-                            sizeRule.draggingHelpers.initialSize = sizeRule.draggingHelpers.initialSizeY;
-                            break;
-                        case 'Axis.Z':
-                            sizeRule.draggingHelpers.initialSize = sizeRule.draggingHelpers.initialSizeZ;
-                            break;
-                        default:
-                            break;
-                    }
-                    sizeRule.onselectionChange();
-                };
+                sizeRule.initialSize = null;
 
-                sizeRule.afterInputCreation = function (parentDiv) {
-                    var input = document.getElementById('input_field1');
-                    if (sizeRule) {
-                        this.draggingHelpers.initialSize = sizeRule.initialSize;
-                        input.value = sizeRule.selections[1];
-                    } else {
-                        this.draggingHelpers.initialSize = null;
-                        input.value = 2;
-                    }
-
-                    var id = "dropdown0";
-                    var selector = document.getElementById(id);
-                    selector.addEventListener("change", sizeRule.changedAxis);
-                }
                 sizeRule.applyRule = function (shape) {
                     var matrix = new THREE.Matrix4();
 
-                    if (!sizeRule.initialSize) {
-                        var m = shape.appearance.transformation;
-                        var selection = sizeRule.selections[0]
-                        if (selection == 'Axis.X') {
-                            var dir = new THREE.Vector3(m[0], m[1], m[2]);
-                        } else if (selection == 'Axis.Y') {
-                            var dir = new THREE.Vector3(m[4], m[5], m[6]);
-                        } else {
-                            var dir = new THREE.Vector3(m[8], m[9], m[10]);
-                        }
-                        rule.initialSize = dir.length();
-                    }
-
-                    var scale = sizeRule.selections[1] / sizeRule.initialSize;
-                    switch (rule.selections[0]) {
+                    var scale = sizeRule.selections[1] / sizeRule.initialSize || 1;
+                    switch (this.selections[0]) {
                         case 'Axis.X':
                             matrix.makeScale(scale, 1, 1);
                             break;
@@ -1576,15 +1542,15 @@ function TempRuleController(renderer) {
 
                     mat = shape.appearance.transformation;
                     var m = new THREE.Matrix4().fromArray(mat).transpose();
-                    if (sizeRule.mode == "Mode.Local" || sizeRule.mode == "Mode.LocalMid") m.premultiply(matrix);
-                    if (sizeRule.mode == "Mode.Global" || sizeRule.mode == "Mode.GlobalMid") m.multiply(matrix);
+                    if (this.mode == "Mode.Local" || this.mode == "Mode.LocalMid") m.multiply(matrix);
+                    if (this.mode == "Mode.Global" || this.mode == "Mode.GlobalMid") m.premultiply(matrix);
                     shape.appearance.transformation = m.transpose().toArray();
                 };
                 sizeRule.unapplyRule = function (shape) {
                     var matrix = new THREE.Matrix4();
 
-                    var scale = sizeRule.initialSize / sizeRule.selections[1];
-                    switch (sizeRule.selections[0]) {
+                    var scale = sizeRule.initialSize / sizeRule.selections[1] || 1;
+                    switch (this.selections[0]) {
                         case 'Axis.X':
                             matrix.makeScale(scale, 1, 1);
                             break;
@@ -1600,8 +1566,8 @@ function TempRuleController(renderer) {
 
                     mat = shape.appearance.transformation;
                     var m = new THREE.Matrix4().fromArray(mat).transpose();
-                    if (sizeRule.mode == "Mode.Local" || sizeRule.mode == "Mode.LocalMid") m.premultiply(matrix);
-                    if (sizeRule.mode == "Mode.Global" || sizeRule.mode == "Mode.GlobalMid") m.multiply(matrix);
+                    if (this.mode == "Mode.Local" || this.mode == "Mode.LocalMid") m.multiply(matrix);
+                    if (this.mode == "Mode.Global" || this.mode == "Mode.GlobalMid") m.premultiply(matrix);
                     shape.appearance.transformation = m.transpose().toArray();
                 };
                 sizeRule.createHandles = function (scene, shape) {
@@ -1611,35 +1577,32 @@ function TempRuleController(renderer) {
                     var selector = document.getElementById('dropdown0');
                     var selection = selector[selector.selectedIndex].label;
 
-                    if (!this.draggingHelpers.initialSizeX) {
+                    if (!this.initialSizeX) {
                         var dir = new THREE.Vector3(m[0], m[1], m[2]);
-                        sizeRule.draggingHelpers.initialSizeX = dir.length();
+                        this.initialSizeX = dir.length();
                     }
-                    if (!this.draggingHelpers.initialSizeY) {
+                    if (!this.initialSizeY) {
                         var dir = new THREE.Vector3(m[4], m[5], m[6]);
-                        sizeRule.draggingHelpers.initialSizeY = dir.length();
+                        this.initialSizeY = dir.length();
                     }
-                    if (!this.draggingHelpers.initialSizeZ) {
+                    if (!this.initialSizeZ) {
                         var dir = new THREE.Vector3(m[8], m[9], m[10]);
-                        sizeRule.draggingHelpers.initialSizeZ = dir.length();
+                        this.initialSizeZ = dir.length();
                     }
 
-                    if (!this.draggingHelpers.initialSize) {
-                        if (selection == 'Axis.X') {
-                            sizeRule.draggingHelpers.initialSize = sizeRule.draggingHelpers.initialSizeX;
-                        } else if (selection == 'Axis.Y') {
-                            sizeRule.draggingHelpers.initialSize = sizeRule.draggingHelpers.initialSizeY;
+                    if (!this.initialSize) {
+                        if (this.selections[0] == 'Axis.X') {
+                            this.initialSize = sizeRule.initialSizeX;
+                        } else if (this.selections[0] == 'Axis.Y') {
+                            this.initialSize = sizeRule.initialSizeY;
                         } else {
-                            sizeRule.draggingHelpers.initialSize = sizeRule.draggingHelpers.initialSizeZ;
+                            this.initialSize = sizeRule.initialSizeZ;
                         }
                     }
 
-                    if (this.draggingHelpers.activeHandle) {
-                        document.getElementById("input_field1").value = sizeRule.draggingHelpers.size.round();
-                    }
+                    if (!this.selections[1]) this.selections[1] = this.initialSize;
 
                     //create handles
-
                     var basicColors = [0xAA3030, 0x30AA30, 0x3030AA];
                     var highlightColors = [0xFF0000, 0x00FF00, 0x0000FF];
 
@@ -1648,76 +1611,62 @@ function TempRuleController(renderer) {
                     center = new THREE.Vector3(0, 0, 0);
                     center.applyProjection(m);
 
-                    var dir, offset;
-                    var currentInput = document.getElementById("input_field1").value;
-                    switch (this.draggingHelpers.axis) {
+                    var dir, length;
+                    switch (this.selections[0]) {
                         case 'Axis.X':
                             dir = new THREE.Vector3(1.0, 0, 0);
-                            offset = new THREE.Vector3(currentInput, 0, 0);
+                            length = new THREE.Vector3(this.selections[1], 0, 0);
                             break;
                         case 'Axis.Y':
                             dir = new THREE.Vector3(0, 1.0, 0);
-                            offset = new THREE.Vector3(0, currentInput, 0);
+                            length = new THREE.Vector3(0, this.selections[1], 0);
                             break;
                         case 'Axis.Z':
                             dir = new THREE.Vector3(0, 0, 1.0);
-                            offset = new THREE.Vector3(0, 0, currentInput);
+                            length = new THREE.Vector3(0, 0, this.selections[1]);
                             break;
                         default:
                             break;
                     }
 
+                    center.addScaledVector(length, 0.5);
                     dir.applyProjection(m);
                     dir.sub(center);
+                    dir.normalize();
 
-                    sizeRule.draggingHelpers.highlight = null;
-                    var search = 0;
-                    if (!sizeRule.draggingHelpers.arrowIds) sizeRule.draggingHelpers.arrowIds = [];
-                    if (sizeRule.draggingHelpers.overHandle) search = sizeRule.draggingHelpers.overHandle;
-                    else if (sizeRule.draggingHelpers.activeHandle) search = sizeRule.draggingHelpers.activeHandle;
-                    for (var i = 0; i < sizeRule.draggingHelpers.arrowIds.length; i++) {
-                        if (sizeRule.draggingHelpers.arrowIds[i] <= search && sizeRule.draggingHelpers.arrowIds[i] + 2 >= search) {
-                            sizeRule.draggingHelpers.highlight = Math.floor(i / 2);
-                        }
-                    };
+                    if (!this.draggingHelpers.arrowIds) this.draggingHelpers.arrowIds = [];
+                    this.draggingHelpers.highlight = (this.draggingHelpers.overHandle || this.draggingHelpers.activeHandle);
 
-                    var oldStartingId = sizeRule.draggingHelpers.arrowIds[0] || 0;
+                    var oldStartingId = this.draggingHelpers.arrowIds[0] || 0;
                     this.draggingHelpers.arrowIds = [];
-                    var counter = 0;
-                    for (var i = 0; i < sizeRule.draggingHelpers.segments.length - 1; i++) {
-                        var size = Math.max(0.000001, sizeRule.draggingHelpers.segments[i]);
-                        switch (sizeRule.draggingHelpers.axis) {
-                            case 'Axis.X':
-                                center.add(new THREE.Vector3(size, widthOffset, heightOffset));
-                                if (counter == sizeRule.draggingHelpers.highlight) color = highlightColors[0];
-                                else color = basicColors[0];
-                                break;
-                            case 'Axis.Y':
-                                center.add(new THREE.Vector3(widthOffset, size, heightOffset));
-                                if (counter == sizeRule.draggingHelpers.highlight) color = highlightColors[1];
-                                else color = basicColors[1];
-                                break;
-                            case 'Axis.Z':
-                                center.add(new THREE.Vector3(widthOffset, heightOffset, size));
-                                if (counter == sizeRule.draggingHelpers.highlight) color = highlightColors[2];
-                                else color = basicColors[2];
-                                break;
-                            default:
-                                break;
-                        }
-                        counter++;
-
-                        var arrowlength = Math.max(sizeRule.draggingHelpers.fullSize / 5, 0.1);
-                        var backarrow = new THREE.ArrowHelper(new THREE.Vector3().sub(dir).normalize(), center, arrowlength, color, 0.2, 0.1);
-                        var arrow = new THREE.ArrowHelper(dir.normalize(), center, arrowlength, color, 0.2, 0.1);
-                        scene.add(arrow);
-                        scene.add(backarrow);
-
-                        this.draggingHelpers.arrowIds.push(arrow.id);
-                        this.draggingHelpers.arrowIds.push(backarrow.id);
+                    switch (this.selections[0]) {
+                        case 'Axis.X':
+                            if (this.draggingHelpers.highlight) color = highlightColors[0];
+                            else color = basicColors[0];
+                            break;
+                        case 'Axis.Y':
+                            if (this.draggingHelpers.highlight) color = highlightColors[1];
+                            else color = basicColors[1];
+                            break;
+                        case 'Axis.Z':
+                            if (this.draggingHelpers.highlight) color = highlightColors[2];
+                            else color = basicColors[2];
+                            break;
+                        default:
+                            break;
                     }
-                    sizeRule.draggingHelpers.idOffset = sizeRule.draggingHelpers.arrowIds[0] - oldStartingId;
 
+                    var backarrow = new THREE.ArrowHelper(new THREE.Vector3().sub(dir), center, 0.5, color, 0.2, 0.1);
+                    var arrow = new THREE.ArrowHelper(dir, center, 0.5, color, 0.2, 0.1);
+                    scene.add(arrow);
+                    scene.add(backarrow);
+                    this.draggingHelpers.arrowIds.push(arrow.id);
+                    this.draggingHelpers.arrowIds.push(backarrow.id);
+
+                    this.draggingHelpers.idOffset = this.draggingHelpers.arrowIds[0] - oldStartingId;
+
+                    var input = document.getElementById('input_field1');
+                    if (!input.value) input.value = sizeRule.selections[1].round();
                 };
                 sizeRule.onMouseOverHandle = function (id) {
                     oldHandle = sizeRule.draggingHelpers.overHandle;
@@ -1775,6 +1724,21 @@ function TempRuleController(renderer) {
                     sizeRule.draggingHelpers.activeHandle = null;
                     if (sizeRule.draggingHelpers.activeHandle != oldHandle) inputChanged();
                 };
+                sizeRule.additionalUpdates = function () {
+                    switch (this.selections[0]) {
+                        case 'Axis.X':
+                            sizeRule.initialSize = sizeRule.initialSizeX;
+                            break;
+                        case 'Axis.Y':
+                            sizeRule.initialSize = sizeRule.initialSizeY;
+                            break;
+                        case 'Axis.Z':
+                            sizeRule.initialSize = sizeRule.initialSizeZ;
+                            break;
+                        default:
+                            break;
+                    }
+                };
 
                 return sizeRule;
             }
@@ -1785,41 +1749,66 @@ function TempRuleController(renderer) {
         // #################################################################################################################################
 
         {
+
+            var axes = ["Axis.X", "Axis.Y", "Axis.Z"];
+            var degrad = ["deg", "rad"];
+            self.rotationConfig = {
+                type: 'Rotation',
+                mode: true,
+                options: [
+                    {
+                        label: 'Axis',
+                        inputType: INPUTTYPE.DROPDOWN,
+                        values: axes
+                    },
+                    {
+                        label: 'Amount',
+                        inputType: INPUTTYPE.DOUBLE,
+                        values: 0
+                    },
+                    {
+                        label: 'Degrad',
+                        inputType: INPUTTYPE.DROPDOWN,
+                        values: degrad
+                    }
+                ]
+            };
+
+
             generateRotationRule = function () {
 
-                var rotation = jQuery.extend(true, {}, abstractRule)
-
-                rotation.type = 'Rotation';
+                var rotation = generateCustomRule(self.rotationConfig);
 
                 rotation.generateRuleString = function () {
                     var amount = null;
-                    if (rotation.degrad == "deg") amount = "Deg(" + rotation.amount + ")";
-                    else if (rotation.degrad == "rad") amount = "Rad(" + rotation.amount + ")";
-                    var ruleString = "new Rules.Rotate(" + rotation.axis + ", " + amount + ", " + rotation.mode + ")";
+                    if (rotation.selections[2] == "deg") amount = "Deg(" + rotation.selections[1] + ")";
+                    else if (rotation.selections[2] == "rad") amount = "Rad(" + rotation.selections[1] + ")";
+                    var ruleString = "new Rules.Rotate(" + rotation.selections[0] + ", " + amount + ", " + rotation.mode + ")";
                     ruleString = addTags(rotation, ruleString);
                     ruleString += ";";
+
+                    rotation.lastRuleString = ruleString;
+
                     return ruleString;
                 };
                 rotation.generateShortString = function () {
-                    return ("Rotation by " + rotation.amount + " " + rotation.degrad + " on " + rotation.axis + ", " + rotation.mode);
+                    return ("Rotation by " + rotation.selections[1] + " " + rotation.selections[2] + " on " + rotation.selections[0] + ", " + rotation.mode);
                 };
                 rotation.applyRule = function (shape) {
-                    var amount;
-                    if (rotation.degrad == 'deg') {
-                        amount = parseFloat(rotation.amount) / 180;
-                    } else {
-                        amount = parseFloat(rotation.amount);
+                    var amount = rotation.selections[1];
+                    if (rotation.selections[2] == 'deg') {
+                        amount = Math.PI * amount / 180;
                     }
 
-                    switch (rotation.axis) {
+                    switch (rotation.selections[0]) {
                         case 'Axis.X':
-                            matrix = new THREE.Matrix4().makeRotationX(Math.PI * amount);
+                            matrix = new THREE.Matrix4().makeRotationX(amount);
                             break;
                         case 'Axis.Y':
-                            matrix = new THREE.Matrix4().makeRotationY(Math.PI * amount);
+                            matrix = new THREE.Matrix4().makeRotationY(amount);
                             break;
                         case 'Axis.Z':
-                            matrix = new THREE.Matrix4().makeRotationZ(Math.PI * amount);
+                            matrix = new THREE.Matrix4().makeRotationZ(amount);
                             break;
                         default:
                             break;
@@ -1827,26 +1816,25 @@ function TempRuleController(renderer) {
 
                     mat = shape.appearance.transformation;
                     var m = new THREE.Matrix4().fromArray(mat);//mat[0], mat[1], mat[2], mat[3], mat[4], mat[5], mat[6], mat[7], mat[8], mat[9], mat[10], mat[11], mat[12], mat[13], mat[14], mat[15]);
-                    m.premultiply(matrix);
+                    if (this.mode == "Mode.Local" || this.mode == "Mode.LocalMid") m.premultiply(matrix);
+                    if (this.mode == "Mode.Global" || this.mode == "Mode.GlobalMid") m.multiply(matrix);
                     shape.appearance.transformation = m.toArray();
                 };
                 rotation.unapplyRule = function (shape) {
-                    var amount;
-                    if (rotation.degrad == 'deg') {
-                        amount = -1 * parseFloat(rotation.amount) / 180;
-                    } else {
-                        amount = -1 * parseFloat(rotation.amount);
+                    var amount = -rotation.selections[1];
+                    if (rotation.selections[2] == 'deg') {
+                        amount = Math.PI * amount / 180;
                     }
 
-                    switch (rotation.axis) {
+                    switch (rotation.selections[0]) {
                         case 'Axis.X':
-                            matrix = new THREE.Matrix4().makeRotationX(Math.PI * amount);
+                            matrix = new THREE.Matrix4().makeRotationX(amount);
                             break;
                         case 'Axis.Y':
-                            matrix = new THREE.Matrix4().makeRotationY(Math.PI * amount);
+                            matrix = new THREE.Matrix4().makeRotationY(amount);
                             break;
                         case 'Axis.Z':
-                            matrix = new THREE.Matrix4().makeRotationZ(Math.PI * amount);
+                            matrix = new THREE.Matrix4().makeRotationZ(amount);
                             break;
                         default:
                             break;
@@ -1854,50 +1842,9 @@ function TempRuleController(renderer) {
 
                     mat = shape.appearance.transformation;
                     var m = new THREE.Matrix4().fromArray(mat);//mat[0], mat[1], mat[2], mat[3], mat[4], mat[5], mat[6], mat[7], mat[8], mat[9], mat[10], mat[11], mat[12], mat[13], mat[14], mat[15]);
-                    m.premultiply(matrix);
+                    if (this.mode == "Mode.Local" || this.mode == "Mode.LocalMid") m.premultiply(matrix);
+                    if (this.mode == "Mode.Global" || this.mode == "Mode.GlobalMid") m.multiply(matrix);
                     shape.appearance.transformation = m.toArray();
-                };
-                rotation.appendInputFields = function (parentDiv) {
-                    var amount_input = document.createElement("input");
-                    amount_input.setAttribute('type', 'text');
-                    amount_input.setAttribute('id', 'amount_input_field');
-                    if (rotation) {
-                        amount_input.setAttribute('value', rotation.amount);
-                    } else {
-                        amount_input.setAttribute('value', '0');
-                    }
-
-                    var innerHTML = '<select id="axis_selector">';
-                    innerHTML += '<option value="Axis.X">Axis.X</option>';
-                    innerHTML += '<option value="Axis.Y">Axis.Y</option>';
-                    innerHTML += '<option value="Axis.Z">Axis.Z</option>';
-                    innerHTML += '</select>'
-
-                    parentDiv.innerHTML += innerHTML;
-                    parentDiv.appendChild(amount_input);
-
-                    innerHTML = '<select id="degrad_selector">';
-                    innerHTML += '<option value="deg">deg</option>';
-                    innerHTML += '<option value="rad">PI rad</option>';
-                    innerHTML += '</select>'
-
-                    parentDiv.innerHTML += innerHTML;
-
-                    if (rotation) {
-                        var selector = document.getElementById("degrad_selector");
-                        for (i = 0; i < selector.options.length; i++) {
-                            if (selector.options[i].value == rotation.degrad)
-                                selector.selectedIndex = i;
-                        }
-                    }
-
-                    appendModeSelector(parentDiv);
-                    if (rotation) if (rotation.mode) setModeSelector(rotation.mode);
-                    else setModeSelector("Local");
-
-                    $('#amount_input_field').change(inputChanged);
-                    $('#axis_selector').change(inputChanged);
-                    $('#degrad_selector').change(inputChanged);
                 };
                 rotation.createHandles = function (scene, shape) {
                     this.draggingHelpers.scene = scene;
@@ -1924,10 +1871,8 @@ function TempRuleController(renderer) {
                     }
 
                     // Turn circle depending on axis
-                    var selector = document.getElementById("axis_selector");
-                    var selection = selector.options[selector.selectedIndex].value;
                     var material = null;
-                    switch (selection) {
+                    switch (rotation.selections[0]) {
                         case 'Axis.X':
                             material = new THREE.LineBasicMaterial({ color: colors[0] });
                             var rotationMat = new THREE.Matrix4().makeRotationY(Math.PI / 2);
@@ -1965,9 +1910,7 @@ function TempRuleController(renderer) {
                 };
                 rotation.onMouseOverHandle = function (id) {
                     if (rotation.draggingHelpers.overHandle) var oldHandle = rotation.draggingHelpers.overHandle;
-                    var selector = document.getElementById("axis_selector");
-                    var selection = selector.options[selector.selectedIndex].value;
-                    switch (selection) {
+                    switch (rotation.selections[0]) {
                         case 'Axis.X':
                             this.draggingHelpers.overHandle = 'x';
                             break;
@@ -1992,7 +1935,7 @@ function TempRuleController(renderer) {
                     rotation.draggingHelpers.activeHandle = id;
                     rotation.draggingHelpers.intersection = intersection;
                     rotation.draggingHelpers.scene = scene;
-                    rotation.draggingHelpers.startValue = parseFloat(document.getElementById("amount_input_field").value);
+                    rotation.draggingHelpers.startValue = rotation.selections[1];
 
                     var segment = rotation.draggingHelpers.scene.getObjectById(id);
                     rotation.draggingHelpers.vertices = segment.geometry.vertices
@@ -2041,22 +1984,18 @@ function TempRuleController(renderer) {
                     var standardNormal = standard1Dir.clone().cross(standard2Dir);
                     var standardAngle = standardNormal.angleTo(rotation.draggingHelpers.cam.position.clone().sub(mid));
                     var direction = 1;
-                    var selector = document.getElementById("axis_selector");
-                    var selection = selector.options[selector.selectedIndex].value;
                     if (viewingAngle < (0.5 * Math.PI)) direction *= -1;
                     if (standardAngle > (0.5 * Math.PI)) direction *= -1;
-                    if (selection == "Axis.Y") direction *= -1
+                    if (rotation.selections[0] == "Axis.Y") direction *= -1;
 
                     // calc rotation angle            
                     var angle = startDir.angleTo(endDir);
 
                     // update input fields
-                    selector = document.getElementById("degrad_selector");
-                    selection = selector.options[selector.selectedIndex].value;
-                    if (selection == "rad") {
-                        document.getElementById("amount_input_field").value = '' + (rotation.draggingHelpers.startValue + direction * (angle / Math.PI)).round();
+                    if (rotation.selections[2] == "rad") {
+                        document.getElementById("input_field1").value = '' + (rotation.draggingHelpers.startValue + direction * angle).round();
                     } else {
-                        document.getElementById("amount_input_field").value = '' + (rotation.draggingHelpers.startValue + direction * ((angle * 180) / Math.PI)).round();
+                        document.getElementById("input_field1").value = '' + (rotation.draggingHelpers.startValue + direction * ((angle * 180) / Math.PI)).round();
                     }
 
                     inputChanged();
