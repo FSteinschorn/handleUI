@@ -2618,10 +2618,13 @@ function TempRuleController(renderer) {
 
                 paint.generateRuleString = function () {
                     var ruleString = "new Rules.Paint(" + paint.selections[0];
-                    if (paint.selections[1] != null) ruleString += '(' + rupaintle.selections[1] + ')';
+                    if (paint.selections[1] != null) ruleString += '(' + paint.selections[1] + ')';
                     ruleString += ')';
                     ruleString = addTags(paint, ruleString);
                     ruleString += ";";
+
+                    paint.lastRuleString = ruleString;
+
                     return ruleString;
                 };
                 paint.generateShortString = function () {
@@ -2641,21 +2644,6 @@ function TempRuleController(renderer) {
                         toneLabel.style.display = 'none';
                     }
                     inputChanged();
-                };
-                paint.createRuleDescriptor = function () {
-                    var rule = {
-                        type: 'Paint',
-                        selections: []
-                    }
-                    var selector = document.getElementById('dropdown0');
-                    var toneSelector = document.getElementById('dropdown1');
-                    rule.selections.push(selector.options[selector.selectedIndex].label);
-                    if (toneSelector.style.display != 'none') {
-                        rule.selections.push(toneSelector.options[toneSelector.selectedIndex].label);
-                    } else {
-                        rule.selections.push(null);
-                    }
-                    return rule;
                 };
 
                 return paint;
@@ -2827,56 +2815,46 @@ function TempRuleController(renderer) {
 
                 concat.type = 'Concat';
 
-                concat.generateRuleString = function (rule) {
+                concat.generateRuleString = function () {
                     var output = "new Rules.Concat(";
-                    for (var i = 0; i < rule.selections.length; i++) {
+                    for (var i = 0; i < concat.selections.length; i++) {
                         output += "\n";
-                        output += self.rules.get(rule.selections[i].type).generateRuleString(rule.selections[i]);
+                        output += concat.selections[i].generateRuleString();
                         output = output.slice(0, -1);
                         output += ",";
                     }
                     output = output.slice(0, -1);
                     output += "\n);";
+
+                    concat.lastRuleString = output;
+
                     return output;
                 };
-
-                concat.generateShortString = function (rule) {
+                concat.generateShortString = function () {
                     var output = "Concat of ";
-                    output += rule.selections.length;
+                    output += concat.selections.length;
                     output += " rules";
                     return output;
                 };
-
-                concat.applyRule = function (rule, shape) {
-                    for (var i = 0; i < rule.selections.length; i++) {
-                        self.rules.get(rule.selections[i].type).applyRule(rule.selections[i], shape);
-                        if (rule.selections[i].wasParsed) {
-                            parsedRules[rule.selections[i].index].inConcat = true;
-                        } else {
-                            tmpRules[rule.selections[i].index].inConcat = true;
-                        }
+                concat.applyRule = function (shape) {
+                    for (var i = 0; i < concat.selections.length; i++) {
+                        concat.selections[i].applyRule(shape);
+                        concat.selections[i].inConcat = true;
                     }
                 };
-
-                concat.unapplyRule = function (rule, shape) {
-                    for (var i = rule.selections.length - 1; i >= 0; i--) {
-                        self.rules.get(rule.selections[i].type).unapplyRule(rule.selections[i], shape);
+                concat.unapplyRule = function (shape) {
+                    for (var i = concat.selections.length - 1; i >= 0; i--) {
+                        concat.selections[i].unapplyRule(shape);
                     }
                 };
-
-                concat.dummy = { Type: "Concat" };
-                concat.appendInputFields = function (parentDiv, rule, dontUpdateFromRule) {
-                    if (!rule || !concat.draggingHelpers.selections) {
-                        concat.draggingHelpers.selections = [];
-                        rule = concat.dummy;
-                    } else if (rule && rule.selections && !dontUpdateFromRule) {
-                        concat.draggingHelpers.selections = rule.selections.slice();
+                concat.appendInputFields = function (parentDiv, empty) {
+                    if (!concat.selections) {
+                        concat.selections = [];
                     }
 
                     while (parentDiv.hasChildNodes()) {
                         parentDiv.removeChild(parentDiv.lastChild);
                     }
-
 
                     // list current selection
                     var selectionListDiv = document.createElement('div');
@@ -2884,14 +2862,14 @@ function TempRuleController(renderer) {
                     selectionListDiv.classList = "w3-container";
                     selectionListDiv.style = "position:relative; border-bottom: 1px solid black;";
 
-                    for (var i = 0; i < concat.draggingHelpers.selections.length; i++) {
+                    for (var i = 0; i < concat.selections.length; i++) {
                         var ruleDiv = document.createElement('div');
                         ruleDiv.style = "height:2em;position:relative;";
                         selectionListDiv.appendChild(ruleDiv);
-                        ruleDiv.innerHTML = "<span class='tag-tag'>" + self.generateShortString(concat.draggingHelpers.selections[i]) + "</span>";
+                        ruleDiv.innerHTML = "<span class='tag-tag'>" + concat.selections[i].generateShortString() + "</span>";
 
                         if (i != 0 &&
-                            !concat.draggingHelpers.selections[i].generatesMultipleShapes) {
+                            !concat.selections[i].generatesMultipleShapes) {
                             var up_button = document.createElement("button");
                             up_button.id = "up_Button_" + i;
                             up_button.classList = "w3-btn";
@@ -2902,8 +2880,8 @@ function TempRuleController(renderer) {
                             ruleDiv.appendChild(up_button);
                         }
 
-                        if (i != concat.draggingHelpers.selections.length - 1 &&
-                            !concat.draggingHelpers.selections[i + 1].generatesMultipleShapes) {
+                        if (i != concat.selections.length - 1 &&
+                            !concat.selections[i + 1].generatesMultipleShapes) {
                             var down_button = document.createElement("button");
                             down_button.id = "down_Button_" + i;
                             down_button.classList = "w3-btn";
@@ -2927,12 +2905,12 @@ function TempRuleController(renderer) {
                     parentDiv.appendChild(selectionListDiv);
 
                     // up button function
-                    for (var i = 0; i < concat.draggingHelpers.selections.length; i++) {
+                    for (var i = 0; i < concat.selections.length; i++) {
                         $("#up_Button_" + i).click(function (i) {
                             return function () {
-                                var tmp = concat.draggingHelpers.selections[i];
-                                concat.draggingHelpers.selections[i] = concat.draggingHelpers.selections[i - 1];
-                                concat.draggingHelpers.selections[i - 1] = tmp;
+                                var tmp = concat.selections[i];
+                                concat.selections[i] = concat.selections[i - 1];
+                                concat.selections[i - 1] = tmp;
 
                                 inputChanged();
                                 concat.appendInputFields(parentDiv, rule, true);
@@ -2941,12 +2919,12 @@ function TempRuleController(renderer) {
                     }
 
                     // down button function
-                    for (var i = 0; i < concat.draggingHelpers.selections.length; i++) {
+                    for (var i = 0; i < concat.selections.length; i++) {
                         $("#down_Button_" + i).click(function (i) {
                             return function () {
-                                var tmp = concat.draggingHelpers.selections[i];
-                                concat.draggingHelpers.selections[i] = concat.draggingHelpers.selections[i + 1];
-                                concat.draggingHelpers.selections[i + 1] = tmp;
+                                var tmp = concat.selections[i];
+                                concat.selections[i] = concat.selections[i + 1];
+                                concat.selections[i + 1] = tmp;
 
                                 inputChanged();
                                 concat.appendInputFields(parentDiv, rule, true);
@@ -2955,11 +2933,11 @@ function TempRuleController(renderer) {
                     }
 
                     // remove button function
-                    for (var i = 0; i < concat.draggingHelpers.selections.length; i++) {
+                    for (var i = 0; i < concat.selections.length; i++) {
                         $("#removeRule_Button_" + i).click(function (i) {
                             return function () {
-                                parsedRules[concat.draggingHelpers.selections[i].index].inConcat = false;
-                                concat.draggingHelpers.selections.splice(i, 1);
+                                parsedRules[concat.selections[i].index].inConcat = false;
+                                concat.selections.splice(i, 1);
 
                                 inputChanged();
                                 concat.appendInputFields(parentDiv, rule, true);
@@ -2978,13 +2956,13 @@ function TempRuleController(renderer) {
                         if (!parsedRules[i].deleted &&
                             !parsedRules[i].edited &&
                             !parsedRules[i].inConcat &&
-                            parsedRules[i] != rule &&
+                            parsedRules[i] != concat &&
                             !(lastAdded && lastAdded.generatesMultipleShapes)) {
 
                             var ruleDiv = document.createElement('div');
                             ruleDiv.style = "height:2em;position:relative;";
                             ruleListDiv.appendChild(ruleDiv);
-                            ruleDiv.innerHTML = "<span class='tag-tag'>" + self.generateShortString(parsedRules[i]) + "</span>";
+                            ruleDiv.innerHTML = "<span class='tag-tag'>" + parsedRules[i].generateShortString() + "</span>";
 
                             var add_button = document.createElement("button");
                             add_button.id = "addRule_Button_" + i;
@@ -2999,14 +2977,13 @@ function TempRuleController(renderer) {
                         }
                     }
                     for (var i = 0; i < tmpRules.length; i++) {
-                        if (tmpRules[i] != rule &&
-                            tmpRules[i] != concat.createRuleDescriptor() &&
+                        if (tmpRules[i] != concat &&
                             !tmpRules[i].inConcat &&
                             !(lastAdded && lastAdded.generatesMultipleShapes)) {
                             var ruleDiv = document.createElement('div');
                             ruleDiv.style = "height:2em;position:relative;";
                             ruleListDiv.appendChild(ruleDiv);
-                            ruleDiv.innerHTML = "<span class='tag-tag'>" + self.generateShortString(tmpRules[i]) + "</span>";
+                            ruleDiv.innerHTML = "<span class='tag-tag'>" + tmpRules[i].generateShortString() + "</span>";
 
                             var add_button = document.createElement("button");
                             add_button.id = "addRule_Button_" + (i + parsedRules.length);
@@ -3028,7 +3005,7 @@ function TempRuleController(renderer) {
                         $("#addRule_Button_" + i).click(function (i) {
                             return function () {
                                 parsedRules[i].index = i;
-                                concat.draggingHelpers.selections.push(parsedRules[i]);
+                                concat.selections.push(parsedRules[i]);
                                 parsedRules[i].inConcat = true;
                                 inputChanged();
 
@@ -3040,7 +3017,7 @@ function TempRuleController(renderer) {
                         $("#addRule_Button_" + (i + parsedRules.length)).click(function (i) {
                             return function () {
                                 tmpRules[i].index = i;
-                                concat.draggingHelpers.selections.push(tmpRules[i]);
+                                concat.selections.push(tmpRules[i]);
                                 tmpRules[i].inConcat = true;
                                 inputChanged();
 
@@ -3049,20 +3026,6 @@ function TempRuleController(renderer) {
                         }(i))
                     }
                 };
-
-                concat.createRuleDescriptor = function (oldRule) {
-                    if (!concat.draggingHelpers.selections) concat.draggingHelpers.selections = [];
-                    if (oldRule) {
-                        var rule = jQuery.extend(true, {}, oldRule)
-                    } else {
-                        var rule = {};
-                    }
-                    rule.tags = {};
-                    rule.mode = null;
-                    rule.type = "Concat";
-                    rule.selections = concat.draggingHelpers.selections.slice();
-                    return rule;
-                }
 
                 return concat;
             }
