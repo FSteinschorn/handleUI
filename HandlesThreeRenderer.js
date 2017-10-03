@@ -48,50 +48,35 @@
         var parsedCode = JSON.parse(lastGrammarResponse.parsedJSON);
         var parsedRules = [];
 
-        var NOTHING = 0, RULE = 1;
-        var mode = NOTHING;
-
-        var counter = 0, ruleStart;
-        var ruleBuffer;
+        var counter = 0;
+        var ruleBuffer = [];
         var expectedRulesStart = null;
         var current = null;
-        while (counter < parsedCode.length) {
+        var depth = 0;
+        var ruleStart = null;
+       for (var counter = 0; counter < parsedCode.length; counter++) {
             current = parsedCode[counter];
-            switch (mode) {
-                case NOTHING:
-                    if (current.Text == 'new' && current.RawKind == 8354) {
-                        expectedRulesStart = current.SpanStart + current.SpanLength + 1;
-                        ruleStart = current.SpanStart;
-                        counter += 1;
-                    }
-                    else if (current.Text == 'Rules' && current.RawKind == 8508 && current.SpanStart == expectedRulesStart) {
-                        mode = RULE;
-                        ruleBuffer = [];
-                        counter += 2;
-                    } else {
-                        counter += 1;
-                    }
-                    break;
+            if (current.Text == 'new' && current.RawKind == 8354) {
+                expectedRulesStart = current.SpanStart + current.SpanLength + 1;
+                if (!ruleStart) ruleStart = current.SpanStart;
+            } else if (current.Text == 'Rules' && current.RawKind == 8508 && current.SpanStart == expectedRulesStart) {
+                depth += 1;
+            } else if (current.Text == ';' && current.RawKind == 8212 && depth > 0) {
+                [rule, postfixStart] = self.ruleController.parseRule(ruleBuffer);
+                self.postfixController.parsePostfixes(rule, ruleBuffer.slice(postfixStart));
+                rule.start = ruleStart;
+                rule.end = current.SpanStart + current.SpanLength;
+                rule.deleted = false;
+                rule.edited = false;
+                rule.wasParsed = true;
+                parsedRules.push(rule);
+                ruleBuffer = [];
+                ruleStart = null;
+                depth = 0;
+            }
 
-                case RULE:
-                    if (current.Text == ';' && current.RawKind == 8212) {
-                        mode = NOTHING;
-                        [rule, postfixStart] = self.ruleController.parseRule(ruleBuffer);
-                        self.postfixController.parsePostfixes(rule, ruleBuffer.slice(postfixStart));
-                        rule.start = ruleStart;
-                        rule.end = current.SpanStart + current.SpanLength;
-                        rule.deleted = false;
-                        rule.edited = false;
-                        rule.wasParsed = true;
-                        parsedRules.push(rule);
-                    } else {
-                        ruleBuffer.push(current);
-                    }
-                    counter += 1;
-                    break;
-
-                default:
-                    break;
+            if (depth != 0) {
+                ruleBuffer.push(current);
             }
         }
 

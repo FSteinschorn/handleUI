@@ -254,7 +254,7 @@ function PostfixController(renderer) {
         }
 
         return ids;
-    }
+    };
 
     // create full postfix ui as accordion
     self.addAllPostfixes = function (parentDiv, rule, fulfills) {
@@ -524,7 +524,7 @@ function PostfixController(renderer) {
                 }
                 break;
         }
-    }
+    };
 
     // add postfixes to ruleDescriptor
     // parentDiv ... the dom element in which to search
@@ -622,7 +622,7 @@ function PostfixController(renderer) {
             self.applyPostfixes(parentDiv.childNodes[child], parentObject);
         }
 
-    }
+    };
 
     // append postfix string representation in parentObject to ruleString
     self.appendPostfixString = function (parentObject, ruleString, indentation) {
@@ -699,11 +699,12 @@ function PostfixController(renderer) {
             ruleString += ")";
         }
         return ruleString;
-    }
+    };
 
     // parse code and append postfixes to rule
     // rule ... rule desriptor to append the parsed postfixes to
     // code ... array of code elements containing postfixes
+    // returns [rule, counter] ... rule with parsed postfixes and last position in code that was looked at
     self.parsePostfixes = function (rule, code) {
         var OUTSIDE = 1, INSIDE = 2, POINT = 3;
 
@@ -717,9 +718,16 @@ function PostfixController(renderer) {
         while (counter < code.length) {
             switch (mode) {
                 case OUTSIDE:
-                    if (code[counter].Text == '.' && code[counter].RawKind == 8218) {
+                    if (code[counter].Text == '.' && code[counter].RawKind == 8218) {   // start of postfix
                         mode = POINT;
                     }
+                    if (code[counter].Text == ';' && code[counter].RawKind == 8212) {   // full end of rule
+                        return [rule, counter];
+                    }
+                    if (code[counter].Text == ',' && code[counter].RawKind == 8216) {   // end of rule in concat
+                        return [rule, counter];
+                    }
+
                     counter += 1;
                     break;
                     
@@ -858,7 +866,7 @@ function PostfixController(renderer) {
         }
 
 
-        return rule;
+        return [rule, counter];
     };
 
     return self;
