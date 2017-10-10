@@ -223,7 +223,16 @@ function PostfixController(renderer) {
         }
 
         parentDiv.appendChild(div);
-        addFunction(type, ids, settings, changeFunction, fulfills);
+
+        if (type.constructor == Array && settings) {
+            selector = document.getElementById(selector_id);
+            for (var i = 0; i < selector.options.length; i++) {
+                if (selector.options[i] == settings.type) selector.selectedIndex = i;
+            }
+            addFunction(settings.type, ids, { postfixes: [settings]}, changeFunction, fulfills);
+        } else {
+            addFunction(type, ids, settings, changeFunction, fulfills);
+        }
 
         if (deleteButton) {
             $('#' + removeButtonId).click(function (div) {
@@ -232,13 +241,6 @@ function PostfixController(renderer) {
                     inputChanged();
                 }
             }(div));
-        }
-
-        if (type.constructor == Array && settings) {
-            selector = document.getElementById(selector_id);
-            for (var i = 0; i < selector.options.length; i++) {
-                if (selector.options[i] == settings.type) selector.selectedIndex = i;
-            }
         }
 
         if (type.constructor == Array) {
@@ -427,7 +429,7 @@ function PostfixController(renderer) {
                 $(id).tagEditor('destroy');
 
                 //check for given input
-                if (settings && !oldTags.length > 0) {
+                if (settings && !oldTags.length > 0 && !$.isEmptyObject(settings.postfixes)) {
                     for (var i = 0; i < Object.keys(settings.postfixes).length; i++) {
                         if (settings.postfixes[i].type == type) oldTags = settings.postfixes[i].tags;
                     }

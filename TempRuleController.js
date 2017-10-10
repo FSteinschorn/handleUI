@@ -2085,7 +2085,7 @@ function TempRuleController(renderer) {
                         }
 
                         this.draggingHelpers.nextIndex++;
-                        inputChanged();
+                        if (!settings) inputChanged();
                     };
 
                     split.addPostfixFunction = function (partId, settings) {
@@ -2106,11 +2106,11 @@ function TempRuleController(renderer) {
                     var counter = 1;
                     for (var part in split.parts) {
                         ruleString += "\n\t\t" + split.parts[part].mode + "(" + split.parts[part].amount + ")";
-                        if (counter < Object.keys(split.parts).length) ruleString += ',';
                         ruleString = addTags(split.parts[part], ruleString, 3);
+                        if (counter < Object.keys(split.parts).length) ruleString += ',';
                         counter++;
                     }
-                    ruleString += "\n\t\t)";
+                    ruleString += "\n)";
                     ruleString = addTags(split, ruleString);
                     ruleString += ";";
 
@@ -2306,6 +2306,8 @@ function TempRuleController(renderer) {
                 };
                 split.createHandles = function (scene, shape) {
                     if (split.draggingHelpers.dontDraw) return;
+
+                    if (!split.draggingHelpers.segments) split.applyRule(shape.shape);
 
                     this.draggingHelpers.scene = scene;
 
@@ -2523,6 +2525,75 @@ function TempRuleController(renderer) {
                     oldHandle = split.draggingHelpers.activeHandle;
                     split.draggingHelpers.activeHandle = null;
                     if (split.draggingHelpers.activeHandle != oldHandle) inputChanged();
+                };
+                split.parseCode = function(ruleBuffer) {
+                    var endOfRule = ruleBuffer.length;
+                    var counter = 0;
+                    var depth = 0;
+                    while (counter < ruleBuffer.length) {
+                        var current = ruleBuffer[counter];
+                        if (current.RawKind == 8200 && current.Text == '(') depth += 1;
+                        if (current.RawKind == 8201 && current.Text == ')') {
+                            depth -= 1;
+                            if (depth == 0) {
+                                endOfRule = counter;
+                                break;
+                            }
+                        }
+                        counter += 1;
+                    }
+
+                    split.parts = [];
+                    var partCounter = 0;
+
+                    var DEFAULT = 0, PART = 1;
+                    var parseMode = DEFAULT;
+
+                    var mode, amount;
+
+                    counter = 0;
+                    while (counter < ruleBuffer.length) {
+                        current = ruleBuffer[counter]
+                        switch(parseMode) {
+                            case DEFAULT:
+                                if (current.RawKind == 8508) {
+                                    if (current.Text == 'X') {
+                                        split.axis = "Axis.X";
+                                    } else if (current.Text == 'Y') {
+                                        split.axis = "Axis.Y";
+                                    } else if (current.Text == 'Z') {
+                                        split.axis = "Axis.Z";
+                                    } else if (current.Text == "Relative") {
+                                        parseMode = PART;
+                                        mode = "Relative";
+                                    } else if (current.Text == "Absolute") {
+                                        parseMode = PART;
+                                        mode = "Absolute";
+                                    }
+                                }
+                                break;
+                            case PART:
+                                if (current.RawKind == 8509 ||
+                                    current.RawKind == 8511 ||
+                                    current.RawKind == 8323) {
+                                    part = { mode: mode, amount: current.Text };
+                                    [part, used] = renderer.postfixController.parsePostfixes(part, ruleBuffer.slice(counter, endOfRule));
+                                    if (!part.postfixes) part.postfixes = [];
+                                    counter += used;
+                                    split.parts['part' + partCounter] = part;
+                                    partCounter += 1;
+                                    parseMode = DEFAULT;
+                                }
+                                break;
+                            case POSTFIX:
+                                break;
+                            default:
+                                break;
+                        }
+                        counter += 1;
+                    }
+
+                    return endOfRule;
                 };
 
                 return split;
