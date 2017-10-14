@@ -4,7 +4,6 @@
     self.selectedMesh = null;
     self.selectedRule = null;
     self.handlesScene = null;
-    self.parsedRules = [];
 
     creatingNewRule = false;
 
@@ -54,13 +53,16 @@
         var current = null;
         var depth = 0;
         var ruleStart = null;
-       for (var counter = 0; counter < parsedCode.length; counter++) {
+        var keepStart = false;
+        for (var counter = 0; counter < parsedCode.length; counter++) {
             current = parsedCode[counter];
             if (current.Text == 'new' && current.RawKind == 8354) {
                 expectedRulesStart = current.SpanStart + current.SpanLength + 1;
-                if (!ruleStart) ruleStart = current.SpanStart;
+                if (!keepStart) ruleStart = current.SpanStart;
             } else if (current.Text == 'Rules' && current.RawKind == 8508 && current.SpanStart == expectedRulesStart) {
                 depth += 1;
+            } else if (current.Text == 'Concat' && current.RawKind == 8508) {
+                keepStart = true;
             } else if (current.Text == ';' && current.RawKind == 8212 && depth > 0) {
                 [rule, postfixStart] = self.ruleController.parseRule(ruleBuffer);
                 self.postfixController.parsePostfixes(rule, ruleBuffer.slice(postfixStart));
@@ -71,8 +73,8 @@
                 rule.wasParsed = true;
                 parsedRules.push(rule);
                 ruleBuffer = [];
-                ruleStart = null;
                 depth = 0;
+                keepStart = false;
             }
 
             if (depth != 0) {
@@ -241,6 +243,77 @@
         }
     };
 
+    // highlighting rules in the list
+    {
+        var charToRowCol = function(position) {
+            var editor = ace.edit("code_text_ace");
+            var session = editor.getSession();
+            var lines = session.getLines(0, session.getLength());
+            var counter = 0, line = 0;
+            while (counter < position) {
+                counter += lines[line].length + 1;
+                line += 1;
+            }
+            line -= 1;
+            counter -= lines[line].length + 1;
+            return {row: line, column: position - counter};
+        };
+
+        var currently_marked;
+        var updateRuleHightlightFromCode = function () {
+            var editor = ace.edit("code_text_ace");
+            var current_position = editor.session.doc.positionToIndex(editor.getCursorPosition());
+            var div_id;
+            for (var index in self.ruleController.getParsedRules()) {
+                var rule = self.ruleController.getParsedRules()[index];
+                if (rule.start <= current_position && current_position <= rule.end) {
+                    div_id = "parsed_" + index + "_div";
+                    break;
+                }
+            }
+            if (div_id) {
+                var new_div = document.getElementById(div_id);
+                new_div.style.backgroundColor = "#c2c8eb";
+                if (currently_marked && currently_marked != div_id) {
+                    var old_div = document.getElementById(currently_marked);
+                    old_div.style.backgroundColor = "";
+                }
+                currently_marked = div_id;
+            } else if (currently_marked) {
+                var old_div = document.getElementById(currently_marked);
+                old_div.style.backgroundColor = "";
+            }
+        };
+        var updateRuleHighlightFromRule = function(rule, i) {
+            return function() {
+                var editor = ace.edit("code_text_ace");
+                var selection = editor.getSelection();
+                var start = charToRowCol(rule.start);
+                var end = charToRowCol(rule.end);
+                selection.clearSelection();
+                selection.moveCursorToPosition(start);
+                selection.selectToPosition(end);
+                if (rule.wasParsed) {
+                    var div_id = "parsed_" + i + "_div";
+                } else {
+                    var div_id = "tmp_" + i + "_div";
+                }
+                var new_div = document.getElementById(div_id);
+                new_div.style.backgroundColor = "#c2c8eb";
+                if (currently_marked && currently_marked != div_id) {
+                    var old_div = document.getElementById(currently_marked);
+                    old_div.style.backgroundColor = "";
+                }
+                currently_marked = div_id;
+            }
+        };
+        var editor_div = document.getElementById("code_text_ace");
+        editor_div.onclick = updateRuleHightlightFromCode;
+        var editor = ace.edit("code_text_ace");
+        var selection = editor.getSelection();
+        selection.on("changeCursor", updateRuleHightlightFromCode);
+    }
+
     self.initButtonsUI = function () {
         var ruleListDiv = document.createElement('div');
         ruleListDiv.id = "ruleListDiv";
@@ -248,10 +321,11 @@
         ruleListDiv.style = "position:relative;";
 
         var parsedRules = self.ruleController.getParsedRules();
-        for (var i = 0; i < parsedRules.length; i++) {
+        for (var i in parsedRules) {
             if (!parsedRules[i].deleted && !parsedRules[i].edited && !parsedRules[i].inConcat) {
                 var ruleDiv = document.createElement('div');
-                ruleDiv.style = "height:2em;position:relative;";
+                ruleDiv.style = "height:2em;position:relative;padding-left:16px";
+                ruleDiv.id = "parsed_" + i + "_div";
                 ruleListDiv.appendChild(ruleDiv);
                 ruleDiv.innerHTML = "<span class='tag-tag'>" + self.ruleController.generateShortString(parsedRules[i]) + "</span>";
 
@@ -274,14 +348,17 @@
 
                 delete_button.appendChild(delete_button_text);
                 ruleDiv.appendChild(delete_button);
+
+                ruleDiv.onclick = updateRuleHighlightFromRule(parsedRules[i], i);
             }
         }
 
         var tmpRules = self.ruleController.getAllTmpRules();
-        if (tmpRules) for (var i = 0; i < tmpRules.length; i++) {
+        if (tmpRules) for (i in tmpRules) {
             if (!tmpRules[i].inConcat) {
                 var ruleDiv = document.createElement('div');
-                ruleDiv.style = "height:2em;position:relative;";
+                ruleDiv.style = "height:2em;position:relative;padding-left:16px";
+                ruleDiv.id = "tmp_" + i + "_div";
                 ruleListDiv.appendChild(ruleDiv);
                 ruleDiv.innerHTML = "<span class='tag-tag'>" + self.ruleController.generateShortString(tmpRules[i]) + "</span>";
 
@@ -304,6 +381,8 @@
 
                 delete_button.appendChild(delete_button_text);
                 ruleDiv.appendChild(delete_button);
+
+                ruleDiv.onclick = updateRuleHighlightFromRule(tmpRules[i], i);
             }
         }
 

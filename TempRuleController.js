@@ -67,6 +67,7 @@ function TempRuleController(renderer) {
         
         var editor = ace.edit("code_text_ace");
         editor.setValue(editor.getValue() + "\n\n" + rule.generateRuleString(rule), 1);
+        editor.clearSelection();
     };
 
     self.removeRule = function (rule, shape) {
@@ -75,6 +76,7 @@ function TempRuleController(renderer) {
             var oldstr = editor.getValue();
             var ruleLength = rule.end - rule.start;
             editor.setValue(oldstr.substr(0, rule.start) + oldstr.substr(rule.end), 1);
+            editor.clearSelection();
 
             var index = renderer.ruleIndex;
             for (var j = index; j < parsedRules.length; j++) {
@@ -89,6 +91,7 @@ function TempRuleController(renderer) {
 
                 var editor = ace.edit("code_text_ace");
                 editor.setValue(editor.getValue().replace("\n\n" + rule.generateRuleString(), ""));
+                editor.clearSelection();
             }
         }
         if (shape) {
@@ -124,9 +127,11 @@ function TempRuleController(renderer) {
                 parsedRules[j].end -= ruleLength;
             }
             editor.setValue(editor.getValue() + "\n\n" + rule.generateRuleString(), 1);
+            editor.clearSelection();
             tmpRules.push(rule);
         } else {
             editor.setValue(editor.getValue().replace(oldString, newString));
+            editor.clearSelection();
         }
     };
 
