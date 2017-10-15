@@ -11,7 +11,7 @@ function PostfixController(renderer) {
         ["Firstset", 100],
         ["Set", 100]
     ])],
-    ["appearence", new Map([
+    ["appearance", new Map([
         ["Asset", 1],//["choice1", "choice2", "choice3"]], // dropdown
         ["Paint", 0] // dropdown farbe * [0..9/10]
     ])],
