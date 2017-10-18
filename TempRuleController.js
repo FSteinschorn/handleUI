@@ -1,4 +1,42 @@
-function TempRuleController(renderer) {
+
+var instance;
+var renderer;
+
+var INPUTTYPE = {
+    STRING: 123,
+    DROPDOWN: 234,
+    TAG: 345,
+    TAGS: 456,
+    DOUBLE: 567,
+    RAW: 678,
+    VEC3: 789
+};
+
+Number.prototype.countDecimals = function () {
+    if (Math.floor(this.valueOf()) === this.valueOf()) return 0;
+    var splitstring = this.toString().split(".")[1];
+    if (splitstring) return splitstring.length;
+    return 0;
+};
+Number.prototype.round = function (p) {
+    p = p || 3;
+    var rounded = Math.round(this * Math.pow(10, p)) / Math.pow(10, p);
+    if (rounded.countDecimals() > p) return this.toFixed(p);
+    return rounded;
+};
+Number.prototype.isOdd = function() {
+    return this % 2;
+};
+
+function getRuleController(newRenderer) {
+    if (newRenderer) renderer = newRenderer;
+    if (instance) return instance;
+    instance = new TempRuleController();
+    return instance;
+}
+
+function TempRuleController() {
+
     var self = {};
 
     self.rules = new Map();
@@ -10,32 +48,6 @@ function TempRuleController(renderer) {
     parsedRules = [];
 
     self.previewScene = new THREE.Scene();
-
-    var INPUTTYPE = {
-        STRING: 123,
-        DROPDOWN: 234,
-        TAG: 345,
-        TAGS: 456,
-        DOUBLE: 567,
-        RAW: 678,
-        VEC3: 789
-    };
-
-    Number.prototype.countDecimals = function () {
-        if (Math.floor(this.valueOf()) === this.valueOf()) return 0;
-        var splitstring = this.toString().split(".")[1];
-        if (splitstring) return splitstring.length;
-        return 0;
-    };
-    Number.prototype.round = function (p) {
-        p = p || 3;
-        var rounded = Math.round(this * Math.pow(10, p)) / Math.pow(10, p);
-        if (rounded.countDecimals() > p) return this.toFixed(p);
-        return rounded;
-    };
-    Number.prototype.isOdd = function() {
-        return this % 2;
-    };
 
     function isFunction(functionToCheck) {
         var getType = {};
@@ -62,38 +74,47 @@ function TempRuleController(renderer) {
 
         rule.applyRule(shape);
         if (meshes[shape.id])
-            rule.removePreview(shape)
+            rule.removePreview(shape);
         rule.addPreview(shape);
-        
+
         var editor = ace.edit("code_text_ace");
-        editor.setValue(editor.getValue() + "\n\n" + rule.generateRuleString(rule), 1);
+        var selection = editor.getSelection();
+        selection.clearSelection();
+        editor.setValue(editor.getValue() + "\n\n", 1);
+        selection.moveCursorFileEnd();
+        rule.start = editor.session.doc.positionToIndex(editor.getCursorPosition());
+        editor.setValue(editor.getValue() + rule.generateRuleString(rule), 1);
+        selection.moveCursorFileEnd();
+        rule.end = editor.session.doc.positionToIndex(editor.getCursorPosition());
         editor.clearSelection();
+        selection.moveCursorToPosition(rule.start);
+        selection.selectToPosition(rule.end);
     };
 
     self.removeRule = function (rule, shape) {
-        if (rule.wasParsed && !rule.edited) {
-            var editor = ace.edit("code_text_ace");
-            var oldstr = editor.getValue();
-            var ruleLength = rule.end - rule.start;
-            editor.setValue(oldstr.substr(0, rule.start) + oldstr.substr(rule.end), 1);
-            editor.clearSelection();
+        var editor = ace.edit("code_text_ace");
+        var fullString = editor.getValue();
+        fullString = fullString.substr(0, rule.start) + fullString.substr(rule.end);
+        editor.setValue(fullString);
+        var diff = - rule.end - rule.start;
 
-            var index = renderer.ruleIndex;
-            for (var j = index; j < parsedRules.length; j++) {
-                parsedRules[j].start -= ruleLength;
-                parsedRules[j].end -= ruleLength;
-            }
-            rule.deleted = true;
-        } else {
-            var index = tmpRules.indexOf(rule)
-            if (index != -1) {
-                tmpRules.splice(index, 1);
-
-                var editor = ace.edit("code_text_ace");
-                editor.setValue(editor.getValue().replace("\n\n" + rule.generateRuleString(), ""));
-                editor.clearSelection();
+        for (var index in parsedRules) {
+            if (parsedRules[index].start > rule.start) {
+                parsedRules[index].start += diff;
+                parsedRules[index].end += diff;
             }
         }
+        for (index in tmpRules) {
+            if (tmpRules[index].start > rule.start) {
+                tmpRules[index].start += diff;
+                tmpRules[index].end += diff;
+            }
+        }
+        var selection = editor.getSelection();
+        selection.clearSelection();
+
+        rule.deleted = true;
+
         if (shape) {
             rule.unapplyRule(shape.shape);
             rule.removePreview(shape.shape);
@@ -112,27 +133,34 @@ function TempRuleController(renderer) {
         rule.addPreview(shape);
 
         var editor = ace.edit("code_text_ace");
-        var oldString = rule.getLastRuleString();  // old string to replace
-        var newString = rule.generateRuleString();  // new string to replace old one
-        
-        if (rule.wasParsed && !rule.edited) {
-            oldString = editor.getValue();
-            var ruleLength = rule.end - rule.start;
-            editor.setValue(oldString.substr(0, rule.start) + oldString.substr(rule.end), 1);
+        var newString = rule.generateRuleString();
+        var fullString = editor.getValue();
+        fullString = fullString.substr(0, rule.start) + newString + fullString.substr(rule.end);
+        editor.setValue(fullString);
+        var diff = newString.length - (rule.end - rule.start);
+        rule.end += diff;
 
-            var index = renderer.ruleIndex;
-            rule.edited = true;
-            for (var j = index + 1; j < parsedRules.length; j++) {
-                parsedRules[j].start -= ruleLength;
-                parsedRules[j].end -= ruleLength;
+        for (var index in parsedRules) {
+            if (parsedRules[index].start > rule.start) {
+                parsedRules[index].start += diff;
+                parsedRules[index].end += diff;
             }
-            editor.setValue(editor.getValue() + "\n\n" + rule.generateRuleString(), 1);
-            editor.clearSelection();
-            tmpRules.push(rule);
-        } else {
-            editor.setValue(editor.getValue().replace(oldString, newString));
-            editor.clearSelection();
         }
+        for (index in tmpRules) {
+            if (tmpRules[index].start > rule.start) {
+                tmpRules[index].start += diff;
+                tmpRules[index].end += diff;
+            }
+        }
+
+        rule.edited = true;
+
+        var selection = editor.getSelection();
+        var start = charToRowCol(rule.start);
+        var end = charToRowCol(rule.end);
+        selection.clearSelection();
+        selection.moveCursorToPosition(start);
+        selection.selectToPosition(end);
     };
 
     self.createRule = function (type) {
@@ -286,6 +314,20 @@ function TempRuleController(renderer) {
     getMode = function () {
         var selector = document.getElementById("mode_selector");
         return selector.options[selector.selectedIndex].value;
+    };
+    parseMode = function(ruleBuffer, rule) {
+        var i = 0;
+        while (i < ruleBuffer.length && i < 10) {
+            while (i < ruleBuffer.length && i < 10 && ruleBuffer[i].Text != 'Mode') {
+                i += 1;
+            }
+            if (i < ruleBuffer.length && i < 10 && ruleBuffer[i + 1].Text == '.') {
+                var mode = ruleBuffer[i + 2].Text;
+                rule.mode = mode;
+                return i + 2;
+            } else return 0;
+        }
+        return 0;
     };
 
     addTags = function (rule, ruleString, indentation) { return renderer.postfixController.appendPostfixString(rule, ruleString, indentation); };
@@ -822,6 +864,8 @@ function TempRuleController(renderer) {
                         }
                     }
 
+                    counter += parseMode(ruleBuffer.slice(counter), customRule);
+
                     return counter;
                 };
 
@@ -885,189 +929,6 @@ function TempRuleController(renderer) {
 
                 return customRule;
 
-            }
-        }
-
-
-        // #################################################################################################################################
-        // ############################################ TRANSLATION ########################################################################
-        // #################################################################################################################################
-
-        {
-            self.translateConfig = {
-                type: 'Translate',
-                mode: true,
-                options: [
-                    {
-                        label: 'Vector',
-                        inputType: INPUTTYPE.VEC3,
-                        values: [0,0,0]
-                    }
-                ]
-            }
-
-            generateTranslationRule = function () {
-
-                var translation = generateCustomRule(self.translateConfig);
-
-                translation.applyRule = function (shape) {
-                    var matrix = new THREE.Matrix4();
-                    matrix.makeTranslation(parseFloat(translation.selections[0][0]), parseFloat(translation.selections[0][1]), parseFloat(translation.selections[0][2]));
-                    mat = shape.appearance.transformation;
-                    var m = new THREE.Matrix4().fromArray(mat).transpose();
-                    if (translation.mode == "Mode.Local" || translation.mode == "Mode.LocalMid") m.premultiply(matrix);
-                    if (translation.mode == "Mode.Global" || translation.mode == "Mode.GlobalMid") m.multiply(matrix);
-                    shape.appearance.transformation = m.transpose().toArray();
-                };
-                translation.unapplyRule = function (shape) {
-                    var matrix = new THREE.Matrix4();
-                    matrix.makeTranslation(-parseFloat(translation.selections[0][0]), -parseFloat(translation.selections[0][1]), -parseFloat(translation.selections[0][2]));
-                    mat = shape.appearance.transformation;
-                    var m = new THREE.Matrix4().fromArray(mat).transpose();
-                    if (translation.mode == "Mode.Local" || translation.mode == "Mode.LocalMid") m.premultiply(matrix);
-                    if (translation.mode == "Mode.Global" || translation.mode == "Mode.GlobalMid") m.multiply(matrix);
-                    shape.appearance.transformation = m.transpose().toArray();
-                };
-                translation.draggingHelpers = {
-                    ids: {
-                        x: 0,
-                        y: 0,
-                        z: 0
-                    },
-                    activeHandle: null,
-                    overHandle: false,
-                    startPos: {
-                        x: 0,
-                        y: 0
-                    },
-                    startValues: {
-                        x: 0,
-                        y: 0,
-                        z: 0
-                    },
-                    diffWorld: {
-                        x: 0,
-                        y: 0,
-                        z: 0
-                    },
-                    diffScreen: {
-                        x: 0,
-                        y: 0
-                    }
-                };
-                translation.createHandles = function (scene, shape) {
-                    translation.draggingHelpers.scene = scene;
-
-                    var colors = [0xAA0000, 0x00AA00, 0x0000AA];
-                    var toSwitch = null;
-                    if (translation.draggingHelpers.activeHandle) toSwitch = translation.draggingHelpers.activeHandle;
-                    else if (translation.draggingHelpers.overHandle) toSwitch = translation.draggingHelpers.overHandle;
-                    switch (toSwitch) {
-                        case null:
-                            break;
-                        case 'x':
-                            colors[0] = 0xFF0000;
-                            break;
-                        case 'y':
-                            colors[1] = 0x00FF00;
-                            break;
-                        case 'z':
-                            colors[2] = 0x0066FF;
-                            break;
-                        default:
-                            break;
-                    }
-
-                    var ids = buildStandardAxes(scene, shape, colors);
-                    translation.draggingHelpers.ids.x = ids[0];
-                    translation.draggingHelpers.ids.y = ids[1];
-                    translation.draggingHelpers.ids.z = ids[2];
-                };
-                translation.onMouseOverHandle = function (id) {
-                    oldHandle = translation.draggingHelpers.overHandle;
-                    if (translation.draggingHelpers.ids.x <= id && id <= translation.draggingHelpers.ids.x + 2) {
-                        translation.draggingHelpers.overHandle = 'x';
-                    }
-                    if (translation.draggingHelpers.ids.y <= id && id <= translation.draggingHelpers.ids.y + 2) {
-                        translation.draggingHelpers.overHandle = 'y';
-                    }
-                    if (translation.draggingHelpers.ids.z <= id && id <= translation.draggingHelpers.ids.z + 2) {
-                        translation.draggingHelpers.overHandle = 'z';
-                    }
-                    if (translation.draggingHelpers.overHandle != oldHandle) inputChanged();
-                };
-                translation.onMouseNotOverHandle = function () {
-                    oldHandle = translation.draggingHelpers.overHandle;
-                    translation.draggingHelpers.overHandle = null;
-                    if (translation.draggingHelpers.overHandle != oldHandle) inputChanged();
-                };
-                translation.onHandlePressed = function (id, mouse, intersection, scene, camera, shape) {
-                    var arrowPos = scene.getObjectById(id).parent.position;
-                    var initStart = arrowPos.clone();
-                    var initEnd = intersection.clone();
-                    var start = initStart.clone().add(initEnd.clone().sub(initStart).multiplyScalar(1000));
-                    var end = initEnd.clone().add(initStart.clone().sub(initEnd).multiplyScalar(1000));
-                    translation.draggingHelpers.segment = {
-                        start: start,
-                        end: end
-                    };
-
-                    translation.draggingHelpers.shape = shape;
-
-                    translation.draggingHelpers.startValues.x = parseFloat(document.getElementById("vec3_0_elem0").value);
-                    translation.draggingHelpers.startValues.y = parseFloat(document.getElementById("vec3_0_elem1").value);
-                    translation.draggingHelpers.startValues.z = parseFloat(document.getElementById("vec3_0_elem2").value);
-                    translation.draggingHelpers.cam = camera;
-                    translation.draggingHelpers.intersection = intersection;
-                    translation.draggingHelpers.arrowPos = arrowPos;
-
-                    if (translation.draggingHelpers.ids.x <= id && id <= translation.draggingHelpers.ids.x + 2) {
-                        translation.draggingHelpers.activeHandle = 'x';
-                    }
-                    if (translation.draggingHelpers.ids.y <= id && id <= translation.draggingHelpers.ids.y + 2) {
-                        translation.draggingHelpers.activeHandle = 'y';
-                    }
-                    if (translation.draggingHelpers.ids.z <= id && id <= translation.draggingHelpers.ids.z + 2) {
-                        translation.draggingHelpers.activeHandle = 'z';
-                    }
-                };
-                translation.onHandleDragged = function (mouse) {
-                    var mousePoint = new THREE.Vector3(mouse.x, mouse.y, 1);
-                    mousePoint.unproject(translation.draggingHelpers.cam);
-                    var mouseRay = new THREE.Ray(translation.draggingHelpers.cam.position, mousePoint.sub(translation.draggingHelpers.cam.position).normalize());
-
-                    var targetPoint = new THREE.Vector3();
-                    mouseRay.distanceSqToSegment(translation.draggingHelpers.segment.start,
-                        translation.draggingHelpers.segment.end,
-                        null,
-                        targetPoint);
-
-                    var diff = targetPoint.sub(translation.draggingHelpers.intersection);
-                    var length = diff.length();
-                    var direction = translation.draggingHelpers.intersection.clone().sub(translation.draggingHelpers.arrowPos);
-                    var angle = diff.normalize().angleTo(direction.normalize());
-                    if (angle > (0.5 * Math.PI)) length *= -1;
-
-                    switch (translation.draggingHelpers.activeHandle) {
-                        case 'x':
-                            document.getElementById("vec3_0_elem0").value = '' + (translation.draggingHelpers.startValues.x + length).round();
-                            break;
-                        case 'y':
-                            document.getElementById("vec3_0_elem1").value = '' + (translation.draggingHelpers.startValues.y + length).round();
-                            break;
-                        case 'z':
-                            document.getElementById("vec3_0_elem2").value = '' + (translation.draggingHelpers.startValues.z + length).round();
-                            break;
-                    }
-                    inputChanged();
-                };
-                translation.onHandleReleased = function () {
-                    oldHandle = translation.draggingHelpers.activeHandle;
-                    translation.draggingHelpers.activeHandle = null;
-                    if (translation.draggingHelpers.activeHandle != oldHandle) inputChanged();
-                };
-
-                return translation;
             }
         }
 
@@ -1991,7 +1852,7 @@ function TempRuleController(renderer) {
                     if (standardAngle > (0.5 * Math.PI)) direction *= -1;
                     if (rotation.selections[0] == "Axis.Y") direction *= -1;
 
-                    // calc rotation angle            
+                    // calc rotation angle
                     var angle = startDir.angleTo(endDir);
 
                     // update input fields
@@ -3157,7 +3018,6 @@ function TempRuleController(renderer) {
     }
 
 
-    self.rules.set(self.translateConfig.type, generateTranslationRule);
     self.rules.set(self.scaleConfig.type, generateScaleRule);
     self.rules.set(self.growConfig.type, generateGrowRule);
     self.rules.set(self.sizeConfig.type, generateSizeRule);

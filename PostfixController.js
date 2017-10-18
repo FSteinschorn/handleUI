@@ -717,17 +717,23 @@ function PostfixController(renderer) {
         var mode = OUTSIDE;
         var counter = 0;
         var postfixType, taglist = [];
+        var waitingForTheEnd = false;
         while (counter < code.length) {
             switch (mode) {
                 case OUTSIDE:
                     if (code[counter].Text == '.' && code[counter].RawKind == 8218) {   // start of postfix
                         mode = POINT;
+                        waitingForTheEnd = false;
                     }
                     if (code[counter].Text == ';' && code[counter].RawKind == 8212) {   // full end of rule
                         return [rule, counter];
                     }
                     if (code[counter].Text == ',' && code[counter].RawKind == 8216) {   // end of rule in concat
                         return [rule, counter];
+                    }
+                    if (code[counter].Text == ')' && code[counter].RawKind == 8201) {   // end of rule in concat
+                        if (waitingForTheEnd) return [rule, counter - 1];
+                        waitingForTheEnd = true;
                     }
 
                     counter += 1;
@@ -756,6 +762,7 @@ function PostfixController(renderer) {
                             } else if (code[counter].Text == ')' && code[counter].RawKind == 8201) {
                                 if (taglist.length != 0) rule['postfixes'][Object.keys(rule['postfixes']).length] = { type: postfixType, tags: taglist };
                                 mode = OUTSIDE;
+                                waitingForTheEnd = true;
                                 counter += 1;
                             // second argument
                             } else if (code[counter].RawKind == 8509) {
@@ -780,6 +787,7 @@ function PostfixController(renderer) {
                             } else if (code[counter].Text == ')' && code[counter].RawKind == 8201) {
                                 if (taglist.length != 0) rule['postfixes'][Object.keys(rule['postfixes']).length] = { type: postfixType, tags: taglist };
                                 mode = OUTSIDE;
+                                waitingForTheEnd = true;
                                 counter += 1;
                             } else {
                                 counter += 1;
@@ -790,6 +798,7 @@ function PostfixController(renderer) {
                             if (code[counter].Text == ')' && code[counter].RawKind == 8201) {
                                 if (taglist.length != 0) rule['postfixes'][Object.keys(rule['postfixes']).length] = { type: postfixType, tags: taglist };
                                 mode = OUTSIDE;
+                                waitingForTheEnd = true;
                                 counter += 1;
                             } else if (code[counter].RawKind == 8509) {
                                 taglist.push(code[counter].Text);
@@ -805,6 +814,7 @@ function PostfixController(renderer) {
                             if (code[counter].Text == ')' && code[counter].RawKind == 8201) {
                                 if (taglist.length != 0) rule['postfixes'][Object.keys(rule['postfixes']).length] = { type: postfixType, tags: taglist };
                                 mode = OUTSIDE;
+                                waitingForTheEnd = true;
                                 counter += 1;
                             // found number
                             } else if (code[counter].RawKind == 8509) {
@@ -842,6 +852,7 @@ function PostfixController(renderer) {
                             if (code[counter].Text == ')' && code[counter].RawKind == 8201) {
                                 if (taglist.length != 0) rule['postfixes'][Object.keys(rule['postfixes']).length] = { type: postfixType, tags: taglist };
                                 mode = OUTSIDE;
+                                waitingForTheEnd = true;
                                 counter += 1;
                                 // enum types
                             } else if (code[counter].RawKind == 8508 &&

@@ -1,4 +1,20 @@
-﻿function HandlesThreeRenderer(domQuery) {
+﻿
+// ace editor helper
+function charToRowCol(position) {
+    var editor = ace.edit("code_text_ace");
+    var session = editor.getSession();
+    var lines = session.getLines(0, session.getLength());
+    var counter = 0, line = 0;
+    while (counter < position) {
+        counter += lines[line].length + 1;
+        line += 1;
+    }
+    line -= 1;
+    counter -= lines[line].length + 1;
+    return {row: line, column: position - counter};
+}
+
+function HandlesThreeRenderer(domQuery) {
     var self = new InteractiveThreeRenderer(domQuery, true);
 
     self.selectedMesh = null;
@@ -18,7 +34,7 @@
     dragging = false;
 
     self.postfixController = new PostfixController(self);
-    self.ruleController = new TempRuleController(self);
+    self.ruleController = getRuleController(self);
 
     //create div container
     var scrollDiv = document.createElement('div');
@@ -245,22 +261,9 @@
 
     // highlighting rules in the list
     {
-        var charToRowCol = function(position) {
-            var editor = ace.edit("code_text_ace");
-            var session = editor.getSession();
-            var lines = session.getLines(0, session.getLength());
-            var counter = 0, line = 0;
-            while (counter < position) {
-                counter += lines[line].length + 1;
-                line += 1;
-            }
-            line -= 1;
-            counter -= lines[line].length + 1;
-            return {row: line, column: position - counter};
-        };
-
         var currently_marked;
         var updateRuleHightlightFromCode = function () {
+            if (!document.getElementById("ruleListDiv")) return;
             var editor = ace.edit("code_text_ace");
             var current_position = editor.session.doc.positionToIndex(editor.getCursorPosition());
             var div_id;
@@ -293,6 +296,7 @@
                 selection.clearSelection();
                 selection.moveCursorToPosition(start);
                 selection.selectToPosition(end);
+                if (!document.getElementById("ruleListDiv")) return;
                 if (rule.wasParsed) {
                     var div_id = "parsed_" + i + "_div";
                 } else {
@@ -322,7 +326,7 @@
 
         var parsedRules = self.ruleController.getParsedRules();
         for (var i in parsedRules) {
-            if (!parsedRules[i].deleted && !parsedRules[i].edited && !parsedRules[i].inConcat) {
+            if (!parsedRules[i].deleted && !parsedRules[i].inConcat) {
                 var ruleDiv = document.createElement('div');
                 ruleDiv.style = "height:2em;position:relative;padding-left:16px";
                 ruleDiv.id = "parsed_" + i + "_div";
@@ -355,7 +359,7 @@
 
         var tmpRules = self.ruleController.getAllTmpRules();
         if (tmpRules) for (i in tmpRules) {
-            if (!tmpRules[i].inConcat) {
+            if (!tmpRules[i].inConcat && !tmpRules[i].deleted) {
                 var ruleDiv = document.createElement('div');
                 ruleDiv.style = "height:2em;position:relative;padding-left:16px";
                 ruleDiv.id = "tmp_" + i + "_div";
@@ -555,8 +559,6 @@
         });
 
         $("#commit_Button").click(function () {
-            var postfixDiv = document.getElementById("postfixDiv");
-            if (postfixDiv) self.postfixController.applyPostfixes(postfixDiv, self.selectedRule);
             self.ruleController.updateRule(self.selectedMesh.shape, self.selectedRule);
 
             self.selectedRule = null;
