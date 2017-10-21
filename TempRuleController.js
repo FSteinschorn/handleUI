@@ -1882,7 +1882,8 @@ function TempRuleController() {
         {
             generateSplitRule = function () {
 
-                var split = jQuery.extend(true, {}, abstractRule)
+                var split = jQuery.extend(true, {}, abstractRule);
+                split.parts = [];
                 // helpers
                 {
                     split.draggingHelpers = {
@@ -1892,7 +1893,7 @@ function TempRuleController() {
 
                     split.generatesMultipleShapes = true;
 
-                    split.addPart = function (settings) {
+                    split.addPart = function (doUpdate, settings) {
                         var button = document.getElementById("addPartButton");
                         var partDiv = document.createElement('div');
                         partDiv.style = 'margin:0.01em 16px';
@@ -1951,7 +1952,7 @@ function TempRuleController() {
                         }
 
                         this.draggingHelpers.nextIndex++;
-                        if (!settings) inputChanged();
+                        if (!settings && doUpdate) inputChanged();
                     };
 
                     split.addPostfixFunction = function (partId, settings) {
@@ -2005,7 +2006,7 @@ function TempRuleController() {
                     parentDiv.appendChild(addPartButton);
 
                     $("#addPartButton").click(function () {
-                        split.addPart(null);
+                        split.addPart(true);
                     });
                     $('#axis_selector').change(inputChanged);
 
@@ -2015,11 +2016,11 @@ function TempRuleController() {
                             if (selector.options[i].label == split.axis) selector.selectedIndex = i;
                         }
                         for (var i = 0; i < Object.keys(split.parts).length; i++) {
-                            split.addPart(split.parts[Object.keys(split.parts)[i]]);
+                            split.addPart(true, split.parts[Object.keys(split.parts)[i]]);
                         }
                     } else {
-                        split.addPart();
-                        split.addPart();
+                        split.addPart(false);
+                        split.addPart(false);
                     }
                 };
                 split.applyRule = function (shape) {

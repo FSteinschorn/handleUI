@@ -552,10 +552,12 @@ function HandlesThreeRenderer(domQuery) {
             var selector = document.getElementById("rule_selector");
             var selection = selector.options[selector.selectedIndex].value;
             self.selectedRule = self.ruleController.createRule(selection);
+            self.ruleController.addRule(self.selectedMesh.shape, self.selectedRule);
             self.selectedRule.appendInputFields(inputDiv, true);
             var postfixDiv = document.getElementById("postfixDiv");
             if (postfixDiv) self.postfixController.applyPostfixes(postfixDiv, self.selectedRule);
-            self.ruleController.addRule(self.selectedMesh.shape, self.selectedRule);
+
+            self.inputChanged();
         });
 
         $("#commit_Button").click(function () {
