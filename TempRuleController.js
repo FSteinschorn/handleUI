@@ -368,30 +368,42 @@ function TempRuleController() {
             abstractRule.generateShortString = function () {
                 return "short not implemented yet";
             };
-            abstractRule.applyRule = function (shape) {};
-            abstractRule.unapplyRule = function (shape) {};
-            abstractRule.appendInputFields = function (parentDiv) {};
-            abstractRule.updateRule = function () {};
-            abstractRule.additionalUpdates = function() {};
+            abstractRule.applyRule = function (shape) {
+            };
+            abstractRule.unapplyRule = function (shape) {
+            };
+            abstractRule.appendInputFields = function (parentDiv) {
+            };
+            abstractRule.updateRule = function () {
+            };
+            abstractRule.additionalUpdates = function () {
+            };
             abstractRule.draggingHelpers = {};
             abstractRule.createHandles = function (scene, shape) {
                 this.draggingHelpers.scene = scene;
                 var colors = [0xAA0000, 0x00AA00, 0x0000AA];
                 this.draggingHelpers.arrowIds = buildStandardAxes(scene, shape, colors, true);
             };
-            abstractRule.onMouseOverHandle = function (id) {};
-            abstractRule.onMouseNotOverHandle = function () {};
-            abstractRule.onHandlePressed = function (id, mouse, intersection, scene, camera, shape) {};
-            abstractRule.onHandleDragged = function (mouse) {};
-            abstractRule.onHandleReleased = function () {};
+            abstractRule.onMouseOverHandle = function (id) {
+            };
+            abstractRule.onMouseNotOverHandle = function () {
+            };
+            abstractRule.onHandlePressed = function (id, mouse, intersection, scene, camera, shape) {
+            };
+            abstractRule.onHandleDragged = function (mouse) {
+            };
+            abstractRule.onHandleReleased = function () {
+            };
             abstractRule.addPreview = addPreview;
             abstractRule.removePreview = removePreview;
             abstractRule.parseCode = function (ruleBuffer) {
                 return 0;
             };
             abstractRule.generatesMultipleShapes = false;
-            abstractRule.storeCurrentState = function() {};
-            abstractRule.setStoredState = function() {};
+            abstractRule.storeCurrentState = function () {
+            };
+            abstractRule.setStoredState = function () {
+            };
         }
 
 
@@ -402,29 +414,29 @@ function TempRuleController() {
         {
             /*
 
-            config = {
-                type: String,                           name of the rule
-                mode: bool,                             add mode selector? (local, global, etc.)
-                options: [                              list of needed rule parameters
-                    {
-                        label: String | null,
-                        inputType: INPUTTYPE,
-                        values: [...] | null
-                    },
-                    ...
-                ]
-            }
+             config = {
+             type: String,                           name of the rule
+             mode: bool,                             add mode selector? (local, global, etc.)
+             options: [                              list of needed rule parameters
+             {
+             label: String | null,
+             inputType: INPUTTYPE,
+             values: [...] | null
+             },
+             ...
+             ]
+             }
 
-            inputType - values:
-            DROPDOWN - [option1, option2, ...]
-            VEC3 - [double, double, double]
-            STRING - string
-            TAG - string
-            RAW - string
-            DOUBLE - double
-            TAGS - [string, string, ...]
+             inputType - values:
+             DROPDOWN - [option1, option2, ...]
+             VEC3 - [double, double, double]
+             STRING - string
+             TAG - string
+             RAW - string
+             DOUBLE - double
+             TAGS - [string, string, ...]
 
-            */
+             */
             generateCustomRule = function (config) {
 
                 var customRule = jQuery.extend(true, [], abstractRule);
@@ -574,8 +586,10 @@ function TempRuleController() {
 
                     customRule.additionalUpdates();
                 };
-                customRule.additionalUpdates = function() { };
-                customRule.afterInputCreation = function (parentDiv) { };
+                customRule.additionalUpdates = function () {
+                };
+                customRule.afterInputCreation = function (parentDiv) {
+                };
                 customRule.onselectionChange = inputChanged;
                 customRule.appendInputFields = function (parentDiv, empty /* dont fill input with current values */) {
                     for (var i = 0; i < config.options.length; i++) {
@@ -665,13 +679,17 @@ function TempRuleController() {
                             case INPUTTYPE.RAW:
                                 var id = "input_field" + i;
                                 input = document.getElementById(id);
-                                input.addEventListener("change", function () { customRule.onselectionChange() });
+                                input.addEventListener("change", function () {
+                                    customRule.onselectionChange()
+                                });
                                 break;
 
                             case INPUTTYPE.DROPDOWN:
                                 var id = "dropdown" + i;
                                 var selector = document.getElementById(id);
-                                selector.addEventListener("change", function () { customRule.onselectionChange() });
+                                selector.addEventListener("change", function () {
+                                    customRule.onselectionChange()
+                                });
                                 break;
 
                             case INPUTTYPE.TAG:
@@ -683,13 +701,19 @@ function TempRuleController() {
                             case INPUTTYPE.VEC3:
                                 var id = "vec3_" + i + "_elem0";
                                 input = document.getElementById(id);
-                                input.addEventListener("change", function () { customRule.onselectionChange() });
+                                input.addEventListener("change", function () {
+                                    customRule.onselectionChange()
+                                });
                                 id = "vec3_" + i + "_elem1";
                                 input = document.getElementById(id);
-                                input.addEventListener("change", function () { customRule.onselectionChange() });
+                                input.addEventListener("change", function () {
+                                    customRule.onselectionChange()
+                                });
                                 id = "vec3_" + i + "_elem2";
                                 input = document.getElementById(id);
-                                input.addEventListener("change", function () { customRule.onselectionChange() });
+                                input.addEventListener("change", function () {
+                                    customRule.onselectionChange()
+                                });
                                 break;
 
                             default:
@@ -921,549 +945,7 @@ function TempRuleController() {
             }
         }
 
-
-        // #################################################################################################################################
-        // ################################################## Reflection ###################################################################
-        // #################################################################################################################################
-
-        {
-            var axes = ["Axis.X", "Axis.Y", "Axis.Z"];
-            self.reflectionConfig = {
-                type: 'Reflect',
-                mode: true,
-                options: [
-                    {
-                        label: 'Axis',
-                        inputType: INPUTTYPE.DROPDOWN,
-                        values: axes
-                    }
-                ]
-            }
-
-            generateReflectionRule = function () {
-                return generateCustomRule(self.reflectionConfig);
-            }
-        }
-
-
-        // #################################################################################################################################
-        // ################################################## PAINT ########################################################################
-        // #################################################################################################################################
-
-        {
-
-            var materials = ["Material.Brass", "Material.Bronze", "Material.PolishedBronze", "Material.Chrome",
-        "Material.Copper", "Material.PolishedCopper", "Material.Gold", "Material.PolishedGold",
-        "Material.Pewter", "Material.Silver", "Material.PolishedSilver", "Material.Glass",
-        "Material.Emerald", "Material.Jade", "Material.Obsidian", "Material.Pearl",
-        "Material.Ruby", "Material.Turquoise", "Material.BlackPlastic", "Material.BlackRubber",
-        "Material.White",
-        "Material.Red", "Material.Pink", "Material.Purple", "Material.DeepPurple",
-        "Material.Indigo", "Material.Blue", "Material.LightBlue", "Material.Cyan",
-        "Material.Teal", "Material.Green", "Material.LightGreen", "Material.Lime",
-        "Material.Yellow", "Material.Amber", "Material.Orange", "Material.DeepOrange",
-        "Material.Brown", "Material.Grey", "Material.BlueGrey"];
-            self.paintConfig = {
-                type: 'Paint',
-                mode: false,
-                options: [
-                    {
-                        label: 'Material',
-                        inputType: INPUTTYPE.DROPDOWN,
-                        values: materials
-                    },
-                    {
-                        label: 'Tone',
-                        inputType: INPUTTYPE.DROPDOWN,
-                        values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-                    }
-                ]
-            }
-
-            generatePaintRule = function () {
-
-                var paint = generateCustomRule(self.paintConfig);
-
-                paint.generateRuleString = function () {
-                    var ruleString = "new Rules.Paint(" + paint.selections[0];
-                    if (paint.selections[1] != null) ruleString += '(' + paint.selections[1] + ')';
-                    ruleString += ')';
-                    ruleString = addTags(paint, ruleString);
-                    ruleString += ";";
-
-                    paint.lastRuleString = ruleString;
-
-                    return ruleString;
-                };
-                paint.generateShortString = function () {
-                    var ruleString = "Paint with " + paint.selections[0];
-                    if (paint.selections[1] != null) ruleString += '(' + paint.selections[1] + ')';
-                    return ruleString;
-                };
-                paint.onselectionChange = function () {
-                    var selector = document.getElementById('dropdown0');
-                    var toneSelector = document.getElementById('dropdown1');
-                    var toneLabel = document.getElementById('label1');
-                    if (selector.selectedIndex > 19) {
-                        toneSelector.style.display = 'inline';
-                        toneLabel.style.display = 'inline';
-                    } else {
-                        toneSelector.style.display = 'none';
-                        toneLabel.style.display = 'none';
-                    }
-                    inputChanged();
-                };
-
-                return paint;
-            }
-        }
-
-
-        // #################################################################################################################################
-        // ################################################## HUE ##########################################################################
-        // #################################################################################################################################
-
-        {
-
-            var colors = ["Color.Ambient", "Color.Diffuse", "Color.Emmisive", "Color.AmbientAndDiffuse", "Color.Specular"];
-            self.hueConfig = {
-                type: 'Hue',
-                mode: true,
-                options: [
-                    {
-                        label: 'Color Type',
-                        inputType: INPUTTYPE.DROPDOWN,
-                        values: colors
-                    },
-                    {
-                        label: 'Value',
-                        inputType: INPUTTYPE.DOUBLE,
-                        values: null
-                    }
-                ]
-            }
-
-            generateHueRule = function () {
-                return generateCustomRule(self.hueConfig);
-            }
-        }
-
-
-        // #################################################################################################################################
-        // ################################################## SATURATION ###################################################################
-        // #################################################################################################################################
-
-        {
-            self.saturationConfig = {
-                type: 'Saturate',
-                mode: true,
-                options: [
-                    {
-                        label: 'Color Type',
-                        inputType: INPUTTYPE.DROPDOWN,
-                        values: colors
-                    },
-                    {
-                        label: 'Value',
-                        inputType: INPUTTYPE.DOUBLE,
-                        values: null
-                    }
-                ]
-            }
-
-            generateSaturationRule = function () {
-                return generateCustomRule(self.saturationConfig);
-            }
-        }
-
-
-        // #################################################################################################################################
-        // ################################################## ASSET ########################################################################
-        // #################################################################################################################################
-
-        {
-            var primitives = ["Primitive.Arch", "Primitive.Box", "Primitive.Circle", "Primitive.Cone",
-        "Primitive.Cylinder", "Primitive.Dodecahedron", "Primitive.Icosahedron", "Primitive.Octahedron",
-        "Primitive.Plane", "Primitive.Prism", "Primitive.Gable", "Primitive.Ring",
-        "Primitive.Sphere", "Primitive.Tetrahedron", "Primitive.Torus", "Primitive.TorusKnot"];
-
-            self.assetConfig = {
-                type: 'Asset',
-                mode: false,
-                options: [
-                    {
-                        label: 'Primitive',
-                        inputType: INPUTTYPE.DROPDOWN,
-                        values: primitives
-                    }
-                ]
-            }
-
-            generateAssetRule = function () {
-                return generateCustomRule(self.assetConfig);
-            }
-        }
-
-
-        // #################################################################################################################################
-        // ################################################## Goal #########################################################################
-        // #################################################################################################################################
-
-        {
-            self.GoalConfig = {
-                type: 'Goal',
-                mode: false,
-                options: [
-                    {
-                        label: 'Goal',
-                        inputType: INPUTTYPE.TAGS,
-                        values: null
-                    }
-                ]
-            }
-
-            generateGoalRule = function () {
-                return generateCustomRule(self.GoalConfig);
-            }
-        }
-
-
-        // #################################################################################################################################
-        // ################################################## goal #########################################################################
-        // #################################################################################################################################
-
-        {
-            self.goalConfig = {
-                type: 'goal',
-                mode: false,
-                options: [
-                    {
-                        label: 'goal',
-                        inputType: INPUTTYPE.TAGS,
-                        values: null
-                    }
-                ]
-            }
-
-            generategoalRule = function () {
-                return generateCustomRule(self.goalConfig);
-            }
-        }
-
-
-        // #################################################################################################################################
-        // ################################################## Attribute ####################################################################
-        // #################################################################################################################################
-
-        {
-            self.attributeConfig = {
-                type: 'Attribute',
-                mode: false,
-                options: [
-                    {
-                        label: 'Name',
-                        inputType: INPUTTYPE.STRING,
-                        values: null
-                    },
-                    {
-                        label: 'Value',
-                        inputType: INPUTTYPE.RAW,
-                        values: null
-                    }
-                ]
-            }
-
-            generateAttributeConfig = function () {
-                return generateCustomRule(self.attributeConfig);
-            }
-        }
-
-
-        // #################################################################################################################################
-        // ##################################################### Concat ####################################################################
-        // #################################################################################################################################
-
-        {
-            generateConcatRule = function () {
-
-                var concat = jQuery.extend(true, {}, abstractRule)
-
-                concat.type = 'Concat';
-
-                concat.generateRuleString = function () {
-                    var output = "new Rules.Concat(";
-                    for (var i = 0; i < concat.selections.length; i++) {
-                        output += "\n";
-                        output += concat.selections[i].generateRuleString();
-                        output = output.slice(0, -1);
-                        output += ",";
-                    }
-                    output = output.slice(0, -1);
-                    output += "\n);";
-
-                    concat.lastRuleString = output;
-
-                    return output;
-                };
-                concat.generateShortString = function () {
-                    var output = "Concat of ";
-                    output += concat.selections.length;
-                    output += " rules";
-                    return output;
-                };
-                concat.applyRule = function (shape) {
-                    for (var i = 0; i < concat.selections.length; i++) {
-                        concat.selections[i].applyRule(shape);
-                        concat.selections[i].inConcat = true;
-                    }
-                };
-                concat.unapplyRule = function (shape) {
-                    for (var i = concat.selections.length - 1; i >= 0; i--) {
-                        concat.selections[i].unapplyRule(shape);
-                    }
-                };
-                concat.appendInputFields = function (parentDiv, empty) {
-                    if (!concat.selections) {
-                        concat.selections = [];
-                    }
-
-                    while (parentDiv.hasChildNodes()) {
-                        parentDiv.removeChild(parentDiv.lastChild);
-                    }
-
-                    // list current selection
-                    var selectionListDiv = document.createElement('div');
-                    selectionListDiv.id = "concatRuleSelectionDiv";
-                    selectionListDiv.classList = "w3-container";
-                    selectionListDiv.style = "position:relative; border-bottom: 1px solid black;";
-
-                    for (var i = 0; i < concat.selections.length; i++) {
-                        var ruleDiv = document.createElement('div');
-                        ruleDiv.style = "height:2em;position:relative;";
-                        selectionListDiv.appendChild(ruleDiv);
-                        ruleDiv.innerHTML = "<span class='tag-tag'>" + concat.selections[i].generateShortString() + "</span>";
-
-                        if (i != 0 &&
-                            !concat.selections[i].generatesMultipleShapes) {
-                            var up_button = document.createElement("button");
-                            up_button.id = "up_Button_" + i;
-                            up_button.classList = "w3-btn";
-                            up_button.style = "height:2em;float:right;padding:3px 16px;"
-                            var up_button_text = document.createTextNode("up");
-
-                            up_button.appendChild(up_button_text);
-                            ruleDiv.appendChild(up_button);
-                        }
-
-                        if (i != concat.selections.length - 1 &&
-                            !concat.selections[i + 1].generatesMultipleShapes) {
-                            var down_button = document.createElement("button");
-                            down_button.id = "down_Button_" + i;
-                            down_button.classList = "w3-btn";
-                            down_button.style = "height:2em;float:right;padding:3px 16px;"
-                            var down_button_text = document.createTextNode("down");
-
-                            down_button.appendChild(down_button_text);
-                            ruleDiv.appendChild(down_button);
-                        }
-
-                        var remove_button = document.createElement("button");
-                        remove_button.id = "removeRule_Button_" + i;
-                        remove_button.classList = "w3-btn";
-                        remove_button.style = "height:2em;float:right;padding:3px 16px;"
-                        var remove_button_text = document.createTextNode("remove");
-
-                        remove_button.appendChild(remove_button_text);
-                        ruleDiv.appendChild(remove_button);
-                    }
-
-                    parentDiv.appendChild(selectionListDiv);
-
-                    // up button function
-                    for (var i = 0; i < concat.selections.length; i++) {
-                        $("#up_Button_" + i).click(function (i) {
-                            return function () {
-                                var tmp = concat.selections[i];
-                                concat.selections[i] = concat.selections[i - 1];
-                                concat.selections[i - 1] = tmp;
-
-                                inputChanged();
-                                concat.appendInputFields(parentDiv, rule, true);
-                            };
-                        }(i))
-                    }
-
-                    // down button function
-                    for (var i = 0; i < concat.selections.length; i++) {
-                        $("#down_Button_" + i).click(function (i) {
-                            return function () {
-                                var tmp = concat.selections[i];
-                                concat.selections[i] = concat.selections[i + 1];
-                                concat.selections[i + 1] = tmp;
-
-                                inputChanged();
-                                concat.appendInputFields(parentDiv, rule, true);
-                            };
-                        }(i))
-                    }
-
-                    // remove button function
-                    for (var i = 0; i < concat.selections.length; i++) {
-                        $("#removeRule_Button_" + i).click(function (i) {
-                            return function () {
-                                parsedRules[concat.selections[i].index].inConcat = false;
-                                concat.selections.splice(i, 1);
-
-                                inputChanged();
-                                concat.appendInputFields(parentDiv, rule, true);
-                            };
-                        }(i))
-                    }
-
-                    // list available rules
-                    var ruleListDiv = document.createElement('div');
-                    ruleListDiv.id = "concatRuleListDiv";
-                    ruleListDiv.classList = "w3-container";
-                    ruleListDiv.style = "position:relative;";
-
-                    var lastAdded = null;
-                    for (var i = 0; i < parsedRules.length; i++) {
-                        if (!parsedRules[i].deleted &&
-                            !parsedRules[i].edited &&
-                            !parsedRules[i].inConcat &&
-                            parsedRules[i] != concat &&
-                            !(lastAdded && lastAdded.generatesMultipleShapes)) {
-
-                            var ruleDiv = document.createElement('div');
-                            ruleDiv.style = "height:2em;position:relative;";
-                            ruleListDiv.appendChild(ruleDiv);
-                            ruleDiv.innerHTML = "<span class='tag-tag'>" + parsedRules[i].generateShortString() + "</span>";
-
-                            var add_button = document.createElement("button");
-                            add_button.id = "addRule_Button_" + i;
-                            add_button.classList = "w3-btn";
-                            add_button.style = "height:2em;float:right;padding:3px 16px;"
-                            var add_button_text = document.createTextNode("add");
-
-                            lastAdded = parsedRules[i];
-
-                            add_button.appendChild(add_button_text);
-                            ruleDiv.appendChild(add_button);
-                        }
-                    }
-                    for (var i = 0; i < tmpRules.length; i++) {
-                        if (tmpRules[i] != concat &&
-                            !tmpRules[i].inConcat &&
-                            !(lastAdded && lastAdded.generatesMultipleShapes)) {
-                            var ruleDiv = document.createElement('div');
-                            ruleDiv.style = "height:2em;position:relative;";
-                            ruleListDiv.appendChild(ruleDiv);
-                            ruleDiv.innerHTML = "<span class='tag-tag'>" + tmpRules[i].generateShortString() + "</span>";
-
-                            var add_button = document.createElement("button");
-                            add_button.id = "addRule_Button_" + (i + parsedRules.length);
-                            add_button.classList = "w3-btn";
-                            add_button.style = "height:2em;float:right;padding:3px 16px;"
-                            var add_button_text = document.createTextNode("add");
-
-                            lastAdded = parsedRules[i];
-
-                            add_button.appendChild(add_button_text);
-                            ruleDiv.appendChild(add_button);
-                        }
-                    }
-
-                    parentDiv.appendChild(ruleListDiv);
-
-                    // add buttons functions
-                    for (var i = 0; i < parsedRules.length; i++) {
-                        $("#addRule_Button_" + i).click(function (i) {
-                            return function () {
-                                parsedRules[i].index = i;
-                                concat.selections.push(parsedRules[i]);
-                                parsedRules[i].inConcat = true;
-                                inputChanged();
-
-                                concat.appendInputFields(parentDiv, rule, true);
-                            };
-                        }(i))
-                    }
-                    for (var i = 0; i < tmpRules.length; i++) {
-                        $("#addRule_Button_" + (i + parsedRules.length)).click(function (i) {
-                            return function () {
-                                tmpRules[i].index = i;
-                                concat.selections.push(tmpRules[i]);
-                                tmpRules[i].inConcat = true;
-                                inputChanged();
-
-                                concat.appendInputFields(parentDiv, rule, true);
-                            };
-                        }(i))
-                    }
-                };
-                concat.parseCode = function(ruleBuffer) {
-                    concat.selections = [];
-
-                    var counter = 0;
-                    while (ruleBuffer[counter].Text != "Concat") {
-                        if (counter < ruleBuffer.length) {
-                            counter += 1;
-                        } else {
-                            rule = { type: 'concatRuleNotFound' };
-                            return -1;
-                        }
-                    }
-                    counter += 2;
-
-                    var lastPosition = 0;
-                    var ruleStart = 0;
-                    while (counter < ruleBuffer.length) {
-                        if (ruleBuffer[counter].Text == 'new' && ruleBuffer[counter].RawKind == 8354) {
-                            ruleStart = ruleBuffer[counter].SpanStart;
-                            counter += 2;
-                        } else if (ruleBuffer[counter].RawKind == 8508 && ruleBuffer[counter].Text == "Rules") {
-                            counter += 2;
-                            var rule = self.rules.get(ruleBuffer[counter].Text)();
-                            lastPosition = rule.parseCode(ruleBuffer.slice(counter));
-                            counter += lastPosition;
-                            [rule, lastPosition] = renderer.postfixController.parsePostfixes(rule, ruleBuffer.slice(counter));
-                            counter += lastPosition;
-                            rule.start = ruleStart;
-                            rule.end = ruleBuffer[counter].SpanStart + ruleBuffer[counter].SpanLength;
-                            rule.deleted = false;
-                            rule.edited = false;
-                            rule.wasParsed = true;
-                            rule.inConcat = true;
-                            concat.selections.push(rule);
-                        } else {
-                            counter += 1;
-                        }
-                    }
-
-                    return lastPosition + 2;
-                };
-
-                return concat;
-            }
-        }
     }
-
-
-    self.rules.set(self.scaleConfig.type, generateScaleRule);
-    self.rules.set(self.growConfig.type, generateGrowRule);
-    self.rules.set(self.sizeConfig.type, generateSizeRule);
-    self.rules.set(self.rotationConfig.type, generateRotationRule);
-    self.rules.set(self.orientationConfig.type, generateOrientationRule);
-    self.rules.set(self.reflectionConfig.type, generateReflectionRule);
-    self.rules.set("Split", generateSplitRule);
-    self.rules.set(self.paintConfig.type, generatePaintRule);
-    self.rules.set(self.hueConfig.type, generateHueRule);
-    self.rules.set(self.saturationConfig.type, generateSaturationRule);
-    self.rules.set(self.attributeConfig.type, generateAttributeConfig);
-    self.rules.set(self.assetConfig.type, generateAssetRule);
-    self.rules.set(self.GoalConfig.type, generateGoalRule);
-    self.rules.set(self.goalConfig.type, generategoalRule);
-    self.rules.set("Concat", generateConcatRule);
 
 return self;
 }
