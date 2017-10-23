@@ -12,9 +12,7 @@ generatecopyRule = function () {
             nextIndex: 0,
             epsilon: 0.001
         };
-
         copy.generatesMultipleShapes = true;
-
         copy.addPart = function (doUpdate, settings) {
             var button = document.getElementById("addPartButton");
             var partDiv = document.createElement('div');
@@ -76,7 +74,6 @@ generatecopyRule = function () {
             this.draggingHelpers.nextIndex++;
             if (!settings && doUpdate) inputChanged();
         };
-
         copy.addPostfixFunction = function (partId, settings) {
             return function () {
                 copy.addPostfix(partId, settings);
@@ -89,9 +86,8 @@ generatecopyRule = function () {
         }
     }
     // standard functions
-    copy.type = 'Copy';
     copy.generateRuleString = function () {
-        var ruleString = "new Rules.copy(" + copy.axis + ",";
+        var ruleString = "new Rules.Copy(" + copy.axis + ",";
         var counter = 1;
         for (var part in copy.parts) {
             ruleString += "\n\t\t" + copy.parts[part].mode + "(" + copy.parts[part].amount + ")";
@@ -217,4 +213,4 @@ generatecopyRule = function () {
     return copy;
 };
 
-getRuleController().rules.set(copyConfig.type, generatecopyRule);
+getRuleController().addRuleFactory(copyConfig.type, generatecopyRule);

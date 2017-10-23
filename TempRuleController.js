@@ -54,6 +54,10 @@ function TempRuleController() {
         return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
     }
 
+    self.addRuleFactory = function(type, factory) {
+        self.rules.set(type, factory);
+    };
+
     self.generateShortString = function (rule) {
         var type = rule.type;
         switch (type) {

@@ -163,4 +163,4 @@ generateTranslationRule = function () {
     return translation;
 };
 
-getRuleController().rules.set(translateConfig.type, generateTranslationRule);
+getRuleController().addRuleFactory(translateConfig.type, generateTranslationRule);
