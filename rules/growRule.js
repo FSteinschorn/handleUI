@@ -16,32 +16,39 @@ generateGrowRule = function () {
 
     grow.applyRule = function (shape) {
         var transform = shape.appearance.transformation;
-        var xDir = new THREE.Vector3(transform[0], transform[1], transform[2]);
-        var yDir = new THREE.Vector3(transform[4], transform[5], transform[6]);
-        var zDir = new THREE.Vector3(transform[8], transform[9], transform[10]);
-        var sizeX = xDir.length();
-        var sizeY = yDir.length();
-        var sizeZ = zDir.length();
-        var scaleX = 1 + parseFloat(grow.selections[0][0]) / sizeX;
-        var scaleY = 1 + parseFloat(grow.selections[0][1]) / sizeY;
-        var scaleZ = 1 + parseFloat(grow.selections[0][2]) / sizeZ;
+        var sizeX = new THREE.Vector3(transform[0], transform[1], transform[2]).length();
+        var sizeY = new THREE.Vector3(transform[4], transform[5], transform[6]).length();
+        var sizeZ = new THREE.Vector3(transform[8], transform[9], transform[10]).length();
+        var scaleX = (sizeX + parseFloat(grow.selections[0][0])) / sizeX;
+        var scaleY = (sizeY + parseFloat(grow.selections[0][1])) / sizeY;
+        var scaleZ = (sizeZ + parseFloat(grow.selections[0][2])) / sizeZ;
 
         var matrix = new THREE.Matrix4();
         matrix.makeScale(scaleX, scaleY, scaleZ);
         mat = shape.appearance.transformation;
         var m = new THREE.Matrix4().fromArray(mat).transpose();
-        if (grow.mode == "Mode.Local" || grow.mode == "Mode.LocalMid") m.premultiply(matrix);
-        if (grow.mode == "Mode.Global" || grow.mode == "Mode.GlobalMid") m.multiply(matrix);
+        if (grow.mode == "Mode.Local") {
+            var translation = new THREE.Matrix4().makeTranslation(
+                sizeX * (scaleX - 1) / 2,
+                sizeY * (scaleY - 1) / 2,
+                sizeZ * (scaleZ - 1) / 2
+            );
+            m.multiply(translation);
+            m.multiply(matrix);
+        } else if (grow.mode == "Mode.LocalMid") {
+            m.multiply(matrix);
+        } else if (grow.mode == "Mode.Global") {
+            m.premultiply(matrix);
+        } else if (grow.mode == "Mode.GlobalMid") {
+            m.multiply(matrix);
+        }
         shape.appearance.transformation = m.transpose().toArray();
     };
     grow.unapplyRule = function (shape) {
         var transform = shape.appearance.transformation;
-        var xDir = new THREE.Vector3(transform[0], transform[1], transform[2]);
-        var yDir = new THREE.Vector3(transform[4], transform[5], transform[6]);
-        var zDir = new THREE.Vector3(transform[8], transform[9], transform[10]);
-        var sizeX = xDir.length();
-        var sizeY = yDir.length();
-        var sizeZ = zDir.length();
+        var sizeX = new THREE.Vector3(transform[0], transform[1], transform[2]).length();
+        var sizeY = new THREE.Vector3(transform[4], transform[5], transform[6]).length();
+        var sizeZ = new THREE.Vector3(transform[8], transform[9], transform[10]).length();
         var scaleX = sizeX / (sizeX - parseFloat(grow.selections[0][0]));
         var scaleY = sizeY / (sizeY - parseFloat(grow.selections[0][1]));
         var scaleZ = sizeZ / (sizeZ - parseFloat(grow.selections[0][2]));
@@ -50,8 +57,21 @@ generateGrowRule = function () {
         matrix.makeScale(1 / scaleX, 1 / scaleY, 1 / scaleZ);
         mat = shape.appearance.transformation;
         var m = new THREE.Matrix4().fromArray(mat).transpose();
-        if (grow.mode == "Mode.Local" || grow.mode == "Mode.LocalMid") m.premultiply(matrix);
-        if (grow.mode == "Mode.Global" || grow.mode == "Mode.GlobalMid") m.multiply(matrix);
+        if (grow.mode == "Mode.Local") {
+            var translation = new THREE.Matrix4().makeTranslation(
+                -(sizeX / 2) + (sizeX / scaleX / 2),
+                -(sizeY / 2) + (sizeY / scaleY / 2),
+                -(sizeZ / 2) + (sizeZ / scaleZ / 2)
+            );
+            m.multiply(matrix);
+            m.multiply(translation);
+        } else if (grow.mode == "Mode.LocalMid") {
+            m.multiply(matrix);
+        } else if (grow.mode == "Mode.Global") {
+            m.premultiply(matrix);
+        } else if (grow.mode == "Mode.GlobalMid") {
+            m.multiply(matrix);
+        }
         shape.appearance.transformation = m.transpose().toArray();
     };
     grow.draggingHelpers = {
