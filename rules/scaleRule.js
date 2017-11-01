@@ -17,20 +17,52 @@ generateScaleRule = function () {
     scale.applyRule = function (shape) {
         var matrix = new THREE.Matrix4();
         matrix.makeScale(parseFloat(scale.selections[0][0]), parseFloat(scale.selections[0][1]), parseFloat(scale.selections[0][2]));
-        mat = shape.appearance.transformation;
-        var m = new THREE.Matrix4().fromArray(mat).transpose();
-        if (scale.mode == "Mode.Local" || scale.mode == "Mode.LocalMid") m.multiply(matrix);
-        if (scale.mode == "Mode.Global" || scale.mode == "Mode.GlobalMid") m.premultiply(matrix);
-        shape.appearance.transformation = m.transpose().toArray();
+        var m = shape.appearance.transformation;
+        var mat = new THREE.Matrix4().fromArray(m).transpose();
+        if (scale.mode == "Mode.Local") {
+            var xSize = new THREE.Vector3(m[0], m[1], m[2]).length();
+            var ySize = new THREE.Vector3(m[4], m[5], m[6]).length();
+            var zSize = new THREE.Vector3(m[8], m[9], m[10]).length();
+            var translation = new THREE.Matrix4().makeTranslation(
+                xSize * (scale.selections[0][0] - 1) / 2,
+                ySize * (scale.selections[0][1] - 1) / 2,
+                zSize * (scale.selections[0][2] - 1) / 2
+            );
+            mat.multiply(translation);
+            mat.multiply(matrix);
+        } else if (scale.mode == "Mode.LocalMid") {
+            mat.multiply(matrix);
+        } else if (scale.mode == "Mode.Global") {
+            mat.premultiply(matrix);
+        } else if (scale.mode == "Mode.GlobalMid") {
+            mat.multiply(matrix);
+        }
+        shape.appearance.transformation = mat.transpose().toArray();
     };
     scale.unapplyRule = function (shape) {
         var matrix = new THREE.Matrix4();
         matrix.makeScale(1 / parseFloat(scale.selections[0][0]), 1 / parseFloat(scale.selections[0][1]), 1 / parseFloat(scale.selections[0][2]));
-        mat = shape.appearance.transformation;
-        var m = new THREE.Matrix4().fromArray(mat).transpose();
-        if (scale.mode == "Mode.Local" || scale.mode == "Mode.LocalMid") m.multiply(matrix);
-        if (scale.mode == "Mode.Global" || scale.mode == "Mode.GlobalMid") m.premultiply(matrix);
-        shape.appearance.transformation = m.transpose().toArray();
+        var m = shape.appearance.transformation;
+        var mat = new THREE.Matrix4().fromArray(m).transpose();
+        if (scale.mode == "Mode.Local") {
+            var xSize = new THREE.Vector3(m[0], m[1], m[2]).length();
+            var ySize = new THREE.Vector3(m[4], m[5], m[6]).length();
+            var zSize = new THREE.Vector3(m[8], m[9], m[10]).length();
+            var translation = new THREE.Matrix4().makeTranslation(
+                -(xSize / 2) + (xSize / scale.selections[0][0] / 2),
+                -(ySize / 2) + (ySize / scale.selections[0][1] / 2),
+                -(zSize / 2) + (zSize / scale.selections[0][2] / 2)
+            );
+            mat.multiply(matrix);
+            mat.multiply(translation);
+        } else if (scale.mode == "Mode.LocalMid") {
+            mat.multiply(matrix);
+        } else if (scale.mode == "Mode.Global") {
+            mat.premultiply(matrix);
+        } else if (scale.mode == "Mode.GlobalMid") {
+            mat.multiply(matrix);
+        }
+        shape.appearance.transformation = mat.transpose().toArray();
     };
     scale.draggingHelpers = {
         ids: {
