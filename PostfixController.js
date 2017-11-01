@@ -125,8 +125,8 @@ function PostfixController(renderer) {
             case 'Paint':
                 var innerHTML = '<select id=' + id + ' name=' + currentType + '>';
                 innerHTML += '<option vaule ="none">none</options>';
-                for (var j = 0; j < renderer.ruleController.paintConfig.options[0].values.length; j++) {
-                    innerHTML += '<option vaule ="' + renderer.ruleController.paintConfig.options[0].values[j] + '">' + renderer.ruleController.paintConfig.options[0].values[j] + '</options>';
+                for (var j = 0; j < paintConfig.options[0].values.length; j++) {
+                    innerHTML += '<option vaule ="' + paintConfig.options[0].values[j] + '">' + paintConfig.options[0].values[j] + '</options>';
                 }
                 innerHTML += '</select>';
                 var id2 = makeid();
@@ -142,8 +142,8 @@ function PostfixController(renderer) {
             case 'Asset':
                 var innerHTML = '<select id=' + id + ' name=' + currentType + '>';
                 innerHTML += '<option vaule ="none">none</options>';
-                for (var j = 0; j < renderer.ruleController.assetConfig.options[0].values.length; j++) {
-                    innerHTML += '<option vaule ="' + renderer.ruleController.assetConfig.options[0].values[j] + '">' + renderer.ruleController.assetConfig.options[0].values[j] + '</options>';
+                for (var j = 0; j < assetConfig.options[0].values.length; j++) {
+                    innerHTML += '<option vaule ="' + assetConfig.options[0].values[j] + '">' + assetConfig.options[0].values[j] + '</options>';
                 }
                 innerHTML += '</select>';
                 div.innerHTML += innerHTML;
@@ -153,8 +153,8 @@ function PostfixController(renderer) {
             case 'Orientation':
                 var innerHTML = '<select id=' + id + ' name=' + currentType + '>';
                 innerHTML += '<option vaule ="none">none</options>';
-                for (var j = 0; j < renderer.ruleController.orientationConfig.options[0].values.length; j++) {
-                    innerHTML += '<option vaule ="' + renderer.ruleController.orientationConfig.options[0].values[j] + '">' + renderer.ruleController.orientationConfig.options[0].values[j] + '</options>';
+                for (var j = 0; j < orientationConfig.options[0].values.length; j++) {
+                    innerHTML += '<option vaule ="' + orientationConfig.options[0].values[j] + '">' + orientationConfig.options[0].values[j] + '</options>';
                 }
                 innerHTML += '</select>';
                 div.innerHTML += innerHTML;
@@ -163,8 +163,8 @@ function PostfixController(renderer) {
             case 'Reflect':
                 var innerHTML = '<select id=' + id + ' name=' + currentType + '>';
                 innerHTML += '<option vaule ="none">none</options>';
-                for (var j = 0; j < renderer.ruleController.reflectionConfig.options[0].values.length; j++) {
-                    innerHTML += '<option vaule ="' + renderer.ruleController.reflectionConfig.options[0].values[j] + '">' + renderer.ruleController.reflectionConfig.options[0].values[j] + '</options>';
+                for (var j = 0; j < reflectionConfig.options[0].values.length; j++) {
+                    innerHTML += '<option vaule ="' + reflectionConfig.options[0].values[j] + '">' + reflectionConfig.options[0].values[j] + '</options>';
                 }
                 innerHTML += '</select>';
                 div.innerHTML += innerHTML;
@@ -229,7 +229,7 @@ function PostfixController(renderer) {
             for (var i = 0; i < selector.options.length; i++) {
                 if (selector.options[i] == settings.type) selector.selectedIndex = i;
             }
-            addFunction(settings.type, ids, { postfixes: [settings]}, changeFunction, fulfills);
+            addFunction(selection.label, [id], settings, changeFunction, fulfills);
         } else {
             addFunction(type, ids, settings, changeFunction, fulfills);
         }

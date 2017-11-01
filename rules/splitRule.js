@@ -289,8 +289,8 @@ generateSplitRule = function () {
         }
     };
     split.removePreview = function (shape) {
-        while (self.previewScene.children.length != 0) {
-            self.previewScene.remove(self.previewScene.children[0]);
+        while (getRuleController().previewScene.children.length != 0) {
+            getRuleController().previewScene.remove(getRuleController().previewScene.children[0]);
         }
         meshes.delete(shape.id);
         renderer.RenderSingleFrame();

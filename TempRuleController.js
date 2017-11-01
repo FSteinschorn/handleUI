@@ -28,6 +28,11 @@ Number.prototype.isOdd = function() {
     return this % 2;
 };
 
+function isFunction(functionToCheck) {
+    var getType = {};
+    return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
+}
+
 function getRuleController(newRenderer) {
     if (newRenderer) renderer = newRenderer;
     if (instance) return instance;
@@ -48,11 +53,6 @@ function TempRuleController() {
     parsedRules = [];
 
     self.previewScene = new THREE.Scene();
-
-    function isFunction(functionToCheck) {
-        var getType = {};
-        return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
-    }
 
     self.addRuleFactory = function(type, factory) {
         self.rules.set(type, factory);
@@ -498,17 +498,21 @@ function TempRuleController() {
                                 break;
 
                             case INPUTTYPE.TAG:
-                                if (current.tags[0]) {
-                                    ruleString += '"' + current.tags[0].tags[0] + '"';
+                                if (current && current.postfixes) {
+                                    if (current.postfixes[0]) {
+                                        ruleString += '"' + current.postfixes[0].tags[0] + '"';
+                                    }
                                 }
                                 break;
 
                             case INPUTTYPE.TAGS:
-                                if (current.tags[0]) {
-                                    for (var k = 0; k < Object.keys(current.tags[0].tags).length; k++) {
-                                        ruleString += '"' + current.tags[0].tags[k] + '", ';
+                                if (current && current.postfixes) {
+                                    if (current.postfixes[0]) {
+                                        for (var k = 0; k < Object.keys(current.postfixes[0].tags).length; k++) {
+                                            ruleString += '"' + current.postfixes[0].tags[k] + '", ';
+                                        }
+                                        ruleString = ruleString.slice(0, -2);
                                     }
-                                    ruleString = ruleString.slice(0, -2);
                                 }
                                 break;
 
@@ -555,11 +559,15 @@ function TempRuleController() {
                                 break;
 
                             case INPUTTYPE.TAG:
-                                // TODO: read tags via postfix controller
+                                customRule.selections[i] = {};
+                                var inputDiv = document.getElementById('inputDiv');
+                                renderer.postfixController.applyPostfixes(inputDiv, customRule.selections[i]);
                                 break;
 
                             case INPUTTYPE.TAGS:
-                                // TODO: read tags via postfix controller
+                                customRule.selections[i] = {};
+                                var inputDiv = document.getElementById('inputDiv');
+                                renderer.postfixController.applyPostfixes(inputDiv, customRule.selections[i]);
                                 break;
 
                             case INPUTTYPE.VEC3:
@@ -626,13 +634,13 @@ function TempRuleController() {
                                 break;
 
                             case INPUTTYPE.TAG:
-                                if (!empty && customRule.selections[i]) var settings = customRule.selections[i]
+                                if (!empty && customRule.selections[i]) var settings = customRule.selections[i];
                                 else var settings = null;
                                 renderer.postfixController.addPostfix(parentDiv, settings, current.label, false, customRule.onselectionChange);
                                 break;
 
                             case INPUTTYPE.TAGS:
-                                if (!empty && customRule.selections[i]) var settings = customRule.selections[i]
+                                if (!empty && customRule.selections[i]) var settings = customRule.selections[i];
                                 else var settings = null;
                                 renderer.postfixController.addPostfix(parentDiv, settings, current.label, false, customRule.onselectionChange());
                                 break;

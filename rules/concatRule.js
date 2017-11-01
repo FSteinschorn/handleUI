@@ -239,7 +239,7 @@ generateConcatRule = function () {
                 counter += 2;
             } else if (ruleBuffer[counter].RawKind == 8508 && ruleBuffer[counter].Text == "Rules") {
                 counter += 2;
-                var rule = self.rules.get(ruleBuffer[counter].Text)();
+                var rule = getRuleController().createRule(ruleBuffer[counter].Text);
                 lastPosition = rule.parseCode(ruleBuffer.slice(counter));
                 counter += lastPosition;
                 [rule, lastPosition] = renderer.postfixController.parsePostfixes(rule, ruleBuffer.slice(counter));

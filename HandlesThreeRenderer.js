@@ -274,6 +274,13 @@ function HandlesThreeRenderer(domQuery) {
                     break;
                 }
             }
+            if (!div_id) for (var index in self.ruleController.getAllTmpRules()) {
+                var rule = self.ruleController.getAllTmpRules()[index];
+                if (rule.start <= current_position && current_position <= rule.end) {
+                    div_id = "tmp_" + index + "_div";
+                    break;
+                }
+            }
             if (div_id) {
                 var new_div = document.getElementById(div_id);
                 new_div.style.backgroundColor = "#c2c8eb";
@@ -368,7 +375,7 @@ function HandlesThreeRenderer(domQuery) {
 
                 if (self.selectedMesh) {
                     var edit_button = document.createElement("button");
-                    edit_button.id = "editRule_Button_" + (i + parsedRules.lenght);
+                    edit_button.id = "editRule_Button_" + (i + parsedRules.length);
                     edit_button.classList = "w3-btn";
                     edit_button.style = "height:2em;float:right;padding:3px 16px;"
                     var edit_button_text = document.createTextNode("Edit");
@@ -378,7 +385,7 @@ function HandlesThreeRenderer(domQuery) {
                 }
 
                 var delete_button = document.createElement("button");
-                delete_button.id = "deleteRule_Button_" + (i + parsedRules.lenght);
+                delete_button.id = "deleteRule_Button_" + (i + parsedRules.length);
                 delete_button.classList = "w3-btn";
                 delete_button.style = "height:2em;float:right;padding:3px 16px;"
                 var delete_button_text = document.createTextNode("Delete");
@@ -417,7 +424,6 @@ function HandlesThreeRenderer(domQuery) {
             })
         }
 
-
         //parsed rules
         for (var i = 0; i < parsedRules.length; i++) {            
             if (self.selectedMesh) {
@@ -444,11 +450,10 @@ function HandlesThreeRenderer(domQuery) {
             } (i))
         }
 
-
         //tmp rules
-        if (tmpRules) for (var i = 0; i < tmpRules.length; i++) {
+        if (tmpRules) for (i in tmpRules) {
             if (self.selectedMesh) {
-                $("#editRule_Button_" + (i + parsedRules.lenght)).click(function (i) {
+                $("#editRule_Button_" + (i + parsedRules.length)).click(function (i) {
                     return function () {
                         self.selectedRule = tmpRules[i];
                         self.selectedRule.storeCurrentState();
@@ -458,7 +463,7 @@ function HandlesThreeRenderer(domQuery) {
                     };
                 } (i))
             }
-            $("#deleteRule_Button_" + (i + parsedRules.lenght)).click(function (i) {
+            $("#deleteRule_Button_" + (i + parsedRules.length)).click(function (i) {
                 return function () {
                     self.ruleController.removeRule(tmpRules[i], self.selectedMesh);
                     clearUI();
