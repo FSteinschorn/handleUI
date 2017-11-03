@@ -24,17 +24,21 @@ generateSizeRule = function () {
 
     sizeRule.applyRule = function (shape) {
         var matrix = new THREE.Matrix4();
+        var translation = new THREE.Matrix4();
 
         var scale = sizeRule.selections[1] / sizeRule.initialSize || 1;
         switch (this.selections[0]) {
             case 'Axis.X':
                 matrix.makeScale(scale, 1, 1);
+                translation.makeTranslation(sizeRule.initialSize * (scale - 1) / 2, 0, 0);
                 break;
             case 'Axis.Y':
                 matrix.makeScale(1, scale, 1);
+                translation.makeTranslation(0, sizeRule.initialSize * (scale - 1) / 2, 0);
                 break;
             case 'Axis.Z':
                 matrix.makeScale(1, 1, scale);
+                translation.makeTranslation(0, 0, sizeRule.initialSize * (scale - 1) / 2);
                 break;
             default:
                 break;
@@ -42,23 +46,42 @@ generateSizeRule = function () {
 
         mat = shape.appearance.transformation;
         var m = new THREE.Matrix4().fromArray(mat).transpose();
-        if (this.mode == "Mode.Local" || this.mode == "Mode.LocalMid") m.multiply(matrix);
-        if (this.mode == "Mode.Global" || this.mode == "Mode.GlobalMid") m.premultiply(matrix);
+        if (scale.mode == "Mode.Local") {
+            m.multiply(translation);
+            m.multiply(matrix);
+        } else if (scale.mode == "Mode.LocalMid") {
+            m.multiply(matrix);
+        } else if (scale.mode == "Mode.Global") {
+            m.premultiply(matrix);
+        } else if (scale.mode == "Mode.GlobalMid") {
+            m.multiply(matrix);
+        }
         shape.appearance.transformation = m.transpose().toArray();
     };
     sizeRule.unapplyRule = function (shape) {
         var matrix = new THREE.Matrix4();
+        var translation = new THREE.Matrix4();
 
         var scale = sizeRule.initialSize / sizeRule.selections[1] || 1;
         switch (this.selections[0]) {
             case 'Axis.X':
                 matrix.makeScale(scale, 1, 1);
+                translation.makeTranslation(
+                    -(sizeRule.selections[1] / 2) + (sizeRule.selections[1] * scale / 2),
+                    0, 0);
                 break;
             case 'Axis.Y':
                 matrix.makeScale(1, scale, 1);
+                translation.makeTranslation(
+                    0,
+                    -(sizeRule.selections[1] / 2) + (sizeRule.selections[1] * scale / 2),
+                    0);
                 break;
             case 'Axis.Z':
                 matrix.makeScale(1, 1, scale);
+                translation.makeTranslation(
+                    0, 0,
+                    -(sizeRule.selections[1] / 2) + (sizeRule.selections[1] * scale / 2));
                 break;
             default:
                 break;
@@ -66,8 +89,16 @@ generateSizeRule = function () {
 
         mat = shape.appearance.transformation;
         var m = new THREE.Matrix4().fromArray(mat).transpose();
-        if (this.mode == "Mode.Local" || this.mode == "Mode.LocalMid") m.multiply(matrix);
-        if (this.mode == "Mode.Global" || this.mode == "Mode.GlobalMid") m.premultiply(matrix);
+        if (scale.mode == "Mode.Local") {
+            m.multiply(matrix);
+            m.multiply(translation);
+        } else if (scale.mode == "Mode.LocalMid") {
+            m.multiply(matrix);
+        } else if (scale.mode == "Mode.Global") {
+            m.premultiply(matrix);
+        } else if (scale.mode == "Mode.GlobalMid") {
+            m.multiply(matrix);
+        }
         shape.appearance.transformation = m.transpose().toArray();
     };
     sizeRule.createHandles = function (scene, shape) {
