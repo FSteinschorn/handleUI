@@ -1,7 +1,7 @@
 var axes = ["Axis.X", "Axis.Y", "Axis.Z"];
 var degrad = ["deg", "rad"];
 rotationConfig = {
-    type: 'Rotation',
+    type: 'Rotate',
     mode: true,
     options: [
         {
@@ -42,65 +42,82 @@ generateRotationRule = function () {
         return ("Rotation by " + rotation.selections[1] + " " + rotation.selections[2] + " on " + rotation.selections[0] + ", " + rotation.mode);
     };
     rotation.applyRule = function (shape) {
-        var amount = rotation.selections[1];
-        if (rotation.selections[2] == 'deg') {
-            amount = Math.PI * amount / 180;
-        }
-
-        switch (rotation.selections[0]) {
-            case 'Axis.X':
-                matrix = new THREE.Matrix4().makeRotationX(amount);
-                break;
-            case 'Axis.Y':
-                matrix = new THREE.Matrix4().makeRotationY(amount);
-                break;
-            case 'Axis.Z':
-                matrix = new THREE.Matrix4().makeRotationZ(amount);
-                break;
-            default:
-                break;
-        }
-
-        mat = shape.appearance.transformation;
-        var m = new THREE.Matrix4().fromArray(mat);//mat[0], mat[1], mat[2], mat[3], mat[4], mat[5], mat[6], mat[7], mat[8], mat[9], mat[10], mat[11], mat[12], mat[13], mat[14], mat[15]);
-        if (this.mode == "Mode.Local" || this.mode == "Mode.LocalMid") m.premultiply(matrix);
-        if (this.mode == "Mode.Global" || this.mode == "Mode.GlobalMid") m.multiply(matrix);
-        shape.appearance.transformation = m.toArray();
-    };
-    rotation.unapplyRule = function (shape) {
         var amount = -rotation.selections[1];
         if (rotation.selections[2] == 'deg') {
             amount = Math.PI * amount / 180;
         }
 
+        var mat = shape.appearance.transformation;
+        rotation.lastTransform = mat;
+        var m = new THREE.Matrix4().fromArray(mat);
+        m.transpose();
+        var translation = new THREE.Matrix4().copyPosition(m).transpose();
+        m.transpose();
+
+        var matrix = new THREE.Matrix4();
         switch (rotation.selections[0]) {
             case 'Axis.X':
-                matrix = new THREE.Matrix4().makeRotationX(amount);
+                matrix.makeRotationX(amount);
                 break;
             case 'Axis.Y':
-                matrix = new THREE.Matrix4().makeRotationY(amount);
+                matrix.makeRotationY(amount);
                 break;
             case 'Axis.Z':
-                matrix = new THREE.Matrix4().makeRotationZ(amount);
+                matrix.makeRotationZ(amount);
                 break;
             default:
                 break;
         }
 
-        mat = shape.appearance.transformation;
-        var m = new THREE.Matrix4().fromArray(mat);//mat[0], mat[1], mat[2], mat[3], mat[4], mat[5], mat[6], mat[7], mat[8], mat[9], mat[10], mat[11], mat[12], mat[13], mat[14], mat[15]);
-        if (this.mode == "Mode.Local" || this.mode == "Mode.LocalMid") m.premultiply(matrix);
-        if (this.mode == "Mode.Global" || this.mode == "Mode.GlobalMid") m.multiply(matrix);
+        if (this.mode == "Mode.Local") {
+            var sizeX = new THREE.Vector3(mat[0], mat[1], mat[2]).length();
+            var sizeY = new THREE.Vector3(mat[4], mat[5], mat[6]).length();
+            var sizeZ = new THREE.Vector3(mat[8], mat[9], mat[10]).length();
+            var pivot_offset = new THREE.Matrix4();
+            switch (rotation.selections[0]) {
+                case 'Axis.X':
+                    pivot_offset.makeTranslation(0, sizeY / 2, sizeZ / 2);
+                    break;
+                case 'Axis.Y':
+                    pivot_offset.makeTranslation(sizeX / 2, 0, sizeZ / 2);
+                    break;
+                case 'Axis.Z':
+                    pivot_offset.makeTranslation(sizeX / 2, sizeY / 2, 0);
+                    break;
+                default:
+                    break;
+            }
+            pivot_offset.transpose();
+
+            m.multiply(pivot_offset);
+            m.multiply(translation.getInverse(translation));
+            m.multiply(matrix);
+            m.multiply(translation.getInverse(translation));
+            m.multiply(pivot_offset.getInverse(pivot_offset));
+        }
+        if (this.mode == "Mode.LocalMid" || this.mode == "Mode.GlobalMid") {
+            m.multiply(translation.getInverse(translation));
+            m.multiply(matrix);
+            m.multiply(translation.getInverse(translation));
+        }
+        if (this.mode == "Mode.Global") {
+            m.multiply(matrix);
+        }
         shape.appearance.transformation = m.toArray();
+    };
+    rotation.unapplyRule = function (shape) {
+        shape.appearance.transformation = rotation.lastTransform;
     };
     rotation.createHandles = function (scene, shape) {
         this.draggingHelpers.scene = scene;
 
+        if (!this.initialTransform) this.initialTransform = shape.shape.appearance.transformation;
+
         // switch circle color
         var colors = [0xAA0000, 0x00AA00, 0x0000AA];
         var toSwitch = null;
-        if (rotation.draggingHelpers.activeHandle) toSwitch = rotation.draggingHelpers.activeHandle;
-        else if (rotation.draggingHelpers.overHandle) toSwitch = rotation.draggingHelpers.overHandle;
+        if (this.draggingHelpers.activeHandle) toSwitch = this.draggingHelpers.activeHandle;
+        else if (this.draggingHelpers.overHandle) toSwitch = this.draggingHelpers.overHandle;
         switch (toSwitch) {
             case null:
                 break;
@@ -119,36 +136,117 @@ generateRotationRule = function () {
 
         // Turn circle depending on axis
         var material = null;
-        switch (rotation.selections[0]) {
+        var rotationMat = new THREE.Matrix4();
+        switch (this.selections[0]) {
             case 'Axis.X':
                 material = new THREE.LineBasicMaterial({color: colors[0]});
-                var rotationMat = new THREE.Matrix4().makeRotationY(Math.PI / 2);
+                rotationMat.makeRotationY(Math.PI / 2);
                 break;
             case 'Axis.Y':
                 material = new THREE.LineBasicMaterial({color: colors[1]});
-                var rotationMat = new THREE.Matrix4().makeRotationX(Math.PI / 2);
+                rotationMat.makeRotationX(Math.PI / 2);
                 break;
             case 'Axis.Z':
                 material = new THREE.LineBasicMaterial({color: colors[2]});
-                var rotationMat = new THREE.Matrix4().makeRotationZ(0);
+                rotationMat.makeRotationZ(0);
                 break;
             default:
                 break;
         }
 
         // Generate circle geometry
-        var radius = 0.8,
-            segments = 64,
-            geometry = new THREE.CircleGeometry(radius, segments);
+        var radius = 0.8;
+        var segments = 64;
+        var geometry = new THREE.CircleGeometry(radius, segments);
 
         // Remove center vertex
         geometry.vertices.shift();
 
         // Move circle to correct position
-        mat = shape.shape.appearance.transformation;
-        var m = new THREE.Matrix4().set(mat[0], mat[1], mat[2], mat[3], mat[4], mat[5], mat[6], mat[7], mat[8], mat[9], mat[10], mat[11], mat[12], mat[13], mat[14], mat[15]);
-        geometry.applyMatrix(rotationMat);
-        geometry.applyMatrix(m);
+        mat = this.initialTransform;
+        var m = new THREE.Matrix4().fromArray(mat).transpose();
+        switch(this.mode) {
+            case 'Mode.Local':
+                var sizeX = new THREE.Vector3(mat[0], mat[1], mat[2]).length();
+                var sizeY = new THREE.Vector3(mat[4], mat[5], mat[6]).length();
+                var sizeZ = new THREE.Vector3(mat[8], mat[9], mat[10]).length();
+                var pivot_offset = new THREE.Matrix4();
+                switch (this.selections[0]) {
+                    case 'Axis.X':
+                        pivot_offset.makeTranslation(0, -sizeY / 2, -sizeZ / 2);
+                        break;
+                    case 'Axis.Y':
+                        pivot_offset.makeTranslation(-sizeX / 2, 0, -sizeZ / 2);
+                        break;
+                    case 'Axis.Z':
+                        pivot_offset.makeTranslation(-sizeX / 2, -sizeY / 2, 0);
+                        break;
+                    default:
+                        break;
+                }
+
+                var maxScale = m.getMaxScaleOnAxis();
+                var scale = new THREE.Matrix4().makeScale(maxScale, maxScale, maxScale);
+
+                var translation = new THREE.Matrix4().copyPosition(m);
+
+                geometry.applyMatrix(rotationMat);
+                geometry.applyMatrix(scale);
+                geometry.applyMatrix(translation);
+                geometry.applyMatrix(pivot_offset);
+                break;
+
+            case 'Mode.LocalMid':
+            case 'Mode.GlobalMid':
+                var maxScale = m.getMaxScaleOnAxis();
+                var scale = new THREE.Matrix4().makeScale(maxScale, maxScale, maxScale);
+
+                var translation = new THREE.Matrix4().copyPosition(m);
+
+                geometry.applyMatrix(rotationMat);
+                geometry.applyMatrix(scale);
+                geometry.applyMatrix(translation);
+                break;
+
+            case 'Mode.Global':
+
+                var translation = new THREE.Matrix4().copyPosition(m);
+
+                var position = new THREE.Vector4();
+                position.applyMatrix4(translation);
+
+                switch(this.selections[0]) {
+                    case 'Axis.X':
+                        translation.elements[13] = 0;
+                        translation.elements[14] = 0;
+                        position.x = 0;
+                        break;
+                    case 'Axis.Y':
+                        translation.elements[12] = 0;
+                        translation.elements[14] = 0;
+                        position.y = 0;
+                        break;
+                    case 'Axis.Z':
+                        translation.elements[12] = 0;
+                        translation.elements[13] = 0;
+                        position.z = 0;
+                        break;
+                    default:
+                        break;
+                }
+
+                var newRadius = position.length();
+                var scale = new THREE.Matrix4().makeScale(newRadius, newRadius, newRadius);
+
+                geometry.applyMatrix(rotationMat);
+                geometry.applyMatrix(scale);
+                geometry.applyMatrix(translation);
+
+                break;
+
+            default:
+                break;
+        }
 
         // Generate circle
         var circle = new THREE.Line(geometry, material);
@@ -230,7 +328,7 @@ generateRotationRule = function () {
         var standard2Dir = standard2.clone().sub(mid).normalize();
         var standardNormal = standard1Dir.clone().cross(standard2Dir);
         var standardAngle = standardNormal.angleTo(rotation.draggingHelpers.cam.position.clone().sub(mid));
-        var direction = 1;
+        var direction = -1;
         if (viewingAngle < (0.5 * Math.PI)) direction *= -1;
         if (standardAngle > (0.5 * Math.PI)) direction *= -1;
         if (rotation.selections[0] == "Axis.Y") direction *= -1;
