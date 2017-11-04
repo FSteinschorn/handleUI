@@ -832,7 +832,7 @@ function TempRuleController() {
                                 break;
 
                             case INPUTTYPE.DROPDOWN:
-                                if (current.RawKind == 8508) {
+                                if (current.RawKind == 8508 && current.Text != "Rules" && ruleBuffer[counter - 1].Text != '.') {
                                     if (ruleBuffer[counter + 1].Text == '.' && ruleBuffer[counter + 2].RawKind == 8508) {
                                         customRule.selections.push(current.Text + '.' + ruleBuffer[counter + 2].Text);
                                         counter += 3;

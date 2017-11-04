@@ -350,6 +350,56 @@ generateRotationRule = function () {
         rotation.draggingHelpers.activeHandle = null;
         if (rotation.draggingHelpers.activeHandle != oldHandle) inputChanged();
     };
+    rotation.parseCode = function(ruleBuffer) {
+        this.selections = [];
+        var counter = 0;
+        var minus = false;
+        var current = null;
+        var next = 'axis';
+        var done = false;
+        while(counter < ruleBuffer.length && !done) {
+            current = ruleBuffer[counter];
+            switch (next) {
+                case 'axis':
+                    if (current.RawKind == 8508
+                        && current.Text == "Axis"
+                        && ruleBuffer[counter + 1].Text == '.'
+                        && ruleBuffer[counter + 2].RawKind == 8508) {
+                        this.selections.push(current.Text + '.' + ruleBuffer[counter + 2].Text);
+                        counter += 3;
+                        next = 'degrad';
+                    } else {
+                        counter += 1;
+                    }
+                    break;
+                case 'degrad':
+                    if (current.RawKind == 8508) {
+                        this.selections.push("");
+                        this.selections.push(current.Text.toLowerCase());
+                        counter += 1;
+                        next = 'amount';
+                    } else {
+                        counter += 1;
+                    }
+                    break;
+                case 'amount':
+                    if (current.Text == '-' && current.RawKind == 8202) {
+                        minus = true;
+                    } else if (current.RawKind == 8509) {
+                        this.selections[1] = parseFloat(current.Text);
+                        if (minus) this.selections[1] *= -1;
+                        done = true;
+                    }
+                    counter += 1;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        counter += parseMode(ruleBuffer.slice(counter), this);
+        return counter;
+    };
 
     return rotation;
 };
