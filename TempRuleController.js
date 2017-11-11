@@ -28,6 +28,21 @@ Number.prototype.isOdd = function() {
     return this % 2;
 };
 
+function lookupColor(color) {
+    if (!color) color = "blue";
+    switch (color) {
+        case "green":
+            color = 0x44ff3b;
+            break;
+        case "blue":
+            color = 0x0099ff;
+            break;
+        default:
+            break;
+    }
+    return color;
+}
+
 function isFunction(functionToCheck) {
     var getType = {};
     return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
@@ -77,6 +92,7 @@ function TempRuleController() {
         tmpRules.push(rule);
 
         rule.applyRule(shape);
+        rule.afterApply(shape);
         if (meshes[shape.id])
             rule.removePreview(shape);
         rule.addPreview(shape);
@@ -96,6 +112,8 @@ function TempRuleController() {
     };
 
     self.removeRule = function (rule, shape) {
+        if (shape) shape = shape.shape;
+        else if (rule.wasAppliedTo) shape = rule.wasAppliedTo;
         var editor = ace.edit("code_text_ace");
         var fullString = editor.getValue();
         fullString = fullString.substr(0, rule.start) + fullString.substr(rule.end);
@@ -120,8 +138,9 @@ function TempRuleController() {
         rule.deleted = true;
 
         if (shape) {
-            rule.unapplyRule(shape.shape);
-            rule.removePreview(shape.shape);
+            rule.unapplyRule(shape);
+            rule.afterUnapply(shape);
+            if (shape.appliedRules == 0) self.removePreview(shape);
         }
     };
 
@@ -132,9 +151,11 @@ function TempRuleController() {
         // update rule
         rule.removePreview(shape);
         rule.unapplyRule(shape);
+        rule.afterUnapply(shape);
         rule.updateRule();
         rule.applyRule(shape);
-        rule.addPreview(shape);
+        rule.afterApply(shape);
+        rule.addPreview(shape, "green");
 
         var editor = ace.edit("code_text_ace");
         var newString = rule.generateRuleString();
@@ -206,7 +227,8 @@ function TempRuleController() {
         return tmpRules[index];
     };
 
-    addPreview = function (shape) {
+    self.addPreview = function (shape, color) {
+        color = lookupColor(color);
         var geo;
         var t = shape.appearance.transformation;
         var matrix = new THREE.Matrix4().set(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8], t[9], t[10], t[11], t[12], t[13], t[14], t[15]);
@@ -238,7 +260,7 @@ function TempRuleController() {
             }
         }
         var wireFrameMaterial = new THREE.MeshBasicMaterial({
-            color: 0x0099ff,
+            color: color,
             wireframe: true
         });
         var mesh = new THREE.Mesh(geo, wireFrameMaterial);
@@ -253,9 +275,15 @@ function TempRuleController() {
 
     };
 
-    removePreview = function (shape) {
+    self.removePreview = function (shape) {
         self.previewScene.remove(meshes[shape.id]);
         meshes.delete(shape.id);
+    };
+
+    self.changePreviewColor = function (shape, color) {
+        color = lookupColor(color);
+        self.removePreview(shape);
+        self.addPreview(shape, color);
     };
 
     //call with node.shape.appearance.transformation
@@ -359,7 +387,7 @@ function TempRuleController() {
              */
             abstractRule.generateRuleString = function () {
                 var ruleString = "string generation not implemented yet";
-                abstractRule.lastRuleString = ruleString;
+                this.lastRuleString = ruleString;
                 return ruleString;
             };
             abstractRule.getLastRuleString = function () {
@@ -370,7 +398,15 @@ function TempRuleController() {
             };
             abstractRule.applyRule = function (shape) {
             };
+            abstractRule.afterApply = function (shape) {
+                if (!shape.appliedRules) shape.appliedRules = 1;
+                else shape.appliedRules += 1;
+                this.wasAppliedTo = shape;
+            };
             abstractRule.unapplyRule = function (shape) {
+            };
+            abstractRule.afterUnapply = function (shape) {
+                shape.appliedRules -= 1;
             };
             abstractRule.appendInputFields = function (parentDiv) {
             };
@@ -394,8 +430,8 @@ function TempRuleController() {
             };
             abstractRule.onHandleReleased = function () {
             };
-            abstractRule.addPreview = addPreview;
-            abstractRule.removePreview = removePreview;
+            abstractRule.addPreview = self.addPreview;
+            abstractRule.removePreview = self.removePreview;
             abstractRule.parseCode = function (ruleBuffer) {
                 return 0;
             };

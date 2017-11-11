@@ -133,7 +133,7 @@ function HandlesThreeRenderer(domQuery) {
                 seek = false;
         }
     };
-    self.wireframeClearCallback = function () {}
+    self.wireframeClearCallback = function () {};
     self.lineHitCallback = function (intersects) {
         overHandle = true;
         handleId = intersects[0].object.id;
@@ -186,27 +186,29 @@ function HandlesThreeRenderer(domQuery) {
             self.selectedRule.onHandlePressed(handleId, self.mouse, self.intersection, self.handlesScene, self.camera, self.selectedMesh.shape);
             dragging = true;
             self.controls.enabled = false;
-        }
-        else if (self.picked) {
+        } else if (self.picked) {
             var node = self.resolveNode(self.picked);
-            if (node == self.selectedMesh) return;
+            if (self.selectedMesh == node) return;
 
             if (self.selectedMesh) {
                 // remove old selection and ui
                 self.selectedMesh.shape.interaction.selected(false);
+                if (self.selectedMesh.shape.appliedRules == 0) self.ruleController.removePreview(self.selectedMesh.shape);
+                else self.ruleController.changePreviewColor(self.selectedMesh.shape, "blue");
+                self.selectedMesh = null;
                 for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
                     self.handlesScene.remove(self.handlesScene.children[i]);
-                clearUI();
-                self.initButtonsUI();
             }
 
             // create new selection and ui
             node.shape.interaction.selected(true);
             self.selectedMesh = node;
+            if (!self.selectedMesh.shape.appliedRules) self.selectedMesh.shape.appliedRules = 0;
+            if (self.selectedMesh.shape.appliedRules == 0) self.ruleController.addPreview(self.selectedMesh.shape, "green");
+            else self.ruleController.changePreviewColor(self.selectedMesh.shape, "green");
 
-//            self.initButtonsUI();
-
-            self.Update();
+            clearUI();
+            self.initButtonsUI();
             self.RenderSingleFrame();
         }
     };
@@ -243,6 +245,8 @@ function HandlesThreeRenderer(domQuery) {
             case 27:    // ESC
                 if (self.selectedMesh) {
                     self.selectedMesh.shape.interaction.selected(false);
+                    if (self.selectedMesh.shape.appliedRules == 0) self.ruleController.removePreview(self.selectedMesh.shape);
+                    else self.ruleController.changePreviewColor(self.selectedMesh.shape, "blue");
                     self.selectedMesh = null;
                     for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
                         self.handlesScene.remove(self.handlesScene.children[i]);
@@ -269,6 +273,7 @@ function HandlesThreeRenderer(domQuery) {
             var div_id;
             for (var index in self.ruleController.getParsedRules()) {
                 var rule = self.ruleController.getParsedRules()[index];
+                if (rule.deleted) return;
                 if (rule.start <= current_position && current_position <= rule.end) {
                     div_id = "parsed_" + index + "_div";
                     break;
@@ -276,6 +281,7 @@ function HandlesThreeRenderer(domQuery) {
             }
             if (!div_id) for (var index in self.ruleController.getAllTmpRules()) {
                 var rule = self.ruleController.getAllTmpRules()[index];
+                if (rule.deleted) return;
                 if (rule.start <= current_position && current_position <= rule.end) {
                     div_id = "tmp_" + index + "_div";
                     break;
@@ -296,6 +302,7 @@ function HandlesThreeRenderer(domQuery) {
         };
         var updateRuleHighlightFromRule = function(rule, i) {
             return function() {
+                if (rule.deleted) return;
                 var editor = ace.edit("code_text_ace");
                 var selection = editor.getSelection();
                 var start = charToRowCol(rule.start);
@@ -434,6 +441,7 @@ function HandlesThreeRenderer(domQuery) {
                         var editor = ace.edit("code_text_ace");
                         uneditedCode = editor.getValue();
                         self.ruleIndex = i;
+                        self.selectedMesh.shape.appliedRules += 1;
                         clearUI();
                         self.initRuleUI();
                     };
@@ -441,7 +449,7 @@ function HandlesThreeRenderer(domQuery) {
             }
             $("#deleteRule_Button_" + i).click(function (i) {
                 return function () {
-                    self.ruleController.removeRule(parsedRules[i], self.selectedMesh);
+                    parsedRules[i].deleted = true;
                     clearUI();
                     self.initButtonsUI();
                     self.Update();
@@ -458,6 +466,7 @@ function HandlesThreeRenderer(domQuery) {
                         self.selectedRule = tmpRules[i];
                         self.selectedRule.storeCurrentState();
                         uneditedRule = self.selectedRule;
+                        self.selectedMesh.shape.appliedRules += 1;
                         clearUI();
                         self.initRuleUI();
                     };
@@ -465,7 +474,8 @@ function HandlesThreeRenderer(domQuery) {
             }
             $("#deleteRule_Button_" + (i + parsedRules.length)).click(function (i) {
                 return function () {
-                    self.ruleController.removeRule(tmpRules[i], self.selectedMesh);
+                    self.ruleController.removeRule(tmpRules[i]);
+                    self.ruleController.addPreview(self.selectedMesh.shape, "green");
                     clearUI();
                     self.initButtonsUI();
                     self.Update();
@@ -487,7 +497,7 @@ function HandlesThreeRenderer(domQuery) {
         self.ruleController.rules.forEach(function(value, key, map){
             innerHTML += '<option value="' + key + '">' + key + '</option>';        
         });
-        innerHTML += '</select>'
+        innerHTML += '</select>';
         selectionDiv.innerHTML = innerHTML;
 
         //create input container
@@ -580,8 +590,10 @@ function HandlesThreeRenderer(domQuery) {
             if (creatingNewRule) {
                 self.ruleController.removeRule(self.selectedRule, self.selectedMesh);
             } else {
-                if (currentRuleWasParsed) {
-                    self.ruleController.removeRule(self.selectedRule);
+                if (self.selectedRule.wasParsed) {
+                    self.selectedRule.removePreview(self.selectedMesh.shape);
+                    self.selectedRule.unapplyRule(self.selectedMesh.shape);
+                    self.selectedRule.afterUnapply(self.selectedMesh.shape);
                     var editor = ace.edit("code_text_ace");
                     editor.setValue(uneditedCode);
                 } else {
@@ -590,6 +602,7 @@ function HandlesThreeRenderer(domQuery) {
                 }
                 
             }
+            self.ruleController.addPreview(self.selectedMesh.shape, "green");
             self.selectedRule = null;
             clearUI();
             self.initButtonsUI();
