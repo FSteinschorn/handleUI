@@ -28,34 +28,34 @@ generateRotationRule = function () {
 
     rotation.generateRuleString = function () {
         var amount = null;
-        if (rotation.selections[2] == "deg") amount = "Deg(" + rotation.selections[1] + ")";
-        else if (rotation.selections[2] == "rad") amount = "Rad(" + rotation.selections[1] + ")";
-        var ruleString = "new Rules.Rotate(" + rotation.selections[0] + ", " + amount + ", " + rotation.mode + ")";
+        if (this.selections[2] == "deg") amount = "Deg(" + this.selections[1] + ")";
+        else if (this.selections[2] == "rad") amount = "Rad(" + this.selections[1] + ")";
+        var ruleString = "new Rules.Rotate(" + this.selections[0] + ", " + amount + ", " + this.mode + ")";
         ruleString = addTags(rotation, ruleString);
         ruleString += ";";
 
-        rotation.lastRuleString = ruleString;
+        this.lastRuleString = ruleString;
 
         return ruleString;
     };
     rotation.generateShortString = function () {
-        return ("Rotation by " + rotation.selections[1] + " " + rotation.selections[2] + " on " + rotation.selections[0] + ", " + rotation.mode);
+        return ("Rotation by " + this.selections[1] + " " + this.selections[2] + " on " + this.selections[0] + ", " + this.mode);
     };
     rotation.applyRule = function (shape) {
-        var amount = -rotation.selections[1];
-        if (rotation.selections[2] == 'deg') {
+        var amount = -this.selections[1];
+        if (this.selections[2] == 'deg') {
             amount = Math.PI * amount / 180;
         }
 
         var mat = shape.appearance.transformation;
-        rotation.lastTransform = mat;
+        this.lastTransform = mat;
         var m = new THREE.Matrix4().fromArray(mat);
         m.transpose();
         var translation = new THREE.Matrix4().copyPosition(m).transpose();
         m.transpose();
 
         var matrix = new THREE.Matrix4();
-        switch (rotation.selections[0]) {
+        switch (this.selections[0]) {
             case 'Axis.X':
                 matrix.makeRotationX(amount);
                 break;
@@ -74,7 +74,7 @@ generateRotationRule = function () {
             var sizeY = new THREE.Vector3(mat[4], mat[5], mat[6]).length();
             var sizeZ = new THREE.Vector3(mat[8], mat[9], mat[10]).length();
             var pivot_offset = new THREE.Matrix4();
-            switch (rotation.selections[0]) {
+            switch (this.selections[0]) {
                 case 'Axis.X':
                     pivot_offset.makeTranslation(0, sizeY / 2, sizeZ / 2);
                     break;
@@ -106,7 +106,7 @@ generateRotationRule = function () {
         shape.appearance.transformation = m.toArray();
     };
     rotation.unapplyRule = function (shape) {
-        shape.appearance.transformation = rotation.lastTransform;
+        shape.appearance.transformation = this.lastTransform;
     };
     rotation.createHandles = function (scene, shape) {
         this.draggingHelpers.scene = scene;
@@ -251,11 +251,11 @@ generateRotationRule = function () {
         // Generate circle
         var circle = new THREE.Line(geometry, material);
         scene.add(circle);
-        rotation.draggingHelpers.id = circle.id;
+        this.draggingHelpers.id = circle.id;
     };
     rotation.onMouseOverHandle = function (id) {
-        if (rotation.draggingHelpers.overHandle) var oldHandle = rotation.draggingHelpers.overHandle;
-        switch (rotation.selections[0]) {
+        if (this.draggingHelpers.overHandle) var oldHandle = this.draggingHelpers.overHandle;
+        switch (this.selections[0]) {
             case 'Axis.X':
                 this.draggingHelpers.overHandle = 'x';
                 break;
@@ -268,30 +268,30 @@ generateRotationRule = function () {
             default:
                 break;
         }
-        if (oldHandle != rotation.draggingHelpers.overHandle) inputChanged();
+        if (oldHandle != this.draggingHelpers.overHandle) inputChanged();
     };
     rotation.onMouseNotOverHandle = function () {
-        oldHandle = rotation.draggingHelpers.overHandle;
-        rotation.draggingHelpers.overHandle = null;
-        if (rotation.draggingHelpers.overHandle != oldHandle) inputChanged();
+        oldHandle = this.draggingHelpers.overHandle;
+        this.draggingHelpers.overHandle = null;
+        if (this.draggingHelpers.overHandle != oldHandle) inputChanged();
     };
     rotation.onHandlePressed = function (id, mouse, intersection, scene, camera) {
-        rotation.draggingHelpers.cam = camera;
-        rotation.draggingHelpers.activeHandle = id;
-        rotation.draggingHelpers.intersection = intersection;
-        rotation.draggingHelpers.scene = scene;
-        rotation.draggingHelpers.startValue = rotation.selections[1];
+        this.draggingHelpers.cam = camera;
+        this.draggingHelpers.activeHandle = id;
+        this.draggingHelpers.intersection = intersection;
+        this.draggingHelpers.scene = scene;
+        this.draggingHelpers.startValue = this.selections[1];
 
-        var segment = rotation.draggingHelpers.scene.getObjectById(id);
-        rotation.draggingHelpers.vertices = segment.geometry.vertices
+        var segment = this.draggingHelpers.scene.getObjectById(id);
+        this.draggingHelpers.vertices = segment.geometry.vertices
     };
     rotation.onHandleDragged = function (mouse) {
-        var vertices = rotation.draggingHelpers.vertices;
+        var vertices = this.draggingHelpers.vertices;
 
         // project mouse into scene
         var mousePoint = new THREE.Vector3(mouse.x, mouse.y, 1);
-        mousePoint.unproject(rotation.draggingHelpers.cam);
-        var mouseRay = new THREE.Ray(rotation.draggingHelpers.cam.position, mousePoint.sub(rotation.draggingHelpers.cam.position).normalize());
+        mousePoint.unproject(this.draggingHelpers.cam);
+        var mouseRay = new THREE.Ray(this.draggingHelpers.cam.position, mousePoint.sub(this.draggingHelpers.cam.position).normalize());
 
         // calc target point
         var distance = null;
@@ -318,37 +318,37 @@ generateRotationRule = function () {
         var mid = oppositePoint.clone().sub(nearestPoint).multiplyScalar(0.5).add(nearestPoint);
 
         // calc rotation direction
-        var startDir = rotation.draggingHelpers.intersection.clone().sub(mid).normalize();
+        var startDir = this.draggingHelpers.intersection.clone().sub(mid).normalize();
         var endDir = nearestPoint.clone().sub(mid).normalize();
         var normal = startDir.clone().cross(endDir);
-        var viewingAngle = normal.angleTo(rotation.draggingHelpers.cam.position.clone().sub(mid));
+        var viewingAngle = normal.angleTo(this.draggingHelpers.cam.position.clone().sub(mid));
         var standard1 = vertices[0];
         var standard2 = vertices[1];
         var standard1Dir = standard1.clone().sub(mid).normalize();
         var standard2Dir = standard2.clone().sub(mid).normalize();
         var standardNormal = standard1Dir.clone().cross(standard2Dir);
-        var standardAngle = standardNormal.angleTo(rotation.draggingHelpers.cam.position.clone().sub(mid));
+        var standardAngle = standardNormal.angleTo(this.draggingHelpers.cam.position.clone().sub(mid));
         var direction = -1;
         if (viewingAngle < (0.5 * Math.PI)) direction *= -1;
         if (standardAngle > (0.5 * Math.PI)) direction *= -1;
-        if (rotation.selections[0] == "Axis.Y") direction *= -1;
+        if (this.selections[0] == "Axis.Y") direction *= -1;
 
         // calc rotation angle
         var angle = startDir.angleTo(endDir);
 
         // update input fields
-        if (rotation.selections[2] == "rad") {
-            document.getElementById("input_field1").value = '' + (rotation.draggingHelpers.startValue + direction * angle).round();
+        if (this.selections[2] == "rad") {
+            document.getElementById("input_field1").value = '' + (this.draggingHelpers.startValue + direction * angle).round();
         } else {
-            document.getElementById("input_field1").value = '' + (rotation.draggingHelpers.startValue + direction * ((angle * 180) / Math.PI)).round();
+            document.getElementById("input_field1").value = '' + (this.draggingHelpers.startValue + direction * ((angle * 180) / Math.PI)).round();
         }
 
         inputChanged();
     };
     rotation.onHandleReleased = function () {
-        oldHandle = rotation.draggingHelpers.activeHandle;
-        rotation.draggingHelpers.activeHandle = null;
-        if (rotation.draggingHelpers.activeHandle != oldHandle) inputChanged();
+        oldHandle = this.draggingHelpers.activeHandle;
+        this.draggingHelpers.activeHandle = null;
+        if (this.draggingHelpers.activeHandle != oldHandle) inputChanged();
     };
     rotation.parseCode = function(ruleBuffer) {
         this.selections = [];

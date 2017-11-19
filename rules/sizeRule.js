@@ -26,19 +26,19 @@ generateSizeRule = function () {
         var matrix = new THREE.Matrix4();
         var translation = new THREE.Matrix4();
 
-        var scale = sizeRule.selections[1] / sizeRule.initialSize || 1;
+        var scale = this.selections[1] / this.initialSize || 1;
         switch (this.selections[0]) {
             case 'Axis.X':
                 matrix.makeScale(scale, 1, 1);
-                translation.makeTranslation(sizeRule.initialSize * (scale - 1) / 2, 0, 0);
+                translation.makeTranslation(this.initialSize * (scale - 1) / 2, 0, 0);
                 break;
             case 'Axis.Y':
                 matrix.makeScale(1, scale, 1);
-                translation.makeTranslation(0, sizeRule.initialSize * (scale - 1) / 2, 0);
+                translation.makeTranslation(0, this.initialSize * (scale - 1) / 2, 0);
                 break;
             case 'Axis.Z':
                 matrix.makeScale(1, 1, scale);
-                translation.makeTranslation(0, 0, sizeRule.initialSize * (scale - 1) / 2);
+                translation.makeTranslation(0, 0, this.initialSize * (scale - 1) / 2);
                 break;
             default:
                 break;
@@ -62,26 +62,26 @@ generateSizeRule = function () {
         var matrix = new THREE.Matrix4();
         var translation = new THREE.Matrix4();
 
-        var scale = sizeRule.initialSize / sizeRule.selections[1] || 1;
+        var scale = this.initialSize / this.selections[1] || 1;
         switch (this.selections[0]) {
             case 'Axis.X':
                 matrix.makeScale(scale, 1, 1);
                 translation.makeTranslation(
-                    -(sizeRule.selections[1] / 2) + (sizeRule.selections[1] * scale / 2),
+                    -(this.selections[1] / 2) + (this.selections[1] * scale / 2),
                     0, 0);
                 break;
             case 'Axis.Y':
                 matrix.makeScale(1, scale, 1);
                 translation.makeTranslation(
                     0,
-                    -(sizeRule.selections[1] / 2) + (sizeRule.selections[1] * scale / 2),
+                    -(this.selections[1] / 2) + (this.selections[1] * scale / 2),
                     0);
                 break;
             case 'Axis.Z':
                 matrix.makeScale(1, 1, scale);
                 translation.makeTranslation(
                     0, 0,
-                    -(sizeRule.selections[1] / 2) + (sizeRule.selections[1] * scale / 2));
+                    -(this.selections[1] / 2) + (this.selections[1] * scale / 2));
                 break;
             default:
                 break;
@@ -123,11 +123,11 @@ generateSizeRule = function () {
 
         if (!this.initialSize) {
             if (this.selections[0] == 'Axis.X') {
-                this.initialSize = sizeRule.initialSizeX;
+                this.initialSize = this.initialSizeX;
             } else if (this.selections[0] == 'Axis.Y') {
-                this.initialSize = sizeRule.initialSizeY;
+                this.initialSize = this.initialSizeY;
             } else {
-                this.initialSize = sizeRule.initialSizeZ;
+                this.initialSize = this.initialSizeZ;
             }
         }
 
@@ -197,17 +197,17 @@ generateSizeRule = function () {
         this.draggingHelpers.idOffset = this.draggingHelpers.arrowIds[0] - oldStartingId;
 
         var input = document.getElementById('input_field1');
-        if (!input.value) input.value = sizeRule.selections[1].round();
+        if (!input.value) input.value = this.selections[1].round();
     };
     sizeRule.onMouseOverHandle = function (id) {
-        oldHandle = sizeRule.draggingHelpers.overHandle;
-        sizeRule.draggingHelpers.overHandle = true;
-        if (sizeRule.draggingHelpers.overHandle != oldHandle) inputChanged();
+        oldHandle = this.draggingHelpers.overHandle;
+        this.draggingHelpers.overHandle = true;
+        if (this.draggingHelpers.overHandle != oldHandle) inputChanged();
     };
     sizeRule.onMouseNotOverHandle = function () {
-        oldHandle = sizeRule.draggingHelpers.overHandle;
-        sizeRule.draggingHelpers.overHandle = null;
-        if (sizeRule.draggingHelpers.overHandle != oldHandle) inputChanged();
+        oldHandle = this.draggingHelpers.overHandle;
+        this.draggingHelpers.overHandle = null;
+        if (this.draggingHelpers.overHandle != oldHandle) inputChanged();
     };
     sizeRule.onHandlePressed = function (id, mouse, intersection, scene, camera) {
         var arrowPos = scene.getObjectById(id).parent.position;
@@ -215,56 +215,56 @@ generateSizeRule = function () {
         var initEnd = intersection.clone();
         var start = initStart.clone().add(initEnd.clone().sub(initStart).multiplyScalar(1000));
         var end = initEnd.clone().add(initStart.clone().sub(initEnd).multiplyScalar(1000));
-        sizeRule.draggingHelpers.segment = {
+        this.draggingHelpers.segment = {
             start: start,
             end: end
         }
 
-        sizeRule.draggingHelpers.startValue = parseFloat(document.getElementById("input_field1").value);
-        sizeRule.draggingHelpers.cam = camera;
-        sizeRule.draggingHelpers.intersection = intersection;
-        sizeRule.draggingHelpers.arrowPos = arrowPos;
+        this.draggingHelpers.startValue = parseFloat(document.getElementById("input_field1").value);
+        this.draggingHelpers.cam = camera;
+        this.draggingHelpers.intersection = intersection;
+        this.draggingHelpers.arrowPos = arrowPos;
 
-        sizeRule.draggingHelpers.startSize = sizeRule.draggingHelpers.size;
+        this.draggingHelpers.startSize = this.draggingHelpers.size;
 
-        sizeRule.draggingHelpers.activeHandle = true;
+        this.draggingHelpers.activeHandle = true;
     };
     sizeRule.onHandleDragged = function (mouse) {
         var mousePoint = new THREE.Vector3(mouse.x, mouse.y, 1);
-        mousePoint.unproject(sizeRule.draggingHelpers.cam);
-        var mouseRay = new THREE.Ray(sizeRule.draggingHelpers.cam.position, mousePoint.sub(sizeRule.draggingHelpers.cam.position).normalize());
+        mousePoint.unproject(this.draggingHelpers.cam);
+        var mouseRay = new THREE.Ray(this.draggingHelpers.cam.position, mousePoint.sub(this.draggingHelpers.cam.position).normalize());
 
         var targetPoint = new THREE.Vector3();
-        mouseRay.distanceSqToSegment(sizeRule.draggingHelpers.segment.start,
-            sizeRule.draggingHelpers.segment.end,
+        mouseRay.distanceSqToSegment(this.draggingHelpers.segment.start,
+            this.draggingHelpers.segment.end,
             null,
             targetPoint);
 
-        var diff = targetPoint.sub(sizeRule.draggingHelpers.intersection);
+        var diff = targetPoint.sub(this.draggingHelpers.intersection);
         var length = diff.length();
-        var direction = sizeRule.draggingHelpers.intersection.clone().sub(sizeRule.draggingHelpers.arrowPos);
+        var direction = this.draggingHelpers.intersection.clone().sub(this.draggingHelpers.arrowPos);
         var angle = diff.normalize().angleTo(direction.normalize());
         if (angle > (0.5 * Math.PI)) length *= -1;
 
-        document.getElementById("input_field1").value = (sizeRule.draggingHelpers.startValue + length).round();
+        document.getElementById("input_field1").value = (this.draggingHelpers.startValue + length).round();
 
         inputChanged();
     };
     sizeRule.onHandleReleased = function () {
-        oldHandle = sizeRule.draggingHelpers.activeHandle;
-        sizeRule.draggingHelpers.activeHandle = null;
-        if (sizeRule.draggingHelpers.activeHandle != oldHandle) inputChanged();
+        oldHandle = this.draggingHelpers.activeHandle;
+        this.draggingHelpers.activeHandle = null;
+        if (this.draggingHelpers.activeHandle != oldHandle) inputChanged();
     };
     sizeRule.additionalUpdates = function () {
         switch (this.selections[0]) {
             case 'Axis.X':
-                sizeRule.initialSize = sizeRule.initialSizeX;
+                this.initialSize = this.initialSizeX;
                 break;
             case 'Axis.Y':
-                sizeRule.initialSize = sizeRule.initialSizeY;
+                this.initialSize = this.initialSizeY;
                 break;
             case 'Axis.Z':
-                sizeRule.initialSize = sizeRule.initialSizeZ;
+                this.initialSize = this.initialSizeZ;
                 break;
             default:
                 break;

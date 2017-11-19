@@ -437,11 +437,29 @@ function HandlesThreeRenderer(domQuery) {
                 $("#editRule_Button_" + i).click(function (i) {
                     return function () {
                         self.selectedRule = parsedRules[i];
+                        if (!self.selectedRule.mode) self.selectedRule.mode = "Mode.Local";
                         self.selectedRule.storeCurrentState();
+                        if (!self.selectedRule.uneditedRule)
+                            self.selectedRule.uneditedRule = jQuery.extend(true, [], self.selectedRule);
                         var editor = ace.edit("code_text_ace");
                         uneditedCode = editor.getValue();
                         self.ruleIndex = i;
                         self.selectedMesh.shape.appliedRules += 1;
+
+                        //init helper variables for will/was
+                        if (!self.selectedRule.wasAppliedToList) {
+                            self.selectedRule.wasAppliedToList = [];
+                            self.selectedRule.wasAppliedToList.push(self.selectedMesh.shape);
+                        }
+                        if (!self.selectedRule.willAppliedToList) self.selectedRule.willAppliedToList = [];
+                        if (!self.selectedRule.storedWasAppliedToList) self.selectedRule.storedWasAppliedToList = self.selectedRule.wasAppliedToList.slice();
+                        if (!self.selectedRule.storedWillAppliedToList) self.selectedRule.storedWillAppliedToList = self.selectedRule.willAppliedToList.slice();
+                        if (!self.selectedRule.wasAppliedToList.includes(self.selectedMesh.shape) &&
+                            !self.selectedRule.willAppliedToList.includes(self.selectedMesh.shape)) {
+                            self.selectedRule.uneditedRule.applyRule(self.selectedMesh.shape);
+                            self.selectedRule.willAppliedToList.push(self.selectedMesh.shape);
+                        }
+
                         clearUI();
                         self.initRuleUI();
                     };
@@ -450,6 +468,14 @@ function HandlesThreeRenderer(domQuery) {
             $("#deleteRule_Button_" + i).click(function (i) {
                 return function () {
                     parsedRules[i].deleted = true;
+
+                    for (var shape in parsedRules[i].willAppliedToList) {
+                        parsedRules[i].unapplyRule(parsedRules[i].willAppliedToList[shape]);
+                        parsedRules[i].afterUnapply(parsedRules[i].willAppliedToList[shape]);
+                        self.ruleController.removePreview(parsedRules[i].willAppliedToList[shape]);
+                    }
+                    self.ruleController.removePreview(parsedRules[i]);
+
                     clearUI();
                     self.initButtonsUI();
                     self.Update();
@@ -465,8 +491,25 @@ function HandlesThreeRenderer(domQuery) {
                     return function () {
                         self.selectedRule = tmpRules[i];
                         self.selectedRule.storeCurrentState();
-                        uneditedRule = self.selectedRule;
+                        if (!self.selectedRule.uneditedRule)
+                            self.selectedRule.uneditedRule = jQuery.extend(true, [], self.selectedRule);
                         self.selectedMesh.shape.appliedRules += 1;
+
+                        //init helper variables for will/was
+
+                        if (!self.selectedRule.wasAppliedToList) {
+                            self.selectedRule.wasAppliedToList = [];
+                            self.selectedRule.wasAppliedToList.push(self.selectedMesh.shape);
+                        }
+                        if (!self.selectedRule.willAppliedToList) self.selectedRule.willAppliedToList = [];
+                        if (!self.selectedRule.storedWasAppliedToList) self.selectedRule.storedWasAppliedToList = self.selectedRule.wasAppliedToList.slice();
+                        if (!self.selectedRule.storedWillAppliedToList) self.selectedRule.storedWillAppliedToList = self.selectedRule.willAppliedToList.slice();
+                        if (!self.selectedRule.wasAppliedToList.includes(self.selectedMesh.shape) &&
+                            !self.selectedRule.willAppliedToList.includes(self.selectedMesh.shape)) {
+                            self.selectedRule.uneditedRule.applyRule(self.selectedMesh.shape);
+                            self.selectedRule.willAppliedToList.push(self.selectedMesh.shape);
+                        }
+
                         clearUI();
                         self.initRuleUI();
                     };
@@ -476,6 +519,13 @@ function HandlesThreeRenderer(domQuery) {
                 return function () {
                     self.ruleController.removeRule(tmpRules[i]);
                     self.ruleController.addPreview(self.selectedMesh.shape, "green");
+
+                    for (var shape in parsedRules[i].willAppliedToList) {
+                        parsedRules[i].unapplyRule(parsedRules[i].willAppliedToList[shape]);
+                        parsedRules[i].afterUnapply(parsedRules[i].willAppliedToList[shape]);
+                        self.ruleController.removePreview(parsedRules[i].willAppliedToList[shape]);
+                    }
+
                     clearUI();
                     self.initButtonsUI();
                     self.Update();
@@ -514,6 +564,27 @@ function HandlesThreeRenderer(domQuery) {
         var cancel_buttonn_text = document.createTextNode("Cancel");
         cancel_button.appendChild(cancel_buttonn_text);
 
+        //create will/was applied div
+        var willwas_div = document.createElement('div');
+        willwas_div.id = "willwas_div";
+        var status_div = document.createElement('div');
+        status_div.id = "willwas_status";
+        status_div.style.display = "inline";
+        var willwas_status = document.createTextNode("Currently the rule WILL be applied ");
+        status_div.appendChild(willwas_status);
+        willwas_div.appendChild(status_div);
+        var willwas_button = document.createElement('button');
+        willwas_button.id = "willwas_button";
+        var willwas_button_text = document.createTextNode("change");
+        willwas_button.appendChild(willwas_button_text);
+        if (creatingNewRule || self.selectedRule.generatesMultipleShapes) {
+            willwas_button.style.display = "none";
+        }
+        if (self.selectedRule && self.selectedRule.wasAppliedToList.includes(self.selectedMesh.shape)) {
+            status_div.innerHTML = "Currently the rule WAS applied. ";
+        }
+        willwas_div.appendChild(willwas_button);
+
         //get goals of current shape
         if (self.selectedMesh.shape.semantics.goal) {
             var goals = Object.keys(self.selectedMesh.shape.semantics.goals);
@@ -522,6 +593,7 @@ function HandlesThreeRenderer(domQuery) {
         //put it together
         uiDiv.appendChild(selectionDiv);
         uiDiv.appendChild(inputDiv);
+        uiDiv.appendChild(willwas_div);
         self.postfixController.addAllPostfixes(uiDiv, self.selectedRule, goals);
         uiDiv.appendChild(commit_button);
         uiDiv.appendChild(cancel_button);
@@ -549,7 +621,17 @@ function HandlesThreeRenderer(domQuery) {
             if (postfixDiv) self.postfixController.applyPostfixes(postfixDiv, self.selectedRule);
             self.ruleController.addRule(self.selectedMesh.shape, self.selectedRule);
             selector.disabled = false;
+            self.selectedRule.uneditedRule = null;
         }
+
+        //init helper variables for will/was
+        if (!self.selectedRule.wasAppliedToList) {
+            self.selectedRule.wasAppliedToList = [];
+            self.selectedRule.wasAppliedToList.push(self.selectedMesh.shape);
+        }
+        if (!self.selectedRule.willAppliedToList) self.selectedRule.willAppliedToList = [];
+        if (!self.selectedRule.storedWasAppliedToList) self.selectedRule.storedWasAppliedToList = self.selectedRule.wasAppliedToList.slice();
+        if (!self.selectedRule.storedWillAppliedToList) self.selectedRule.storedWillAppliedToList = self.selectedRule.willAppliedToList.slice();
 
         //create new input fields
         self.selectedRule.appendInputFields(inputDiv);
@@ -576,6 +658,9 @@ function HandlesThreeRenderer(domQuery) {
         });
 
         $("#commit_Button").click(function () {
+            self.selectedRule.storedWasAppliedToList = null;
+            self.selectedRule.storedWillAppliedToList = null;
+
             self.ruleController.updateRule(self.selectedMesh.shape, self.selectedRule);
 
             self.selectedRule = null;
@@ -587,20 +672,32 @@ function HandlesThreeRenderer(domQuery) {
         });
 
         $("#cancel_Button").click(function () {
+            if (self.selectedRule.wasAppliedToList.includes(self.selectedMesh.shape) &&
+                !self.selectedRule.storedWasAppliedToList.includes(self.selectedMesh.shape)) {
+                self.selectedRule.uneditedRule.applyRule(self.selectedMesh.shape);
+                self.selectedRule.uneditedRule.afterUnapply(self.selectedMesh.shape);
+            }
+            if (self.selectedRule.willAppliedToList.includes(self.selectedMesh.shape) &&
+                !self.selectedRule.storedWillAppliedToList.includes(self.selectedMesh.shape)) {
+                self.selectedRule.uneditedRule.unapplyRule(self.selectedMesh.shape);
+                self.selectedRule.uneditedRule.afterUnapply(self.selectedMesh.shape);
+            }
+            self.selectedRule.wasAppliedToList = self.selectedRule.storedWasAppliedToList.slice();
+            self.selectedRule.willAppliedToList = self.selectedRule.storedWillAppliedToList.slice();
+            self.selectedRule.storedWasAppliedToList = null;
+            self.selectedRule.storedWillAppliedToList = null;
+
+
             if (creatingNewRule) {
                 self.ruleController.removeRule(self.selectedRule, self.selectedMesh);
             } else {
+                self.selectedRule.setStoredState();
+                self.ruleController.updateRule(self.selectedMesh.shape, self.selectedRule);
                 if (self.selectedRule.wasParsed) {
-                    self.selectedRule.removePreview(self.selectedMesh.shape);
-                    self.selectedRule.unapplyRule(self.selectedMesh.shape);
-                    self.selectedRule.afterUnapply(self.selectedMesh.shape);
                     var editor = ace.edit("code_text_ace");
                     editor.setValue(uneditedCode);
-                } else {
-                    self.selectedRule.setStoredState();
-                    self.ruleController.updateRule(self.selectedMesh.shape, self.selectedRule);
                 }
-                
+                self.ruleController.removePreview(self.selectedMesh.shape);
             }
             self.ruleController.addPreview(self.selectedMesh.shape, "green");
             self.selectedRule = null;
@@ -608,6 +705,40 @@ function HandlesThreeRenderer(domQuery) {
             self.initButtonsUI();
             self.Update();
             self.OnUpdateCompleted();
+        });
+
+        $("#willwas_button").click(function () {
+            var status = document.getElementById("willwas_status");
+            if (self.selectedRule.wasAppliedToList.includes(self.selectedMesh.shape)) {
+                var index = self.selectedRule.wasAppliedToList.indexOf(self.selectedMesh.shape);
+                if (index > -1) {
+                    self.selectedRule.wasAppliedToList.splice(index, 1);
+                }
+                self.selectedRule.willAppliedToList.push(self.selectedMesh.shape);
+                status.innerHTML = "Currently the rule WILL be applied. ";
+                self.selectedRule.uneditedRule.applyRule(self.selectedMesh.shape);
+
+                self.selectedRule.removePreview(self.selectedMesh.shape);
+                self.selectedRule.addPreview(self.selectedMesh.shape, "green");
+                renderer.RenderSingleFrame();
+
+                self.inputChanged();
+            } else {
+                self.selectedRule.wasAppliedToList.push(self.selectedMesh.shape);
+                var index = self.selectedRule.willAppliedToList.indexOf(self.selectedMesh.shape);
+                if (index > -1) {
+                    self.selectedRule.willAppliedToList.splice(index, 1);
+                }
+                status.innerHTML = "Currently the rule WAS applied. ";
+                self.selectedRule.uneditedRule.unapplyRule(self.selectedMesh.shape);
+
+                self.selectedRule.uneditedRule.removePreview(self.selectedMesh.shape);
+                self.selectedRule.uneditedRule.addPreview(self.selectedMesh.shape, "green");
+                renderer.RenderSingleFrame();
+
+                self.inputChanged();
+            }
+            self.RenderSingleFrame();
         });
 
         //create handles
@@ -651,6 +782,13 @@ function HandlesThreeRenderer(domQuery) {
             self.selectedRule.createHandles(self.handlesScene, self.selectedMesh, handleId);
         } else {
             self.selectedRule.createHandles(self.handlesScene, self.selectedMesh);
+        }
+
+        var willwas_button = document.getElementById("willwas_button");
+        if (self.selectedRule.generatesMultipleShapes || self.selectedRule.uneditedRule == null) {
+            willwas_button.style.display = "none";
+        } else {
+            willwas_button.style.display = "inline";
         }
 
         self.RenderSingleFrame();

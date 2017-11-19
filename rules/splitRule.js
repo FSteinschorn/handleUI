@@ -21,8 +21,8 @@ generateSplitRule = function () {
             var button = document.getElementById("addPartButton");
             var partDiv = document.createElement('div');
             partDiv.style = 'margin:0.01em 16px';
-            partDiv.id = 'partDiv' + split.draggingHelpers.nextIndex;
-            var partname = 'part' + split.draggingHelpers.nextIndex + '_mode_selector';
+            partDiv.id = 'partDiv' + this.draggingHelpers.nextIndex;
+            var partname = 'part' + this.draggingHelpers.nextIndex + '_mode_selector';
             var innerHTML = '<select id=' + partname + '>';
             innerHTML += '<option value="Relative">Relative</option>';
             innerHTML += '<option value="Absolute">Absolute</option>';
@@ -30,11 +30,11 @@ generateSplitRule = function () {
             partDiv.innerHTML += innerHTML;
             var amount_input = document.createElement("input");
             amount_input.setAttribute('type', 'text');
-            var inputname = 'part' + split.draggingHelpers.nextIndex + '_amount_input_field';
+            var inputname = 'part' + this.draggingHelpers.nextIndex + '_amount_input_field';
             amount_input.setAttribute('id', inputname);
             partDiv.appendChild(amount_input);
 
-            var addPostfixName = 'part' + split.draggingHelpers.nextIndex + '_add_postfix_button';
+            var addPostfixName = 'part' + this.draggingHelpers.nextIndex + '_add_postfix_button';
             var addPostfixButton = document.createElement('button');
             addPostfixButton.id = addPostfixName;
             addPostfixButton.style = 'margin:0px 20px';
@@ -42,7 +42,7 @@ generateSplitRule = function () {
             addPostfixButton.appendChild(addPostfixButtonText);
             partDiv.appendChild(addPostfixButton);
 
-            var removename = 'part' + split.draggingHelpers.nextIndex + '_remove_button';
+            var removename = 'part' + this.draggingHelpers.nextIndex + '_remove_button';
             var removeButton = document.createElement('button');
             removeButton.id = removename;
             removeButton.style = 'position:absolute;right:5px';
@@ -53,7 +53,7 @@ generateSplitRule = function () {
             button.parentNode.insertBefore(partDiv, button);
             $('#' + partname).change(inputChanged);
             $('#' + inputname).change(inputChanged);
-            $('#' + addPostfixName).click(split.addPostfixFunction(partDiv.id, settings))
+            $('#' + addPostfixName).click(this.addPostfixFunction(partDiv.id, settings))
             $('#' + removename).click(function (id) {
                 return function () {
                     var part = document.getElementById(id);
@@ -69,7 +69,7 @@ generateSplitRule = function () {
                 }
                 amount_input.value = settings.amount;
                 for (var i = 0; i < Object.keys(settings.postfixes).length; i++) {
-                    split.addPostfix(partDiv.id, settings.postfixes[i]);
+                    this.addPostfix(partDiv.id, settings.postfixes[i]);
                 }
             } else {
                 amount_input.value = 1;
@@ -81,7 +81,7 @@ generateSplitRule = function () {
 
         split.addPostfixFunction = function (partId, settings) {
             return function () {
-                split.addPostfix(partId, settings);
+                this.addPostfix(partId, settings);
             }
         };
         split.addPostfix = function (partId, settings) {
@@ -91,26 +91,25 @@ generateSplitRule = function () {
         }
     }
     // standard functions
-    split.type = 'Split';
     split.generateRuleString = function () {
-        var ruleString = "new Rules.Split(" + split.axis + ",";
+        var ruleString = "new Rules.Split(" + this.axis + ",";
         var counter = 1;
-        for (var part in split.parts) {
-            ruleString += "\n\t\t" + split.parts[part].mode + "(" + split.parts[part].amount + ")";
-            ruleString = addTags(split.parts[part], ruleString, 3);
-            if (counter < Object.keys(split.parts).length) ruleString += ',';
+        for (var part in this.parts) {
+            ruleString += "\n\t\t" + this.parts[part].mode + "(" + this.parts[part].amount + ")";
+            ruleString = addTags(this.parts[part], ruleString, 3);
+            if (counter < Object.keys(this.parts).length) ruleString += ',';
             counter++;
         }
         ruleString += "\n)";
         ruleString = addTags(split, ruleString);
         ruleString += ";";
 
-        split.lastRuleString = ruleString;
+        this.lastRuleString = ruleString;
 
         return ruleString;
     };
     split.generateShortString = function () {
-        var keys = Object.keys(split.parts);
+        var keys = Object.keys(this.parts);
         var size = keys.length;
         return ("Split into " + size + " parts.");
     };
@@ -130,25 +129,25 @@ generateSplitRule = function () {
         parentDiv.appendChild(addPartButton);
 
         $("#addPartButton").click(function () {
-            split.addPart(true);
+            this.addPart(true);
         });
         $('#axis_selector').change(inputChanged);
 
         if (!empty) {
             var selector = document.getElementById("axis_selector");
             for (var i = 0; i < 3; i++) {
-                if (selector.options[i].label == split.axis) selector.selectedIndex = i;
+                if (selector.options[i].label == this.axis) selector.selectedIndex = i;
             }
-            for (var i = 0; i < Object.keys(split.parts).length; i++) {
-                split.addPart(true, split.parts[Object.keys(split.parts)[i]]);
+            for (var i = 0; i < Object.keys(this.parts).length; i++) {
+                this.addPart(true, this.parts[Object.keys(this.parts)[i]]);
             }
         } else {
-            split.addPart(false);
-            split.addPart(false);
+            this.addPart(false);
+            this.addPart(false);
         }
     };
     split.applyRule = function (shape) {
-        var parts = split.parts;
+        var parts = this.parts;
         var sumAbs = 0;
         var sumRel = 0;
         for (var i = 0; i < Object.keys(parts).length; i++) {
@@ -169,7 +168,7 @@ generateSplitRule = function () {
         var yDir = new THREE.Vector3(m[4], m[5], m[6]);
         var zDir = new THREE.Vector3(m[8], m[9], m[10]);
         var size, width, height;
-        switch (split.axis) {
+        switch (this.axis) {
             case 'Axis.X':
                 size = xDir.length();
                 width = yDir.length();
@@ -189,49 +188,49 @@ generateSplitRule = function () {
                 break;
         }
 
-        split.draggingHelpers.fullSize = size;
-        split.draggingHelpers.width = width;
-        split.draggingHelpers.height = height;
+        this.draggingHelpers.fullSize = size;
+        this.draggingHelpers.width = width;
+        this.draggingHelpers.height = height;
 
         var avRel = size - sumAbs;
         var segRelSize = 0;
-        split.draggingHelpers.partKind = [];
-        split.draggingHelpers.segments = [];
-        split.draggingHelpers.input = [];
+        this.draggingHelpers.partKind = [];
+        this.draggingHelpers.segments = [];
+        this.draggingHelpers.input = [];
         for (var i = 0; i < Object.keys(parts).length; i++) {
             var partname = Object.keys(parts)[i];
             if (parts[partname].mode == "Relative") {
                 var amount = isNaN(parseFloat(parts[partname].amount)) ? 0 : parseFloat(parts[partname].amount);
-                amount = Math.max(split.draggingHelpers.epsilon, amount);
-                split.draggingHelpers.partKind.push('rel');
+                amount = Math.max(this.draggingHelpers.epsilon, amount);
+                this.draggingHelpers.partKind.push('rel');
                 var segmentSize = amount / sumRel * avRel
-                split.draggingHelpers.segments.push(segmentSize);
-                split.draggingHelpers.input.push(amount);
+                this.draggingHelpers.segments.push(segmentSize);
+                this.draggingHelpers.input.push(amount);
                 segRelSize = segRelSize + segmentSize;
             } else {
                 var amount = isNaN(parseFloat(parts[partname].amount)) ? 0 : parseFloat(parts[partname].amount);
-                amount = Math.max(split.draggingHelpers.epsilon, amount);
-                split.draggingHelpers.partKind.push('abs');
-                split.draggingHelpers.segments.push(amount);
-                split.draggingHelpers.input.push(amount);
+                amount = Math.max(this.draggingHelpers.epsilon, amount);
+                this.draggingHelpers.partKind.push('abs');
+                this.draggingHelpers.segments.push(amount);
+                this.draggingHelpers.input.push(amount);
             }
         }
-        split.draggingHelpers.unitsPerInput = 1;
-        if (sumRel != 0) split.draggingHelpers.unitsPerInput = segRelSize / sumRel;
-        split.draggingHelpers.sumRel = segRelSize;
+        this.draggingHelpers.unitsPerInput = 1;
+        if (sumRel != 0) this.draggingHelpers.unitsPerInput = segRelSize / sumRel;
+        this.draggingHelpers.sumRel = segRelSize;
     };
     split.unapplyRule = function (shape) {
-        split.draggingHelpers.segments = [1];
+        this.draggingHelpers.segments = [1];
     };
     split.updateRule = function () {
-        split.parts = [];
+        this.parts = [];
 
         var selector = document.getElementById("axis_selector");
         var selection = selector.options[selector.selectedIndex].value;
-        split.axis = selection;
+        this.axis = selection;
 
         var sumAbs = 0;
-        for (var i = 0; i < split.draggingHelpers.nextIndex; i++) {
+        for (var i = 0; i < this.draggingHelpers.nextIndex; i++) {
             var name = 'part' + i + '_mode_selector';
             var modeSelector = document.getElementById(name);
             if (modeSelector) {
@@ -239,42 +238,42 @@ generateSplitRule = function () {
                 var mode = modeSelector.options[modeSelector.selectedIndex].value;
                 var amount = amountInput.value;
                 if (mode == 'Absolute') sumAbs += parseFloat(amount);
-                split.parts['part' + i] = {mode: mode, amount: amount};
+                this.parts['part' + i] = {mode: mode, amount: amount};
 
                 var partId = 'partDiv' + i;
                 var part = document.getElementById(partId)
-                readTags(part, split.parts['part' + i]);
+                readTags(part, this.parts['part' + i]);
             }
         }
 
-        if (!split.draggingHelpers.fullSize) split.draggingHelpers.fullSize = 99999999;
-        if (split.draggingHelpers.fullSize < sumAbs - split.draggingHelpers.epsilon) {
-            split.draggingHelpers.dontDraw = true;
+        if (!this.draggingHelpers.fullSize) this.draggingHelpers.fullSize = 99999999;
+        if (this.draggingHelpers.fullSize < sumAbs - this.draggingHelpers.epsilon) {
+            this.draggingHelpers.dontDraw = true;
             alert("Sum of absolute parts is larger than available size.\nThis would result in an error!");
-        } else split.draggingHelpers.dontDraw = false;
+        } else this.draggingHelpers.dontDraw = false;
     };
     split.addPreview = function (shape) {
-        if (split.draggingHelpers.dontDraw) return;
+        if (this.draggingHelpers.dontDraw) return;
 
-        var offset = -split.draggingHelpers.fullSize / 2;
+        var offset = -this.draggingHelpers.fullSize / 2;
         var scale;
         var translate;
         var mat;
-        for (var i = 0; i < split.draggingHelpers.segments.length; i++) {
+        for (var i = 0; i < this.draggingHelpers.segments.length; i++) {
             var m = shape.appearance.transformation;
             m = new THREE.Matrix4().fromArray(m);
-            var size = Math.max(0.000001, split.draggingHelpers.segments[i]);
-            switch (split.axis) {
+            var size = Math.max(0.000001, this.draggingHelpers.segments[i]);
+            switch (this.axis) {
                 case 'Axis.X':
-                    scale = new THREE.Matrix4().makeScale(size / split.draggingHelpers.fullSize, 1, 1);
+                    scale = new THREE.Matrix4().makeScale(size / this.draggingHelpers.fullSize, 1, 1);
                     translate = new THREE.Matrix4().makeTranslation(offset + size / 2, 0, 0);
                     break;
                 case 'Axis.Y':
-                    scale = new THREE.Matrix4().makeScale(1, size / split.draggingHelpers.fullSize, 1);
+                    scale = new THREE.Matrix4().makeScale(1, size / this.draggingHelpers.fullSize, 1);
                     translate = new THREE.Matrix4().makeTranslation(0, offset + size / 2, 0);
                     break;
                 case 'Axis.Z':
-                    scale = new THREE.Matrix4().makeScale(1, 1, size / split.draggingHelpers.fullSize);
+                    scale = new THREE.Matrix4().makeScale(1, 1, size / this.draggingHelpers.fullSize);
                     translate = new THREE.Matrix4().makeTranslation(0, 0, offset + size / 2);
                     break;
                 default:
@@ -296,9 +295,9 @@ generateSplitRule = function () {
         renderer.RenderSingleFrame();
     };
     split.createHandles = function (scene, shape) {
-        if (split.draggingHelpers.dontDraw) return;
+        if (this.draggingHelpers.dontDraw) return;
 
-        if (!split.draggingHelpers.segments) split.applyRule(shape.shape);
+        if (!this.draggingHelpers.segments) this.applyRule(shape.shape);
 
         this.draggingHelpers.scene = scene;
 
@@ -311,7 +310,7 @@ generateSplitRule = function () {
         center.applyProjection(m);
 
         var dir;
-        switch (split.axis) {
+        switch (this.axis) {
             case 'Axis.X':
                 dir = new THREE.Vector3(1.0, 0, 0);
                 break;
@@ -328,54 +327,53 @@ generateSplitRule = function () {
         dir.applyProjection(m);
         dir.sub(center);
 
-        var widthOffset = split.draggingHelpers.width / (split.draggingHelpers.segments.length - 1);
-        var heightOffset = split.draggingHelpers.height / (split.draggingHelpers.segments.length - 1);
+        var widthOffset = this.draggingHelpers.width / (this.draggingHelpers.segments.length - 1);
+        var heightOffset = this.draggingHelpers.height / (this.draggingHelpers.segments.length - 1);
 
-        switch (split.axis) {
+        switch (this.axis) {
             case 'Axis.X':
-                center.add(new THREE.Vector3(-split.draggingHelpers.fullSize / 2, -split.draggingHelpers.width / 2 - widthOffset / 2, -split.draggingHelpers.height / 2 - heightOffset / 2));
+                center.add(new THREE.Vector3(-this.draggingHelpers.fullSize / 2, -this.draggingHelpers.width / 2 - widthOffset / 2, -this.draggingHelpers.height / 2 - heightOffset / 2));
                 break;
             case 'Axis.Y':
-                center.add(new THREE.Vector3(-split.draggingHelpers.width / 2 - widthOffset / 2, -split.draggingHelpers.fullSize / 2, -split.draggingHelpers.height / 2 - heightOffset / 2));
+                center.add(new THREE.Vector3(-this.draggingHelpers.width / 2 - widthOffset / 2, -this.draggingHelpers.fullSize / 2, -this.draggingHelpers.height / 2 - heightOffset / 2));
                 break;
             case 'Axis.Z':
-                center.add(new THREE.Vector3(-split.draggingHelpers.width / 2 - widthOffset / 2, -split.draggingHelpers.height / 2 - heightOffset / 2, -split.draggingHelpers.fullSize / 2));
+                center.add(new THREE.Vector3(-this.draggingHelpers.width / 2 - widthOffset / 2, -this.draggingHelpers.height / 2 - heightOffset / 2, -this.draggingHelpers.fullSize / 2));
                 break;
             default:
                 break;
         }
 
-        split.draggingHelpers.highlight = null;
+        this.draggingHelpers.highlight = null;
         var search = 0;
-        if (!split.draggingHelpers.arrowIds) split.draggingHelpers.arrowIds = [];
-        if (split.draggingHelpers.overHandle) search = split.draggingHelpers.overHandle;
-        else if (split.draggingHelpers.activeHandle) search = split.draggingHelpers.activeHandle;
-        for (var i = 0; i < split.draggingHelpers.arrowIds.length; i++) {
-            if (split.draggingHelpers.arrowIds[i] <= search && split.draggingHelpers.arrowIds[i] + 2 >= search) {
-                split.draggingHelpers.highlight = Math.floor(i / 2);
+        if (!this.draggingHelpers.arrowIds) this.draggingHelpers.arrowIds = [];
+        if (this.draggingHelpers.overHandle) search = this.draggingHelpers.overHandle;
+        else if (this.draggingHelpers.activeHandle) search = this.draggingHelpers.activeHandle;
+        for (var i = 0; i < this.draggingHelpers.arrowIds.length; i++) {
+            if (this.draggingHelpers.arrowIds[i] <= search && this.draggingHelpers.arrowIds[i] + 2 >= search) {
+                this.draggingHelpers.highlight = Math.floor(i / 2);
             }
         }
-        ;
 
-        var oldStartingId = split.draggingHelpers.arrowIds[0] || 0;
-        split.draggingHelpers.arrowIds = [];
+        var oldStartingId = this.draggingHelpers.arrowIds[0] || 0;
+        this.draggingHelpers.arrowIds = [];
         var counter = 0;
-        for (var i = 0; i < split.draggingHelpers.segments.length - 1; i++) {
-            var size = Math.max(0.000001, split.draggingHelpers.segments[i]);
-            switch (split.axis) {
+        for (var i = 0; i < this.draggingHelpers.segments.length - 1; i++) {
+            var size = Math.max(0.000001, this.draggingHelpers.segments[i]);
+            switch (this.axis) {
                 case 'Axis.X':
                     center.add(new THREE.Vector3(size, widthOffset, heightOffset));
-                    if (counter == split.draggingHelpers.highlight) color = highlightColors[0];
+                    if (counter == this.draggingHelpers.highlight) color = highlightColors[0];
                     else color = basicColors[0];
                     break;
                 case 'Axis.Y':
                     center.add(new THREE.Vector3(widthOffset, size, heightOffset));
-                    if (counter == split.draggingHelpers.highlight) color = highlightColors[1];
+                    if (counter == this.draggingHelpers.highlight) color = highlightColors[1];
                     else color = basicColors[1];
                     break;
                 case 'Axis.Z':
                     center.add(new THREE.Vector3(widthOffset, heightOffset, size));
-                    if (counter == split.draggingHelpers.highlight) color = highlightColors[2];
+                    if (counter == this.draggingHelpers.highlight) color = highlightColors[2];
                     else color = basicColors[2];
                     break;
                 default:
@@ -383,30 +381,30 @@ generateSplitRule = function () {
             }
             counter++;
 
-            var arrowlength = Math.max(split.draggingHelpers.fullSize / 5, 0.1);
+            var arrowlength = Math.max(this.draggingHelpers.fullSize / 5, 0.1);
             var backarrow = new THREE.ArrowHelper(new THREE.Vector3().sub(dir).normalize(), center, arrowlength, color, 0.2, 0.1);
             var arrow = new THREE.ArrowHelper(dir.normalize(), center, arrowlength, color, 0.2, 0.1);
             scene.add(arrow);
             scene.add(backarrow);
 
-            split.draggingHelpers.arrowIds.push(arrow.id);
-            split.draggingHelpers.arrowIds.push(backarrow.id);
+            this.draggingHelpers.arrowIds.push(arrow.id);
+            this.draggingHelpers.arrowIds.push(backarrow.id);
         }
-        split.draggingHelpers.idOffset = split.draggingHelpers.arrowIds[0] - oldStartingId;
+        this.draggingHelpers.idOffset = this.draggingHelpers.arrowIds[0] - oldStartingId;
     };
     split.onMouseOverHandle = function (id) {
-        oldHandle = split.draggingHelpers.overHandle;
-        split.draggingHelpers.overHandle = id;
-        if (split.draggingHelpers.overHandle != oldHandle) inputChanged();
+        oldHandle = this.draggingHelpers.overHandle;
+        this.draggingHelpers.overHandle = id;
+        if (this.draggingHelpers.overHandle != oldHandle) inputChanged();
     };
     split.onMouseNotOverHandle = function () {
-        oldHandle = split.draggingHelpers.overHandle;
-        split.draggingHelpers.overHandle = null;
-        if (split.draggingHelpers.overHandle != oldHandle) inputChanged();
+        oldHandle = this.draggingHelpers.overHandle;
+        this.draggingHelpers.overHandle = null;
+        if (this.draggingHelpers.overHandle != oldHandle) inputChanged();
     };
     split.onHandlePressed = function (id, mouse, intersection, scene, camera) {
 
-        id += split.draggingHelpers.idOffset;
+        id += this.draggingHelpers.idOffset;
 
         var clickedObject = scene.getObjectById(id);
         var arrowPos = clickedObject.parent.position;
@@ -414,57 +412,57 @@ generateSplitRule = function () {
         var initEnd = intersection.clone();
         var start = initStart.clone().add(initEnd.clone().sub(initStart).multiplyScalar(1000));
         var end = initEnd.clone().add(initStart.clone().sub(initEnd).multiplyScalar(1000));
-        split.draggingHelpers.segment = {
+        this.draggingHelpers.segment = {
             start: start,
             end: end
         };
 
-        split.draggingHelpers.directionFactor = 1;
-        for (var i = 0; i < split.draggingHelpers.arrowIds.length; i++) {
-            if (split.draggingHelpers.arrowIds[i] <= id && split.draggingHelpers.arrowIds[i] + 2 >= id) {
-                split.draggingHelpers.beforeActiveCut = Math.floor(i / 2);
-                if (i.isOdd()) split.draggingHelpers.directionFactor = -1;
+        this.draggingHelpers.directionFactor = 1;
+        for (var i = 0; i < this.draggingHelpers.arrowIds.length; i++) {
+            if (this.draggingHelpers.arrowIds[i] <= id && this.draggingHelpers.arrowIds[i] + 2 >= id) {
+                this.draggingHelpers.beforeActiveCut = Math.floor(i / 2);
+                if (i.isOdd()) this.draggingHelpers.directionFactor = -1;
             }
         }
 
-        split.draggingHelpers.startingSegments = split.draggingHelpers.segments.slice();
-        split.draggingHelpers.startingInput = split.draggingHelpers.input.slice();
+        this.draggingHelpers.startingSegments = this.draggingHelpers.segments.slice();
+        this.draggingHelpers.startingInput = this.draggingHelpers.input.slice();
 
-        split.draggingHelpers.cam = camera;
-        split.draggingHelpers.intersection = intersection;
-        split.draggingHelpers.arrowPos = arrowPos;
+        this.draggingHelpers.cam = camera;
+        this.draggingHelpers.intersection = intersection;
+        this.draggingHelpers.arrowPos = arrowPos;
 
-        split.draggingHelpers.activeHandle = id;
+        this.draggingHelpers.activeHandle = id;
     };
     split.onHandleDragged = function (mouse) {
         var mousePoint = new THREE.Vector3(mouse.x, mouse.y, 1);
-        mousePoint.unproject(split.draggingHelpers.cam);
-        var mouseRay = new THREE.Ray(split.draggingHelpers.cam.position, mousePoint.sub(split.draggingHelpers.cam.position).normalize());
+        mousePoint.unproject(this.draggingHelpers.cam);
+        var mouseRay = new THREE.Ray(this.draggingHelpers.cam.position, mousePoint.sub(this.draggingHelpers.cam.position).normalize());
 
         var targetPoint = new THREE.Vector3();
-        mouseRay.distanceSqToSegment(split.draggingHelpers.segment.start,
-            split.draggingHelpers.segment.end,
+        mouseRay.distanceSqToSegment(this.draggingHelpers.segment.start,
+            this.draggingHelpers.segment.end,
             null,
             targetPoint);
 
-        var diff = targetPoint.sub(split.draggingHelpers.intersection);
+        var diff = targetPoint.sub(this.draggingHelpers.intersection);
         var length = diff.length();
-        var direction = split.draggingHelpers.intersection.clone().sub(split.draggingHelpers.arrowPos);
+        var direction = this.draggingHelpers.intersection.clone().sub(this.draggingHelpers.arrowPos);
         var angle = diff.normalize().angleTo(direction.normalize());
         if (angle > (0.5 * Math.PI)) length *= -1;
-        length *= split.draggingHelpers.directionFactor;
+        length *= this.draggingHelpers.directionFactor;
 
         if (length > 0) {
-            toReduce = split.draggingHelpers.beforeActiveCut + 1;
-            toEnlarge = split.draggingHelpers.beforeActiveCut;
+            toReduce = this.draggingHelpers.beforeActiveCut + 1;
+            toEnlarge = this.draggingHelpers.beforeActiveCut;
         } else {
-            toReduce = split.draggingHelpers.beforeActiveCut;
-            toEnlarge = split.draggingHelpers.beforeActiveCut + 1;
+            toReduce = this.draggingHelpers.beforeActiveCut;
+            toEnlarge = this.draggingHelpers.beforeActiveCut + 1;
         }
 
-        var inputs = split.draggingHelpers.startingInput.slice();
-        var segments = split.draggingHelpers.startingSegments.slice();
-        var types = split.draggingHelpers.partKind.slice();
+        var inputs = this.draggingHelpers.startingInput.slice();
+        var segments = this.draggingHelpers.startingSegments.slice();
+        var types = this.draggingHelpers.partKind.slice();
 
         var maxMovement = segments[toReduce];
         length = Math.min(maxMovement, Math.abs(length));
@@ -476,10 +474,10 @@ generateSplitRule = function () {
         if (nrRel == 1) {
             if (types[toReduce] == 'rel') {
                 segments[toEnlarge] += length;
-                segments[toReduce] = inputs[toReduce] * split.draggingHelpers.unitsPerInput;
+                segments[toReduce] = inputs[toReduce] * this.draggingHelpers.unitsPerInput;
             } else if (types[toEnlarge] == 'rel') {
                 segments[toReduce] -= length;
-                segments[toEnlarge] = inputs[toEnlarge] * split.draggingHelpers.unitsPerInput;
+                segments[toEnlarge] = inputs[toEnlarge] * this.draggingHelpers.unitsPerInput;
             } else {
                 segments[toReduce] -= length;
                 segments[toEnlarge] += length;
@@ -490,21 +488,21 @@ generateSplitRule = function () {
         }
 
         var counter = 0;
-        for (var i = 0; i < split.draggingHelpers.nextIndex; i++) {
+        for (var i = 0; i < this.draggingHelpers.nextIndex; i++) {
             amountInput = document.getElementById('part' + i + '_amount_input_field');
             if (amountInput) {
                 if (counter == toReduce || counter == toEnlarge) {
                     if (types[counter] == 'abs') {
-                        amountInput.value = Math.max(split.draggingHelpers.epsilon, segments[counter]).round();
+                        amountInput.value = Math.max(this.draggingHelpers.epsilon, segments[counter]).round();
                     } else {
-                        if (isNaN(segments[counter] / split.draggingHelpers.unitsPerInput)) {
+                        if (isNaN(segments[counter] / this.draggingHelpers.unitsPerInput)) {
                             var amount = inputs[counter];
-                        } else if (isFinite(segments[counter] / split.draggingHelpers.unitsPerInput)) {
-                            var amount = segments[counter] / split.draggingHelpers.unitsPerInput;
+                        } else if (isFinite(segments[counter] / this.draggingHelpers.unitsPerInput)) {
+                            var amount = segments[counter] / this.draggingHelpers.unitsPerInput;
                         } else {
                             var amount = inputs[counter];
                         }
-                        amountInput.value = Math.max(split.draggingHelpers.epsilon, amount).round();
+                        amountInput.value = Math.max(this.draggingHelpers.epsilon, amount).round();
                     }
                 }
                 counter++;
@@ -514,9 +512,9 @@ generateSplitRule = function () {
         inputChanged();
     };
     split.onHandleReleased = function () {
-        oldHandle = split.draggingHelpers.activeHandle;
-        split.draggingHelpers.activeHandle = null;
-        if (split.draggingHelpers.activeHandle != oldHandle) inputChanged();
+        oldHandle = this.draggingHelpers.activeHandle;
+        this.draggingHelpers.activeHandle = null;
+        if (this.draggingHelpers.activeHandle != oldHandle) inputChanged();
     };
     split.parseCode = function (ruleBuffer) {
         var endOfRule = ruleBuffer.length;
@@ -535,7 +533,7 @@ generateSplitRule = function () {
             counter += 1;
         }
 
-        split.parts = [];
+        this.parts = [];
         var partCounter = 0;
 
         var DEFAULT = 0, PART = 1;
@@ -550,11 +548,11 @@ generateSplitRule = function () {
                 case DEFAULT:
                     if (current.RawKind == 8508) {
                         if (current.Text == 'X') {
-                            split.axis = "Axis.X";
+                            this.axis = "Axis.X";
                         } else if (current.Text == 'Y') {
-                            split.axis = "Axis.Y";
+                            this.axis = "Axis.Y";
                         } else if (current.Text == 'Z') {
-                            split.axis = "Axis.Z";
+                            this.axis = "Axis.Z";
                         } else if (current.Text == "Relative") {
                             parseMode = PART;
                             mode = "Relative";
@@ -572,7 +570,7 @@ generateSplitRule = function () {
                         [part, used] = renderer.postfixController.parsePostfixes(part, ruleBuffer.slice(counter, endOfRule));
                         if (!part.postfixes) part.postfixes = [];
                         counter += used;
-                        split.parts['part' + partCounter] = part;
+                        this.parts['part' + partCounter] = part;
                         partCounter += 1;
                         parseMode = DEFAULT;
                     }
@@ -587,6 +585,7 @@ generateSplitRule = function () {
 
         return endOfRule;
     };
+    split.generatesMultipleShapes = true;
 
     return split;
 };

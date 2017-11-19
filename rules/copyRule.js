@@ -17,8 +17,8 @@ generatecopyRule = function () {
             var button = document.getElementById("addPartButton");
             var partDiv = document.createElement('div');
             partDiv.style = 'margin:0.01em 16px';
-            partDiv.id = 'partDiv' + copy.draggingHelpers.nextIndex;
-            var partname = 'part' + copy.draggingHelpers.nextIndex + '_mode_selector';
+            partDiv.id = 'partDiv' + this.draggingHelpers.nextIndex;
+            var partname = 'part' + this.draggingHelpers.nextIndex + '_mode_selector';
             var innerHTML = '<select id=' + partname + '>';
             innerHTML += '<option value="Relative">Relative</option>';
             innerHTML += '<option value="Absolute">Absolute</option>';
@@ -26,11 +26,11 @@ generatecopyRule = function () {
             partDiv.innerHTML += innerHTML;
             var amount_input = document.createElement("input");
             amount_input.setAttribute('type', 'text');
-            var inputname = 'part' + copy.draggingHelpers.nextIndex + '_amount_input_field';
+            var inputname = 'part' + this.draggingHelpers.nextIndex + '_amount_input_field';
             amount_input.setAttribute('id', inputname);
             partDiv.appendChild(amount_input);
 
-            var addPostfixName = 'part' + copy.draggingHelpers.nextIndex + '_add_postfix_button';
+            var addPostfixName = 'part' + this.draggingHelpers.nextIndex + '_add_postfix_button';
             var addPostfixButton = document.createElement('button');
             addPostfixButton.id = addPostfixName;
             addPostfixButton.style = 'margin:0px 20px';
@@ -38,7 +38,7 @@ generatecopyRule = function () {
             addPostfixButton.appendChild(addPostfixButtonText);
             partDiv.appendChild(addPostfixButton);
 
-            var removename = 'part' + copy.draggingHelpers.nextIndex + '_remove_button';
+            var removename = 'part' + this.draggingHelpers.nextIndex + '_remove_button';
             var removeButton = document.createElement('button');
             removeButton.id = removename;
             removeButton.style = 'position:absolute;right:5px';
@@ -49,7 +49,7 @@ generatecopyRule = function () {
             button.parentNode.insertBefore(partDiv, button);
             $('#' + partname).change(inputChanged);
             $('#' + inputname).change(inputChanged);
-            $('#' + addPostfixName).click(copy.addPostfixFunction(partDiv.id, settings))
+            $('#' + addPostfixName).click(this.addPostfixFunction(partDiv.id, settings))
             $('#' + removename).click(function (id) {
                 return function () {
                     var part = document.getElementById(id);
@@ -65,7 +65,7 @@ generatecopyRule = function () {
                 }
                 amount_input.value = settings.amount;
                 for (var i = 0; i < Object.keys(settings.postfixes).length; i++) {
-                    copy.addPostfix(partDiv.id, settings.postfixes[i]);
+                    this.addPostfix(partDiv.id, settings.postfixes[i]);
                 }
             } else {
                 amount_input.value = 1;
@@ -76,7 +76,7 @@ generatecopyRule = function () {
         };
         copy.addPostfixFunction = function (partId, settings) {
             return function () {
-                copy.addPostfix(partId, settings);
+                this.addPostfix(partId, settings);
             }
         };
         copy.addPostfix = function (partId, settings) {
@@ -87,24 +87,24 @@ generatecopyRule = function () {
     }
     // standard functions
     copy.generateRuleString = function () {
-        var ruleString = "new Rules.Copy(" + copy.axis + ",";
+        var ruleString = "new Rules.Copy(" + this.axis + ",";
         var counter = 1;
-        for (var part in copy.parts) {
-            ruleString += "\n\t\t" + copy.parts[part].mode + "(" + copy.parts[part].amount + ")";
-            ruleString = addTags(copy.parts[part], ruleString, 3);
-            if (counter < Object.keys(copy.parts).length) ruleString += ',';
+        for (var part in this.parts) {
+            ruleString += "\n\t\t" + this.parts[part].mode + "(" + this.parts[part].amount + ")";
+            ruleString = addTags(this.parts[part], ruleString, 3);
+            if (counter < Object.keys(this.parts).length) ruleString += ',';
             counter++;
         }
         ruleString += "\n)";
         ruleString = addTags(copy, ruleString);
         ruleString += ";";
 
-        copy.lastRuleString = ruleString;
+        this.lastRuleString = ruleString;
 
         return ruleString;
     };
     copy.generateShortString = function () {
-        var keys = Object.keys(copy.parts);
+        var keys = Object.keys(this.parts);
         var size = keys.length;
         return ("copy by " + size + " parts.");
     };
@@ -117,33 +117,33 @@ generatecopyRule = function () {
         parentDiv.appendChild(addPartButton);
 
         $("#addPartButton").click(function () {
-            copy.addPart(true);
+            this.addPart(true);
         });
 
         if (!empty) {
-            for (var i = 0; i < Object.keys(copy.parts).length; i++) {
-                copy.addPart(true, copy.parts[Object.keys(copy.parts)[i]]);
+            for (var i = 0; i < Object.keys(this.parts).length; i++) {
+                this.addPart(true, this.parts[Object.keys(this.parts)[i]]);
             }
         } else {
-            copy.addPart(false);
-            copy.addPart(false);
+            this.addPart(false);
+            this.addPart(false);
         }
     };
     copy.updateRule = function () {
-        copy.parts = [];
+        this.parts = [];
 
-        for (var i = 0; i < copy.draggingHelpers.nextIndex; i++) {
+        for (var i = 0; i < this.draggingHelpers.nextIndex; i++) {
             var name = 'part' + i + '_mode_selector';
             var modeSelector = document.getElementById(name);
             if (modeSelector) {
                 var amountInput = document.getElementById('part' + i + '_amount_input_field');
                 var mode = modeSelector.options[modeSelector.selectedIndex].value;
                 var amount = amountInput.value;
-                copy.parts['part' + i] = { mode: mode, amount: amount };
+                this.parts['part' + i] = { mode: mode, amount: amount };
 
                 var partId = 'partDiv' + i;
                 var part = document.getElementById(partId)
-                readTags(part, copy.parts['part' + i]);
+                readTags(part, this.parts['part' + i]);
             }
         }
     };
@@ -164,7 +164,7 @@ generatecopyRule = function () {
             counter += 1;
         }
 
-        copy.parts = [];
+        this.parts = [];
         var partCounter = 0;
 
         var DEFAULT = 0, PART = 1;
@@ -195,7 +195,7 @@ generatecopyRule = function () {
                         [part, used] = renderer.postfixController.parsePostfixes(part, ruleBuffer.slice(counter, endOfRule));
                         if (!part.postfixes) part.postfixes = [];
                         counter += used;
-                        copy.parts['part' + partCounter] = part;
+                        this.parts['part' + partCounter] = part;
                         partCounter += 1;
                         parseMode = DEFAULT;
                     }

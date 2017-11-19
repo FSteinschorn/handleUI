@@ -8,39 +8,39 @@ generateConcatRule = function () {
     var concat = generateCustomRule(concatRule);
     concat.generateRuleString = function () {
         var output = "new Rules.Concat(";
-        for (var i = 0; i < concat.selections.length; i++) {
+        for (var i = 0; i < this.selections.length; i++) {
             output += "\n";
-            output += concat.selections[i].generateRuleString();
+            output += this.selections[i].generateRuleString();
             output = output.slice(0, -1);
             output += ",";
         }
         output = output.slice(0, -1);
         output += "\n);";
 
-        concat.lastRuleString = output;
+        this.lastRuleString = output;
 
         return output;
     };
     concat.generateShortString = function () {
         var output = "Concat of ";
-        output += concat.selections.length;
+        output += this.selections.length;
         output += " rules";
         return output;
     };
     concat.applyRule = function (shape) {
-        for (var i = 0; i < concat.selections.length; i++) {
-            concat.selections[i].applyRule(shape);
-            concat.selections[i].inConcat = true;
+        for (var i = 0; i < this.selections.length; i++) {
+            this.selections[i].applyRule(shape);
+            this.selections[i].inConcat = true;
         }
     };
     concat.unapplyRule = function (shape) {
-        for (var i = concat.selections.length - 1; i >= 0; i--) {
-            concat.selections[i].unapplyRule(shape);
+        for (var i = this.selections.length - 1; i >= 0; i--) {
+            this.selections[i].unapplyRule(shape);
         }
     };
     concat.appendInputFields = function (parentDiv, empty) {
-        if (!concat.selections) {
-            concat.selections = [];
+        if (!this.selections) {
+            this.selections = [];
         }
 
         while (parentDiv.hasChildNodes()) {
@@ -53,14 +53,14 @@ generateConcatRule = function () {
         selectionListDiv.classList = "w3-container";
         selectionListDiv.style = "position:relative; border-bottom: 1px solid black;";
 
-        for (var i = 0; i < concat.selections.length; i++) {
+        for (var i = 0; i < this.selections.length; i++) {
             var ruleDiv = document.createElement('div');
             ruleDiv.style = "height:2em;position:relative;";
             selectionListDiv.appendChild(ruleDiv);
-            ruleDiv.innerHTML = "<span class='tag-tag'>" + concat.selections[i].generateShortString() + "</span>";
+            ruleDiv.innerHTML = "<span class='tag-tag'>" + this.selections[i].generateShortString() + "</span>";
 
             if (i != 0 &&
-                !concat.selections[i].generatesMultipleShapes) {
+                !this.selections[i].generatesMultipleShapes) {
                 var up_button = document.createElement("button");
                 up_button.id = "up_Button_" + i;
                 up_button.classList = "w3-btn";
@@ -71,8 +71,8 @@ generateConcatRule = function () {
                 ruleDiv.appendChild(up_button);
             }
 
-            if (i != concat.selections.length - 1 &&
-                !concat.selections[i + 1].generatesMultipleShapes) {
+            if (i != this.selections.length - 1 &&
+                !this.selections[i + 1].generatesMultipleShapes) {
                 var down_button = document.createElement("button");
                 down_button.id = "down_Button_" + i;
                 down_button.classList = "w3-btn";
@@ -96,42 +96,42 @@ generateConcatRule = function () {
         parentDiv.appendChild(selectionListDiv);
 
         // up button function
-        for (var i = 0; i < concat.selections.length; i++) {
+        for (var i = 0; i < this.selections.length; i++) {
             $("#up_Button_" + i).click(function (i) {
                 return function () {
-                    var tmp = concat.selections[i];
-                    concat.selections[i] = concat.selections[i - 1];
-                    concat.selections[i - 1] = tmp;
+                    var tmp = this.selections[i];
+                    this.selections[i] = this.selections[i - 1];
+                    this.selections[i - 1] = tmp;
 
-                    inputChanged();
-                    concat.appendInputFields(parentDiv, rule, true);
+                    this.inputChanged();
+                    this.appendInputFields(parentDiv, rule, true);
                 };
             }(i))
         }
 
         // down button function
-        for (var i = 0; i < concat.selections.length; i++) {
+        for (var i = 0; i < this.selections.length; i++) {
             $("#down_Button_" + i).click(function (i) {
                 return function () {
-                    var tmp = concat.selections[i];
-                    concat.selections[i] = concat.selections[i + 1];
-                    concat.selections[i + 1] = tmp;
+                    var tmp = this.selections[i];
+                    this.selections[i] = this.selections[i + 1];
+                    this.selections[i + 1] = tmp;
 
-                    inputChanged();
-                    concat.appendInputFields(parentDiv, rule, true);
+                    this.inputChanged();
+                    this.appendInputFields(parentDiv, rule, true);
                 };
             }(i))
         }
 
         // remove button function
-        for (var i = 0; i < concat.selections.length; i++) {
+        for (var i = 0; i < this.selections.length; i++) {
             $("#removeRule_Button_" + i).click(function (i) {
                 return function () {
-                    parsedRules[concat.selections[i].index].inConcat = false;
-                    concat.selections.splice(i, 1);
+                    parsedRules[this.selections[i].index].inConcat = false;
+                    this.selections.splice(i, 1);
 
-                    inputChanged();
-                    concat.appendInputFields(parentDiv, rule, true);
+                    this.inputChanged();
+                    this.appendInputFields(parentDiv, rule, true);
                 };
             }(i))
         }
@@ -196,11 +196,11 @@ generateConcatRule = function () {
             $("#addRule_Button_" + i).click(function (i) {
                 return function () {
                     parsedRules[i].index = i;
-                    concat.selections.push(parsedRules[i]);
+                    this.selections.push(parsedRules[i]);
                     parsedRules[i].inConcat = true;
-                    inputChanged();
+                    this.inputChanged();
 
-                    concat.appendInputFields(parentDiv, rule, true);
+                    this.appendInputFields(parentDiv, rule, true);
                 };
             }(i))
         }
@@ -208,17 +208,17 @@ generateConcatRule = function () {
             $("#addRule_Button_" + (i + parsedRules.length)).click(function (i) {
                 return function () {
                     tmpRules[i].index = i;
-                    concat.selections.push(tmpRules[i]);
+                    this.selections.push(tmpRules[i]);
                     tmpRules[i].inConcat = true;
-                    inputChanged();
+                    this.inputChanged();
 
-                    concat.appendInputFields(parentDiv, rule, true);
+                    this.appendInputFields(parentDiv, rule, true);
                 };
             }(i))
         }
     };
     concat.parseCode = function (ruleBuffer) {
-        concat.selections = [];
+        this.selections = [];
 
         var counter = 0;
         while (ruleBuffer[counter].Text != "Concat") {
@@ -250,13 +250,17 @@ generateConcatRule = function () {
                 rule.edited = false;
                 rule.wasParsed = true;
                 rule.inConcat = true;
-                concat.selections.push(rule);
+                this.selections.push(rule);
             } else {
                 counter += 1;
             }
         }
 
         return lastPosition + 2;
+    };
+    concat.inputChanged = function() {
+        this.generatesMultipleShapes = this.selections[this.selections.length - 1].generatesMultipleShapes;
+        inputChanged();
     };
     return concat;
 };
