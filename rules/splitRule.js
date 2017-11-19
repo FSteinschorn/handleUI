@@ -252,7 +252,7 @@ generateSplitRule = function () {
             alert("Sum of absolute parts is larger than available size.\nThis would result in an error!");
         } else this.draggingHelpers.dontDraw = false;
     };
-    split.addPreview = function (shape) {
+    split.addPreview = function (shape, color) {
         if (this.draggingHelpers.dontDraw) return;
 
         var offset = -this.draggingHelpers.fullSize / 2;
@@ -284,7 +284,7 @@ generateSplitRule = function () {
             m.multiply(translate.transpose());
             segmentShape = jQuery.extend(true, {}, shape);
             segmentShape.appearance.transformation = m.toArray();
-            addPreview(segmentShape);
+            addPreview(segmentShape, color);
         }
     };
     split.removePreview = function (shape) {

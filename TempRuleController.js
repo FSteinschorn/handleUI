@@ -280,10 +280,11 @@ function TempRuleController() {
         meshes.delete(shape.id);
     };
 
-    self.changePreviewColor = function (shape, color) {
+    self.changePreviewColor = function (shape, color, rule) {
         color = lookupColor(color);
         self.removePreview(shape);
-        self.addPreview(shape, color);
+        if (rule) rule.addPreview(shape, color);
+        else self.addPreview(shape, color);
     };
 
     //call with node.shape.appearance.transformation

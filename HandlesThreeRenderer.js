@@ -194,7 +194,7 @@ function HandlesThreeRenderer(domQuery) {
                 // remove old selection and ui
                 self.selectedMesh.shape.interaction.selected(false);
                 if (self.selectedMesh.shape.appliedRules == 0) self.ruleController.removePreview(self.selectedMesh.shape);
-                else self.ruleController.changePreviewColor(self.selectedMesh.shape, "blue");
+                else self.ruleController.changePreviewColor(self.selectedMesh.shape, "blue", self.selectedRule);
                 self.selectedMesh = null;
                 for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
                     self.handlesScene.remove(self.handlesScene.children[i]);
@@ -205,7 +205,7 @@ function HandlesThreeRenderer(domQuery) {
             self.selectedMesh = node;
             if (!self.selectedMesh.shape.appliedRules) self.selectedMesh.shape.appliedRules = 0;
             if (self.selectedMesh.shape.appliedRules == 0) self.ruleController.addPreview(self.selectedMesh.shape, "green");
-            else self.ruleController.changePreviewColor(self.selectedMesh.shape, "green");
+            else self.ruleController.changePreviewColor(self.selectedMesh.shape, "green", self.selectedRule);
 
             clearUI();
             self.initButtonsUI();

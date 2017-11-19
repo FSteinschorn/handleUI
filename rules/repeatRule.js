@@ -15,11 +15,10 @@ generaterepeatRule = function () {
         };
         repeat.generatesMultipleShapes = true;
         repeat.addPart = function (doUpdate, settings) {
-            var button = document.getElementById("addPartButton");
             var partDiv = document.createElement('div');
             partDiv.style = 'margin:0.01em 16px';
-            partDiv.id = 'partDiv' + repeat.draggingHelpers.nextIndex;
-            var partname = 'part' + repeat.draggingHelpers.nextIndex + '_mode_selector';
+            partDiv.id = 'partDiv' + this.draggingHelpers.nextIndex;
+            var partname = 'part' + this.draggingHelpers.nextIndex + '_mode_selector';
             var innerHTML = '<select id=' + partname + '>';
             innerHTML += '<option value="Relative">Relative</option>';
             innerHTML += '<option value="Absolute">Absolute</option>';
@@ -27,34 +26,21 @@ generaterepeatRule = function () {
             partDiv.innerHTML += innerHTML;
             var amount_input = document.createElement("input");
             amount_input.setAttribute('type', 'text');
-            var inputname = 'part' + repeat.draggingHelpers.nextIndex + '_amount_input_field';
+            var inputname = 'part' + this.draggingHelpers.nextIndex + '_amount_input_field';
             amount_input.setAttribute('id', inputname);
             partDiv.appendChild(amount_input);
-            var addPostfixName = 'part' + repeat.draggingHelpers.nextIndex + '_add_postfix_button';
+            var addPostfixName = 'part' + this.draggingHelpers.nextIndex + '_add_postfix_button';
             var addPostfixButton = document.createElement('button');
             addPostfixButton.id = addPostfixName;
             addPostfixButton.style = 'margin:0px 20px';
             var addPostfixButtonText = document.createTextNode('add Postfix');
             addPostfixButton.appendChild(addPostfixButtonText);
             partDiv.appendChild(addPostfixButton);
-            var removename = 'part' + repeat.draggingHelpers.nextIndex + '_remove_button';
-            var removeButton = document.createElement('button');
-            removeButton.id = removename;
-            removeButton.style = 'position:absolute;right:5px';
-            var removeButtonText = document.createTextNode('X');
-            removeButton.appendChild(removeButtonText);
-            partDiv.appendChild(removeButton);
-            button.parentNode.insertBefore(partDiv, button);
+            var inputDiv = document.getElementById("inputDiv");
+            inputDiv.appendChild(partDiv);
             $('#' + partname).change(inputChanged);
             $('#' + inputname).change(inputChanged);
-            $('#' + addPostfixName).click(repeat.addPostfixFunction(partDiv.id, settings))
-            $('#' + removename).click(function (id) {
-                return function () {
-                    var part = document.getElementById(id);
-                    button.parentNode.removeChild(part);
-                    inputChanged();
-                }
-            }(partDiv.id));
+            $('#' + addPostfixName).click(this.addPostfixFunction(partDiv.id, settings));
             if (settings) {
                 var selector = document.getElementById(partname);
                 for (var i = 0; i < 2; i++) {
@@ -62,7 +48,7 @@ generaterepeatRule = function () {
                 }
                 amount_input.value = settings.amount;
                 for (var i = 0; i < Object.keys(settings.postfixes).length; i++) {
-                    repeat.addPostfix(partDiv.id, settings.postfixes[i]);
+                    this.addPostfix(partDiv.id, settings.postfixes[i]);
                 }
             } else {
                 amount_input.value = 1;
@@ -72,35 +58,36 @@ generaterepeatRule = function () {
         };
         repeat.addPostfixFunction = function (partId, settings) {
             return function () {
-                repeat.addPostfix(partId, settings);
+                this.addPostfix(partId, settings);
             }
         };
         repeat.addPostfix = function (partId, settings) {
             part = document.getElementById(partId);
             var possiblePostfixes = ["Goal", "goal", "Tag", "Attribute", "Asset", "Paint", "Orientation", "Reflect", "Void", "Family", "Sync"];
             renderer.postfixController.addPostfix(part, settings, possiblePostfixes, deleteButton = true);
-        }
+        };
     }
     // standard functions
     repeat.generateRuleString = function () {
-        var ruleString = "new Rules.Repeat(" + repeat.axis + ",";
+        var ruleString = "new Rules.Repeat(" + this.axis + ",";
         var counter = 1;
-        for (var part in repeat.parts) {
-            ruleString += "\n\t\t" + repeat.parts[part].mode + "(" + repeat.parts[part].amount + ")";
-            ruleString = addTags(repeat.parts[part], ruleString, 3);
-            if (counter < Object.keys(repeat.parts).length) ruleString += ',';
+        for (var part in this.parts) {
+            ruleString += "\n\t\t" + this.parts[part].mode + "(" + this.parts[part].amount + ")";
+            ruleString = addTags(this.parts[part], ruleString, 3);
+            if (counter < Object.keys(this.parts).length) ruleString += ',';
             counter++;
         }
         ruleString += "\n)";
         ruleString = addTags(repeat, ruleString);
         ruleString += ";";
-        repeat.lastRuleString = ruleString;
+        this.lastRuleString = ruleString;
         return ruleString;
     };
     repeat.generateShortString = function () {
-        var keys = Object.keys(repeat.parts);
+        var keys = Object.keys(this.parts);
         var size = keys.length;
-        return ("Repeat of " + size + " parts.");
+        var partname = keys[0];
+        return ("Repeat of part of size " + this.parts[partname].amount + " " + this.parts[partname].mode);
     };
     repeat.appendInputFields = function (parentDiv, empty) {
         var innerHTML = '<select id="axis_selector">';
@@ -109,51 +96,34 @@ generaterepeatRule = function () {
         innerHTML += '<option value="Axis.Z">Axis.Z</option>';
         innerHTML += '</select>'
         parentDiv.innerHTML += innerHTML;
-        var addPartButton = document.createElement('button');
-        addPartButton.id = "addPartButton";
-        addPartButton.style.marginLeft = "1em";
-        var addPartButton_text = document.createTextNode("add Part");
-        addPartButton.appendChild(addPartButton_text);
-        parentDiv.appendChild(addPartButton);
-        $("#addPartButton").click(function () {
-            repeat.addPart(true);
-        });
         $('#axis_selector').change(inputChanged);
         if (!empty) {
             var selector = document.getElementById("axis_selector");
             for (var i = 0; i < 3; i++) {
-                if (selector.options[i].label == repeat.axis) selector.selectedIndex = i;
+                if (selector.options[i].label == this.axis) selector.selectedIndex = i;
             }
-            for (var i = 0; i < Object.keys(repeat.parts).length; i++) {
-                repeat.addPart(true, repeat.parts[Object.keys(repeat.parts)[i]]);
+            for (var i = 0; i < Object.keys(this.parts).length; i++) {
+                this.addPart(true, this.parts[Object.keys(this.parts)[i]]);
             }
         } else {
-            repeat.addPart(false);
-            repeat.addPart(false);
+            this.addPart(false);
         }
     };
     repeat.applyRule = function (shape) {
-        var parts = repeat.parts;
-        var sumAbs = 0;
-        var sumRel = 0;
-        for (var i = 0; i < Object.keys(parts).length; i++) {
-            var partname = Object.keys(parts)[i];
-            if (parts[partname].mode == "Relative") {
-                var add = isNaN(parseFloat(parts[partname].amount)) ? 0 : parseFloat(parts[partname].amount);
-                add = Math.max(0.000001, add);
-                sumRel += add;
-            } else {
-                var add = isNaN(parseFloat(parts[partname].amount)) ? 0 : parseFloat(parts[partname].amount);
-                add = Math.max(0.000001, add);
-                sumAbs += add;
-            }
-        }
+        var parts = this.parts;
+        var partname = Object.keys(parts)[0];
+        if (Object.keys(parts).length == 0) parts[partname] = { mode: "Relative", amount: 1.0 };
+        var targetSize = isNaN(parseFloat(parts[partname].amount)) ? -1 : parseFloat(parts[partname].amount);
+        if (targetSize <= 0) return;
+        var mode = parts[partname].mode;
+
         var m = shape.appearance.transformation;
         var xDir = new THREE.Vector3(m[0], m[1], m[2]);
         var yDir = new THREE.Vector3(m[4], m[5], m[6]);
         var zDir = new THREE.Vector3(m[8], m[9], m[10]);
         var size, width, height;
-        switch (repeat.axis) {
+        if (!this.axis) this.axis = "Axis.X";
+        switch (this.axis) {
             case 'Axis.X':
                 size = xDir.length();
                 width = yDir.length();
@@ -172,46 +142,38 @@ generaterepeatRule = function () {
             default:
                 break;
         }
-        repeat.draggingHelpers.fullSize = size;
-        repeat.draggingHelpers.width = width;
-        repeat.draggingHelpers.height = height;
-        var avRel = size - sumAbs;
-        var segRelSize = 0;
-        repeat.draggingHelpers.partKind = [];
-        repeat.draggingHelpers.segments = [];
-        repeat.draggingHelpers.input = [];
-        for (var i = 0; i < Object.keys(parts).length; i++) {
-            var partname = Object.keys(parts)[i];
-            if (parts[partname].mode == "Relative") {
-                var amount = isNaN(parseFloat(parts[partname].amount)) ? 0 : parseFloat(parts[partname].amount);
-                amount = Math.max(repeat.draggingHelpers.epsilon, amount);
-                repeat.draggingHelpers.partKind.push('rel');
-                var segmentSize = amount / sumRel * avRel
-                repeat.draggingHelpers.segments.push(segmentSize);
-                repeat.draggingHelpers.input.push(amount);
-                segRelSize = segRelSize + segmentSize;
-            } else {
-                var amount = isNaN(parseFloat(parts[partname].amount)) ? 0 : parseFloat(parts[partname].amount);
-                amount = Math.max(repeat.draggingHelpers.epsilon, amount);
-                repeat.draggingHelpers.partKind.push('abs');
-                repeat.draggingHelpers.segments.push(amount);
-                repeat.draggingHelpers.input.push(amount);
-            }
+        this.draggingHelpers.fullSize = size;
+        this.draggingHelpers.width = width;
+        this.draggingHelpers.height = height;
+
+        if (mode == "Relative") targetSize = targetSize * size;
+
+        var nrParts = size/targetSize;
+        if (nrParts - Math.floor(nrParts) < Math.ceil(nrParts) - nrParts) nrParts = Math.floor(nrParts);
+        else nrParts = Math.ceil(nrParts);
+
+        this.draggingHelpers.segments = [];
+        this.draggingHelpers.partKind = [];
+        this.draggingHelpers.input = [];
+        for (var i = 0; i < nrParts; i++) {
+            this.draggingHelpers.segments.push(size / nrParts);
+            this.draggingHelpers.partKind.push('Absolute');
+            this.draggingHelpers.input.push(targetSize);
         }
-        repeat.draggingHelpers.unitsPerInput = 1;
-        if (sumRel != 0) repeat.draggingHelpers.unitsPerInput = segRelSize / sumRel;
-        repeat.draggingHelpers.sumRel = segRelSize;
+
+        this.draggingHelpers.unitsPerInput = 1;
+        this.draggingHelpers.sumRel = 1;
     };
     repeat.unapplyRule = function (shape) {
-        repeat.draggingHelpers.segments = [1];
+        this.draggingHelpers.segments = [1];
     };
     repeat.updateRule = function () {
-        repeat.parts = [];
+        this.parts = [];
         var selector = document.getElementById("axis_selector");
         var selection = selector.options[selector.selectedIndex].value;
-        repeat.axis = selection;
+        this.axis = selection;
         var sumAbs = 0;
-        for (var i = 0; i < repeat.draggingHelpers.nextIndex; i++) {
+        for (var i = 0; i < this.draggingHelpers.nextIndex; i++) {
             var name = 'part' + i + '_mode_selector';
             var modeSelector = document.getElementById(name);
             if (modeSelector) {
@@ -219,39 +181,38 @@ generaterepeatRule = function () {
                 var mode = modeSelector.options[modeSelector.selectedIndex].value;
                 var amount = amountInput.value;
                 if (mode == 'Absolute') sumAbs += parseFloat(amount);
-                repeat.parts['part' + i] = { mode: mode, amount: amount };
+                this.parts['part' + i] = { mode: mode, amount: amount };
                 var partId = 'partDiv' + i;
                 var part = document.getElementById(partId)
-                readTags(part, repeat.parts['part' + i]);
+                readTags(part, this.parts['part' + i]);
             }
         }
-        if (!repeat.draggingHelpers.fullSize) repeat.draggingHelpers.fullSize = 99999999;
-        if (repeat.draggingHelpers.fullSize < sumAbs - repeat.draggingHelpers.epsilon) {
-            repeat.draggingHelpers.dontDraw = true;
+        if (!this.draggingHelpers.fullSize) this.draggingHelpers.fullSize = 99999999;
+        if (this.draggingHelpers.fullSize < sumAbs - this.draggingHelpers.epsilon) {
+            this.draggingHelpers.dontDraw = true;
             alert("Sum of absolute parts is larger than available size.\nThis would result in an error!");
-        } else repeat.draggingHelpers.dontDraw = false;
+        } else this.draggingHelpers.dontDraw = false;
     };
-    repeat.addPreview = function (shape) {
-        if (repeat.draggingHelpers.dontDraw) return;
-        var offset = -repeat.draggingHelpers.fullSize / 2;
+    repeat.addPreview = function (shape, color) {
+        if (this.draggingHelpers.dontDraw) return;
+        var offset = -this.draggingHelpers.fullSize / 2;
         var scale;
         var translate;
-        var mat;
-        for (var i = 0; i < repeat.draggingHelpers.segments.length; i++) {
+        for (var i = 0; i < this.draggingHelpers.segments.length; i++) {
             var m = shape.appearance.transformation;
             m = new THREE.Matrix4().fromArray(m);
-            var size = Math.max(0.000001, repeat.draggingHelpers.segments[i]);
-            switch (repeat.axis) {
+            var size = Math.max(0.000001, this.draggingHelpers.segments[i]);
+            switch (this.axis) {
                 case 'Axis.X':
-                    scale = new THREE.Matrix4().makeScale(size / repeat.draggingHelpers.fullSize, 1, 1);
+                    scale = new THREE.Matrix4().makeScale(size / this.draggingHelpers.fullSize, 1, 1);
                     translate = new THREE.Matrix4().makeTranslation(offset + size / 2, 0, 0);
                     break;
                 case 'Axis.Y':
-                    scale = new THREE.Matrix4().makeScale(1, size / repeat.draggingHelpers.fullSize, 1);
+                    scale = new THREE.Matrix4().makeScale(1, size / this.draggingHelpers.fullSize, 1);
                     translate = new THREE.Matrix4().makeTranslation(0, offset + size / 2, 0);
                     break;
                 case 'Axis.Z':
-                    scale = new THREE.Matrix4().makeScale(1, 1, size / repeat.draggingHelpers.fullSize);
+                    scale = new THREE.Matrix4().makeScale(1, 1, size / this.draggingHelpers.fullSize);
                     translate = new THREE.Matrix4().makeTranslation(0, 0, offset + size / 2);
                     break;
                 default:
@@ -260,9 +221,9 @@ generaterepeatRule = function () {
             offset += size;
             m.premultiply(scale);
             m.multiply(translate.transpose());
-            segmentShape = jQuery.extend(true, {}, shape);
+            var segmentShape = jQuery.extend(true, {}, shape);
             segmentShape.appearance.transformation = m.toArray();
-            addPreview(segmentShape);
+            getRuleController().addPreview(segmentShape, color);
         }
     };
     repeat.removePreview = function (shape) {
@@ -273,8 +234,8 @@ generaterepeatRule = function () {
         renderer.RenderSingleFrame();
     };
     repeat.createHandles = function (scene, shape) {
-        if (repeat.draggingHelpers.dontDraw) return;
-        if (!repeat.draggingHelpers.segments) repeat.applyRule(shape.shape);
+        if (this.draggingHelpers.dontDraw) return;
+        if (!this.draggingHelpers.segments) this.applyRule(shape.shape);
         this.draggingHelpers.scene = scene;
         var basicColors = [0xAA3030, 0x30AA30, 0x3030AA];
         var highlightColors = [0xFF0000, 0x00FF00, 0x0000FF];
@@ -283,7 +244,7 @@ generaterepeatRule = function () {
         center = new THREE.Vector3(0, 0, 0);
         center.applyProjection(m);
         var dir;
-        switch (repeat.axis) {
+        switch (this.axis) {
             case 'Axis.X':
                 dir = new THREE.Vector3(1.0, 0, 0);
                 break;
@@ -298,175 +259,139 @@ generaterepeatRule = function () {
         }
         dir.applyProjection(m);
         dir.sub(center);
-        var widthOffset = repeat.draggingHelpers.width / (repeat.draggingHelpers.segments.length - 1);
-        var heightOffset = repeat.draggingHelpers.height / (repeat.draggingHelpers.segments.length - 1);
-        switch (repeat.axis) {
+        switch (this.axis) {
             case 'Axis.X':
-                center.add(new THREE.Vector3(-repeat.draggingHelpers.fullSize / 2, -repeat.draggingHelpers.width / 2 - widthOffset / 2, -repeat.draggingHelpers.height / 2 - heightOffset / 2));
+                center.add(new THREE.Vector3(-this.draggingHelpers.fullSize / 2, 0, 0));
                 break;
             case 'Axis.Y':
-                center.add(new THREE.Vector3(-repeat.draggingHelpers.width / 2 - widthOffset / 2, -repeat.draggingHelpers.fullSize / 2, -repeat.draggingHelpers.height / 2 - heightOffset / 2));
+                center.add(new THREE.Vector3(0, -this.draggingHelpers.fullSize / 2, 0));
                 break;
             case 'Axis.Z':
-                center.add(new THREE.Vector3(-repeat.draggingHelpers.width / 2 - widthOffset / 2, -repeat.draggingHelpers.height / 2 - heightOffset / 2, -repeat.draggingHelpers.fullSize / 2));
+                center.add(new THREE.Vector3(0, 0, -this.draggingHelpers.fullSize / 2));
                 break;
             default:
                 break;
         }
-        repeat.draggingHelpers.highlight = null;
+        this.draggingHelpers.highlight = null;
         var search = 0;
-        if (!repeat.draggingHelpers.arrowIds) repeat.draggingHelpers.arrowIds = [];
-        if (repeat.draggingHelpers.overHandle) search = repeat.draggingHelpers.overHandle;
-        else if (repeat.draggingHelpers.activeHandle) search = repeat.draggingHelpers.activeHandle;
-        for (var i = 0; i < repeat.draggingHelpers.arrowIds.length; i++) {
-            if (repeat.draggingHelpers.arrowIds[i] <= search && repeat.draggingHelpers.arrowIds[i] + 2 >= search) {
-                repeat.draggingHelpers.highlight = Math.floor(i / 2);
+        if (!this.draggingHelpers.arrowIds) this.draggingHelpers.arrowIds = [];
+        if (this.draggingHelpers.overHandle) search = this.draggingHelpers.overHandle;
+        else if (this.draggingHelpers.activeHandle) search = this.draggingHelpers.activeHandle;
+        for (var i = 0; i < this.draggingHelpers.arrowIds.length; i++) {
+            if (this.draggingHelpers.arrowIds[i] <= search && this.draggingHelpers.arrowIds[i] + 2 >= search) {
+                this.draggingHelpers.highlight = Math.floor(i / 2);
             }
-        };
-        var oldStartingId = repeat.draggingHelpers.arrowIds[0] || 0;
-        repeat.draggingHelpers.arrowIds = [];
-        var counter = 0;
-        for (var i = 0; i < repeat.draggingHelpers.segments.length - 1; i++) {
-            var size = Math.max(0.000001, repeat.draggingHelpers.segments[i]);
-            switch (repeat.axis) {
-                case 'Axis.X':
-                    center.add(new THREE.Vector3(size, widthOffset, heightOffset));
-                    if (counter == repeat.draggingHelpers.highlight) color = highlightColors[0];
-                    else color = basicColors[0];
-                    break;
-                case 'Axis.Y':
-                    center.add(new THREE.Vector3(widthOffset, size, heightOffset));
-                    if (counter == repeat.draggingHelpers.highlight) color = highlightColors[1];
-                    else color = basicColors[1];
-                    break;
-                case 'Axis.Z':
-                    center.add(new THREE.Vector3(widthOffset, heightOffset, size));
-                    if (counter == repeat.draggingHelpers.highlight) color = highlightColors[2];
-                    else color = basicColors[2];
-                    break;
-                default:
-                    break;
-            }
-            counter++;
-            var arrowlength = Math.max(repeat.draggingHelpers.fullSize / 5, 0.1);
-            var backarrow = new THREE.ArrowHelper(new THREE.Vector3().sub(dir).normalize(), center, arrowlength, color, 0.2, 0.1);
-            var arrow = new THREE.ArrowHelper(dir.normalize(), center, arrowlength, color, 0.2, 0.1);
-            scene.add(arrow);
-            scene.add(backarrow);
-            repeat.draggingHelpers.arrowIds.push(arrow.id);
-            repeat.draggingHelpers.arrowIds.push(backarrow.id);
         }
-        repeat.draggingHelpers.idOffset = repeat.draggingHelpers.arrowIds[0] - oldStartingId;
+        var oldStartingId = this.draggingHelpers.arrowIds[0] || 0;
+        this.draggingHelpers.arrowIds = [];
+        var parts = this.parts;
+        var partname = Object.keys(parts)[0];
+        var targetSize = isNaN(parseFloat(parts[partname].amount)) ? -1 : parseFloat(parts[partname].amount);
+        var mode = parts[partname].mode;
+        if (mode == "Relative") targetSize = targetSize * this.draggingHelpers.fullSize;
+        switch (this.axis) {
+            case 'Axis.X':
+                center.add(new THREE.Vector3(targetSize, 0, 0));
+                if (0 == this.draggingHelpers.highlight) color = highlightColors[0];
+                else color = basicColors[0];
+                break;
+            case 'Axis.Y':
+                center.add(new THREE.Vector3(0, targetSize, 0));
+                if (0 == this.draggingHelpers.highlight) color = highlightColors[1];
+                else color = basicColors[1];
+                break;
+            case 'Axis.Z':
+                center.add(new THREE.Vector3(0, 0, targetSize));
+                if (0 == this.draggingHelpers.highlight) color = highlightColors[2];
+                else color = basicColors[2];
+                break;
+            default:
+                break;
+        }
+        var arrowlength = Math.max(this.draggingHelpers.fullSize / 5, 0.1);
+        var backarrow = new THREE.ArrowHelper(new THREE.Vector3().sub(dir).normalize(), center, arrowlength, color, 0.2, 0.1);
+        var arrow = new THREE.ArrowHelper(dir.normalize(), center, arrowlength, color, 0.2, 0.1);
+        scene.add(arrow);
+        scene.add(backarrow);
+        this.draggingHelpers.arrowIds.push(arrow.id);
+        this.draggingHelpers.arrowIds.push(backarrow.id);
+        this.draggingHelpers.idOffset = this.draggingHelpers.arrowIds[0] - oldStartingId;
     };
     repeat.onMouseOverHandle = function (id) {
-        oldHandle = repeat.draggingHelpers.overHandle;
-        repeat.draggingHelpers.overHandle = id;
-        if (repeat.draggingHelpers.overHandle != oldHandle) inputChanged();
+        oldHandle = this.draggingHelpers.overHandle;
+        this.draggingHelpers.overHandle = id;
+        if (this.draggingHelpers.overHandle != oldHandle) inputChanged();
     };
     repeat.onMouseNotOverHandle = function () {
-        oldHandle = repeat.draggingHelpers.overHandle;
-        repeat.draggingHelpers.overHandle = null;
-        if (repeat.draggingHelpers.overHandle != oldHandle) inputChanged();
+        oldHandle = this.draggingHelpers.overHandle;
+        this.draggingHelpers.overHandle = null;
+        if (this.draggingHelpers.overHandle != oldHandle) inputChanged();
     };
     repeat.onHandlePressed = function (id, mouse, intersection, scene, camera) {
-        id += repeat.draggingHelpers.idOffset;
+        id += this.draggingHelpers.idOffset;
         var clickedObject = scene.getObjectById(id);
         var arrowPos = clickedObject.parent.position;
         var initStart = arrowPos.clone();
         var initEnd = intersection.clone();
         var start = initStart.clone().add(initEnd.clone().sub(initStart).multiplyScalar(1000));
         var end = initEnd.clone().add(initStart.clone().sub(initEnd).multiplyScalar(1000));
-        repeat.draggingHelpers.segment = {
+        this.draggingHelpers.segment = {
             start: start,
             end: end
         };
-        repeat.draggingHelpers.directionFactor = 1;
-        for (var i = 0; i < repeat.draggingHelpers.arrowIds.length; i++) {
-            if (repeat.draggingHelpers.arrowIds[i] <= id && repeat.draggingHelpers.arrowIds[i] + 2 >= id) {
-                repeat.draggingHelpers.beforeActiveCut = Math.floor(i / 2);
-                if (i.isOdd()) repeat.draggingHelpers.directionFactor = -1;
+        this.draggingHelpers.directionFactor = 1;
+        for (var i = 0; i < this.draggingHelpers.arrowIds.length; i++) {
+            if (this.draggingHelpers.arrowIds[i] <= id && this.draggingHelpers.arrowIds[i] + 2 >= id) {
+                this.draggingHelpers.beforeActiveCut = Math.floor(i / 2);
+                if (i.isOdd()) this.draggingHelpers.directionFactor = -1;
             }
         }
-        repeat.draggingHelpers.startingSegments = repeat.draggingHelpers.segments.slice();
-        repeat.draggingHelpers.startingInput = repeat.draggingHelpers.input.slice();
-        repeat.draggingHelpers.cam = camera;
-        repeat.draggingHelpers.intersection = intersection;
-        repeat.draggingHelpers.arrowPos = arrowPos;
-        repeat.draggingHelpers.activeHandle = id;
+        this.draggingHelpers.startingSegments = this.draggingHelpers.segments.slice();
+        this.draggingHelpers.startingInput = this.draggingHelpers.input.slice();
+        this.draggingHelpers.cam = camera;
+        this.draggingHelpers.intersection = intersection;
+        this.draggingHelpers.arrowPos = arrowPos;
+        this.draggingHelpers.activeHandle = id;
     };
     repeat.onHandleDragged = function (mouse) {
         var mousePoint = new THREE.Vector3(mouse.x, mouse.y, 1);
-        mousePoint.unproject(repeat.draggingHelpers.cam);
-        var mouseRay = new THREE.Ray(repeat.draggingHelpers.cam.position, mousePoint.sub(repeat.draggingHelpers.cam.position).normalize());
+        mousePoint.unproject(this.draggingHelpers.cam);
+        var mouseRay = new THREE.Ray(this.draggingHelpers.cam.position, mousePoint.sub(this.draggingHelpers.cam.position).normalize());
         var targetPoint = new THREE.Vector3();
-        mouseRay.distanceSqToSegment(repeat.draggingHelpers.segment.start,
-            repeat.draggingHelpers.segment.end,
+        mouseRay.distanceSqToSegment(this.draggingHelpers.segment.start,
+            this.draggingHelpers.segment.end,
             null,
             targetPoint);
-        var diff = targetPoint.sub(repeat.draggingHelpers.intersection);
+        var diff = targetPoint.sub(this.draggingHelpers.intersection);
         var length = diff.length();
-        var direction = repeat.draggingHelpers.intersection.clone().sub(repeat.draggingHelpers.arrowPos);
+        var direction = this.draggingHelpers.intersection.clone().sub(this.draggingHelpers.arrowPos);
         var angle = diff.normalize().angleTo(direction.normalize());
         if (angle > (0.5 * Math.PI)) length *= -1;
-        length *= repeat.draggingHelpers.directionFactor;
-        if (length > 0) {
-            toReduce = repeat.draggingHelpers.beforeActiveCut + 1;
-            toEnlarge = repeat.draggingHelpers.beforeActiveCut;
+        length *= this.draggingHelpers.directionFactor;
+
+        var inputs = this.draggingHelpers.startingInput.slice();
+
+        var partname = Object.keys(this.parts)[0];
+
+        if (this.parts[partname].mode == "Relative") length = length / this.draggingHelpers.fullSize;
+
+        var amountInput = document.getElementById(partname + '_amount_input_field');
+        var value;
+        if (this.parts[partname].mode == "Relative") {
+            value = Math.max(this.draggingHelpers.epsilon, inputs[0] / this.draggingHelpers.fullSize + length).round();
+            value = Math.min(1.0, value).round();
         } else {
-            toReduce = repeat.draggingHelpers.beforeActiveCut;
-            toEnlarge = repeat.draggingHelpers.beforeActiveCut + 1;
+            value = Math.max(this.draggingHelpers.epsilon, inputs[0] + length).round();
+            value = Math.min(this.draggingHelpers.fullSize, value).round();
         }
-        var inputs = repeat.draggingHelpers.startingInput.slice();
-        var segments = repeat.draggingHelpers.startingSegments.slice();
-        var types = repeat.draggingHelpers.partKind.slice();
-        var maxMovement = segments[toReduce];
-        length = Math.min(maxMovement, Math.abs(length));
-        var nrRel = 0;
-        for (var i = 0; i < segments.length; i++) {
-            if (types[i] == 'rel') nrRel++;
-        }
-        if (nrRel == 1) {
-            if (types[toReduce] == 'rel') {
-                segments[toEnlarge] += length;
-                segments[toReduce] = inputs[toReduce] * repeat.draggingHelpers.unitsPerInput;
-            } else if (types[toEnlarge] == 'rel') {
-                segments[toReduce] -= length;
-                segments[toEnlarge] = inputs[toEnlarge] * repeat.draggingHelpers.unitsPerInput;
-            } else {
-                segments[toReduce] -= length;
-                segments[toEnlarge] += length;
-            }
-        } else {
-            segments[toReduce] -= length;
-            segments[toEnlarge] += length;
-        }
-        var counter = 0;
-        for (var i = 0; i < repeat.draggingHelpers.nextIndex; i++) {
-            amountInput = document.getElementById('part' + i + '_amount_input_field');
-            if (amountInput) {
-                if (counter == toReduce || counter == toEnlarge) {
-                    if (types[counter] == 'abs') {
-                        amountInput.value = Math.max(repeat.draggingHelpers.epsilon, segments[counter]).round();
-                    } else {
-                        if (isNaN(segments[counter] / repeat.draggingHelpers.unitsPerInput)) {
-                            var amount = inputs[counter];
-                        } else if (isFinite(segments[counter] / repeat.draggingHelpers.unitsPerInput)) {
-                            var amount = segments[counter] / repeat.draggingHelpers.unitsPerInput;
-                        } else {
-                            var amount = inputs[counter];
-                        }
-                        amountInput.value = Math.max(repeat.draggingHelpers.epsilon, amount).round();
-                    }
-                }
-                counter++;
-            }
-        }
+        amountInput.value = value;
+
         inputChanged();
     };
     repeat.onHandleReleased = function () {
-        oldHandle = repeat.draggingHelpers.activeHandle;
-        repeat.draggingHelpers.activeHandle = null;
-        if (repeat.draggingHelpers.activeHandle != oldHandle) inputChanged();
+        oldHandle = this.draggingHelpers.activeHandle;
+        this.draggingHelpers.activeHandle = null;
+        if (this.draggingHelpers.activeHandle != oldHandle) inputChanged();
     };
     repeat.parseCode = function(ruleBuffer) {
         var endOfRule = ruleBuffer.length;
@@ -484,7 +409,7 @@ generaterepeatRule = function () {
             }
             counter += 1;
         }
-        repeat.parts = [];
+        this.parts = [];
         var partCounter = 0;
         var DEFAULT = 0, PART = 1;
         var parseMode = DEFAULT;
@@ -496,11 +421,11 @@ generaterepeatRule = function () {
                 case DEFAULT:
                     if (current.RawKind == 8508) {
                         if (current.Text == 'X') {
-                            repeat.axis = "Axis.X";
+                            this.axis = "Axis.X";
                         } else if (current.Text == 'Y') {
-                            repeat.axis = "Axis.Y";
+                            this.axis = "Axis.Y";
                         } else if (current.Text == 'Z') {
-                            repeat.axis = "Axis.Z";
+                            this.axis = "Axis.Z";
                         } else if (current.Text == "Relative") {
                             parseMode = PART;
                             mode = "Relative";
@@ -518,7 +443,7 @@ generaterepeatRule = function () {
                         [part, used] = renderer.postfixController.parsePostfixes(part, ruleBuffer.slice(counter, endOfRule));
                         if (!part.postfixes) part.postfixes = [];
                         counter += used;
-                        repeat.parts['part' + partCounter] = part;
+                        this.parts['part' + partCounter] = part;
                         partCounter += 1;
                         parseMode = DEFAULT;
                     }
@@ -531,6 +456,24 @@ generaterepeatRule = function () {
             counter += 1;
         }
         return endOfRule;
+    };
+    repeat.storeCurrentState = function() {
+        this.storedState = jQuery.extend(true, [], this.parts);
+    };
+    repeat.setStoredState = function() {
+        var partname = Object.keys(this.parts)[0];
+        var amountInput = document.getElementById(partname + '_amount_input_field');
+        var selector = document.getElementById(partname + '_mode_selector');
+        var idx = partname[partname.length -1];
+        this.parts = this.storedState;
+        partname = Object.keys(this.parts)[0];
+        amountInput.value = this.parts[partname].amount;
+        for (var i = 0; i < 2; i++) {
+            if (selector.options[i].label == this.parts[partname].mode) selector.selectedIndex = i;
+        }
+        for (var i = 0; i < Object.keys(this.parts[partname].postfixes).length; i++) {
+            this.addPostfix('partDiv' + idx, this.parts[partname].postfixes[i]);
+        }
     };
     return repeat;
 };
