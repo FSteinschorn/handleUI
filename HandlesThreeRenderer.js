@@ -37,21 +37,24 @@ function HandlesThreeRenderer(domQuery) {
     self.ruleController = getRuleController(self);
 
     //create div container
-    var scrollDiv = document.createElement('div');
-    scrollDiv.ui = "scrollDiv";
-    scrollDiv.style.width = "100%";
-    scrollDiv.style.height = "100%";
-    var uiDiv = document.createElement('div');
-    uiDiv.id = "uiDiv";
-    uiDiv.style.position = "absolute";
-    uiDiv.style.bottom = "0px";
-    uiDiv.style.width = "100%";
-    uiDiv.style.overflowY = "auto";
-    uiDiv.style.overflowX = "hidden";
-    uiDiv.style.maxHeight = "100%";
-    uiDiv.classList = "w3-light-grey";
-    scrollDiv.appendChild(uiDiv);
-    document.getElementById("graphRendererContainer").appendChild(scrollDiv);
+    {
+        var scrollDiv = document.createElement('div');
+        scrollDiv.ui = "scrollDiv";
+        scrollDiv.style.width = "100%";
+        scrollDiv.style.height = "100%";
+        var uiDiv = document.createElement('div');
+        uiDiv.id = "uiDiv";
+        uiDiv.style.position = "absolute";
+        uiDiv.style.bottom = "0px";
+        uiDiv.style.width = "100%";
+        uiDiv.style.overflowY = "auto";
+        uiDiv.style.overflowX = "hidden";
+        uiDiv.style.maxHeight = "100%";
+        uiDiv.classList = "w3-light-grey";
+        scrollDiv.appendChild(uiDiv);
+        uiDiv.innerHTML = "<p><br>&emsp;Press 'Go' to start editing rules!</p>";
+        document.getElementById("graphRendererContainer").appendChild(scrollDiv);
+    }
 
     self.codeParseNeeded = true;
 
@@ -467,15 +470,7 @@ function HandlesThreeRenderer(domQuery) {
             }
             $("#deleteRule_Button_" + i).click(function (i) {
                 return function () {
-                    parsedRules[i].deleted = true;
-
-                    for (var shape in parsedRules[i].willAppliedToList) {
-                        parsedRules[i].unapplyRule(parsedRules[i].willAppliedToList[shape]);
-                        parsedRules[i].afterUnapply(parsedRules[i].willAppliedToList[shape]);
-                        self.ruleController.removePreview(parsedRules[i].willAppliedToList[shape]);
-                    }
-                    self.ruleController.removePreview(parsedRules[i]);
-
+                    self.ruleController.removeRule(parsedRules[i], self.selectedMesh);
                     clearUI();
                     self.initButtonsUI();
                     self.Update();
@@ -517,15 +512,8 @@ function HandlesThreeRenderer(domQuery) {
             }
             $("#deleteRule_Button_" + (i + parsedRules.length)).click(function (i) {
                 return function () {
-                    self.ruleController.removeRule(tmpRules[i]);
+                    self.ruleController.removeRule(tmpRules[i], self.selectedMesh);
                     self.ruleController.addPreview(self.selectedMesh.shape, "green");
-
-                    for (var shape in parsedRules[i].willAppliedToList) {
-                        parsedRules[i].unapplyRule(parsedRules[i].willAppliedToList[shape]);
-                        parsedRules[i].afterUnapply(parsedRules[i].willAppliedToList[shape]);
-                        self.ruleController.removePreview(parsedRules[i].willAppliedToList[shape]);
-                    }
-
                     clearUI();
                     self.initButtonsUI();
                     self.Update();
@@ -653,6 +641,15 @@ function HandlesThreeRenderer(domQuery) {
             self.selectedRule.appendInputFields(inputDiv, true);
             var postfixDiv = document.getElementById("postfixDiv");
             if (postfixDiv) self.postfixController.applyPostfixes(postfixDiv, self.selectedRule);
+
+            //init helper variables for will/was
+            if (!self.selectedRule.wasAppliedToList) {
+                self.selectedRule.wasAppliedToList = [];
+                self.selectedRule.wasAppliedToList.push(self.selectedMesh.shape);
+            }
+            if (!self.selectedRule.willAppliedToList) self.selectedRule.willAppliedToList = [];
+            if (!self.selectedRule.storedWasAppliedToList) self.selectedRule.storedWasAppliedToList = self.selectedRule.wasAppliedToList.slice();
+            if (!self.selectedRule.storedWillAppliedToList) self.selectedRule.storedWillAppliedToList = self.selectedRule.willAppliedToList.slice();
 
             self.inputChanged();
         });

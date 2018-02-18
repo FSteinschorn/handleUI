@@ -61,11 +61,10 @@ function TempRuleController() {
 
     self.rules = new Map();
 
-    storedRules = new Map();
-    meshes = new Map();
+    self.meshes = new Map();
 
-    tmpRules = [];
-    parsedRules = [];
+    self.tmpRules = [];
+    self.parsedRules = [];
 
     self.previewScene = new THREE.Scene();
 
@@ -89,11 +88,11 @@ function TempRuleController() {
     };
 
     self.addRule = function (shape, rule) {
-        tmpRules.push(rule);
+        self.tmpRules.push(rule);
 
         rule.applyRule(shape);
         rule.afterApply(shape);
-        if (meshes[shape.id])
+        if (self.meshes[shape.id])
             rule.removePreview(shape);
         rule.addPreview(shape);
 
@@ -112,36 +111,42 @@ function TempRuleController() {
     };
 
     self.removeRule = function (rule, shape) {
-        if (shape) shape = shape.shape;
-        else if (rule.wasAppliedTo) shape = rule.wasAppliedTo;
+        // unapply for other shapes
+        for (var otherShape in rule.willAppliedToList) {
+            rule.unapplyRule(rule.willAppliedToList[otherShape]);
+            rule.afterUnapply(rule.willAppliedToList[otherShape]);
+            self.removePreview(rule.willAppliedToList[otherShape]);
+        }
+
+        // remove from code
         var editor = ace.edit("code_text_ace");
         var fullString = editor.getValue();
         fullString = fullString.substr(0, rule.start) + fullString.substr(rule.end);
         editor.setValue(fullString);
-        var diff = - rule.end - rule.start;
+        var diff = rule.end - rule.start;
 
-        for (var index in parsedRules) {
-            if (parsedRules[index].start > rule.start) {
-                parsedRules[index].start += diff;
-                parsedRules[index].end += diff;
+        for (var index in self.parsedRules) {
+            if (self.parsedRules[index].start > rule.start) {
+                self.parsedRules[index].start -= diff;
+                self.parsedRules[index].end -= diff;
             }
         }
-        for (index in tmpRules) {
-            if (tmpRules[index].start > rule.start) {
-                tmpRules[index].start += diff;
-                tmpRules[index].end += diff;
+        for (index in self.tmpRules) {
+            if (self.tmpRules[index].start > rule.start) {
+                self.tmpRules[index].start -= diff;
+                self.tmpRules[index].end -= diff;
             }
         }
         var selection = editor.getSelection();
         selection.clearSelection();
 
-        rule.deleted = true;
+        // remove preview if necessary
+        if (shape) shape = shape.shape;
+        else if (rule.wasAppliedTo) shape = rule.wasAppliedTo;
 
-        if (shape) {
-            rule.unapplyRule(shape);
-            rule.afterUnapply(shape);
-            if (shape.appliedRules == 0) self.removePreview(shape);
-        }
+        if (shape && shape.appliedRules == 0) rule.removePreview(shape);
+
+        rule.deleted = true;
     };
 
     self.updateRule = function (shape, rule) {
@@ -165,16 +170,16 @@ function TempRuleController() {
         var diff = newString.length - (rule.end - rule.start);
         rule.end += diff;
 
-        for (var index in parsedRules) {
-            if (parsedRules[index].start > rule.start) {
-                parsedRules[index].start += diff;
-                parsedRules[index].end += diff;
+        for (var index in self.parsedRules) {
+            if (self.parsedRules[index].start > rule.start) {
+                self.parsedRules[index].start += diff;
+                self.parsedRules[index].end += diff;
             }
         }
-        for (index in tmpRules) {
-            if (tmpRules[index].start > rule.start) {
-                tmpRules[index].start += diff;
-                tmpRules[index].end += diff;
+        for (index in self.tmpRules) {
+            if (self.tmpRules[index].start > rule.start) {
+                self.tmpRules[index].start += diff;
+                self.tmpRules[index].end += diff;
             }
         }
 
@@ -208,23 +213,23 @@ function TempRuleController() {
     };
 
     self.setParsedRules = function(rules) {
-        parsedRules = rules;
+        self.parsedRules = rules;
     };
 
     self.getParsedRules = function () {
-        return parsedRules;
+        return self.parsedRules;
     };
 
     self.getRuleHistory = function (shape) {
-        return self.getAllTmpRules[shape.id];
+        return self.getAlltmpRules[shape.id];
     };
 
     self.getAllTmpRules = function () {
-        return tmpRules;
+        return self.tmpRules;
     };
 
     self.getRuleByIndex = function (indey) {
-        return tmpRules[index];
+        return self.tmpRules[index];
     };
 
     self.addPreview = function (shape, color) {
@@ -271,13 +276,13 @@ function TempRuleController() {
         mesh.visible = visible;
         self.previewScene.add(mesh);
 
-        meshes[shape.id] = mesh;
+        self.meshes[shape.id] = mesh;
 
     };
 
     self.removePreview = function (shape) {
-        self.previewScene.remove(meshes[shape.id]);
-        meshes.delete(shape.id);
+        self.previewScene.remove(self.meshes[shape.id]);
+        self.meshes.delete(shape.id);
     };
 
     self.changePreviewColor = function (shape, color, rule) {

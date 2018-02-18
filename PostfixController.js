@@ -225,11 +225,11 @@ function PostfixController(renderer) {
         parentDiv.appendChild(div);
 
         if (type.constructor == Array && settings) {
-            selector = document.getElementById(selector_id);
+            var selector = document.getElementById(selector_id);
             for (var i = 0; i < selector.options.length; i++) {
                 if (selector.options[i] == settings.type) selector.selectedIndex = i;
             }
-            addFunction(selection.label, [id], settings, changeFunction, fulfills);
+            addFunction(settings.type, [id], settings, changeFunction, fulfills);
         } else {
             addFunction(type, ids, settings, changeFunction, fulfills);
         }

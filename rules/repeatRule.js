@@ -19,10 +19,7 @@ generaterepeatRule = function () {
             partDiv.style = 'margin:0.01em 16px';
             partDiv.id = 'partDiv' + this.draggingHelpers.nextIndex;
             var partname = 'part' + this.draggingHelpers.nextIndex + '_mode_selector';
-            var innerHTML = '<select id=' + partname + '>';
-            innerHTML += '<option value="Relative">Relative</option>';
-            innerHTML += '<option value="Absolute">Absolute</option>';
-            innerHTML += '</select>';
+            var innerHTML = "Absolute: ";
             partDiv.innerHTML += innerHTML;
             var amount_input = document.createElement("input");
             amount_input.setAttribute('type', 'text');
@@ -58,11 +55,11 @@ generaterepeatRule = function () {
         };
         repeat.addPostfixFunction = function (partId, settings) {
             return function () {
-                this.addPostfix(partId, settings);
+                repeat.addPostfix(partId, settings);
             }
         };
         repeat.addPostfix = function (partId, settings) {
-            part = document.getElementById(partId);
+            var part = document.getElementById(partId);
             var possiblePostfixes = ["Goal", "goal", "Tag", "Attribute", "Asset", "Paint", "Orientation", "Reflect", "Void", "Family", "Sync"];
             renderer.postfixController.addPostfix(part, settings, possiblePostfixes, deleteButton = true);
         };
@@ -174,18 +171,14 @@ generaterepeatRule = function () {
         this.axis = selection;
         var sumAbs = 0;
         for (var i = 0; i < this.draggingHelpers.nextIndex; i++) {
-            var name = 'part' + i + '_mode_selector';
-            var modeSelector = document.getElementById(name);
-            if (modeSelector) {
-                var amountInput = document.getElementById('part' + i + '_amount_input_field');
-                var mode = modeSelector.options[modeSelector.selectedIndex].value;
-                var amount = amountInput.value;
-                if (mode == 'Absolute') sumAbs += parseFloat(amount);
-                this.parts['part' + i] = { mode: mode, amount: amount };
-                var partId = 'partDiv' + i;
-                var part = document.getElementById(partId)
-                readTags(part, this.parts['part' + i]);
-            }
+            var amountInput = document.getElementById('part' + i + '_amount_input_field');
+            var mode = 'Absolute';
+            var amount = amountInput.value;
+            if (mode == 'Absolute') sumAbs += parseFloat(amount);
+            this.parts['part' + i] = {mode: mode, amount: amount};
+            var partId = 'partDiv' + i;
+            var part = document.getElementById(partId)
+            readTags(part, this.parts['part' + i]);
         }
         if (!this.draggingHelpers.fullSize) this.draggingHelpers.fullSize = 99999999;
         if (this.draggingHelpers.fullSize < sumAbs - this.draggingHelpers.epsilon) {
@@ -230,7 +223,7 @@ generaterepeatRule = function () {
         while (getRuleController().previewScene.children.length != 0) {
             getRuleController().previewScene.remove(getRuleController().previewScene.children[0]);
         }
-        meshes.delete(shape.id);
+        getRuleController().meshes.delete(shape.id);
         renderer.RenderSingleFrame();
     };
     repeat.createHandles = function (scene, shape) {

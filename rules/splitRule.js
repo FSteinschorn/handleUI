@@ -81,11 +81,11 @@ generateSplitRule = function () {
 
         split.addPostfixFunction = function (partId, settings) {
             return function () {
-                this.addPostfix(partId, settings);
+                split.addPostfix(partId, settings);
             }
         };
         split.addPostfix = function (partId, settings) {
-            part = document.getElementById(partId);
+            var part = document.getElementById(partId);
             var possiblePostfixes = ["Goal", "goal", "Tag", "Attribute", "Asset", "Paint", "Orientation", "Reflect", "Void", "Family", "Sync"];
             renderer.postfixController.addPostfix(part, settings, possiblePostfixes, deleteButton = true);
         }
@@ -254,11 +254,9 @@ generateSplitRule = function () {
     };
     split.addPreview = function (shape, color) {
         if (this.draggingHelpers.dontDraw) return;
-
         var offset = -this.draggingHelpers.fullSize / 2;
         var scale;
         var translate;
-        var mat;
         for (var i = 0; i < this.draggingHelpers.segments.length; i++) {
             var m = shape.appearance.transformation;
             m = new THREE.Matrix4().fromArray(m);
@@ -282,16 +280,16 @@ generateSplitRule = function () {
             offset += size;
             m.premultiply(scale);
             m.multiply(translate.transpose());
-            segmentShape = jQuery.extend(true, {}, shape);
+            var segmentShape = jQuery.extend(true, {}, shape);
             segmentShape.appearance.transformation = m.toArray();
-            addPreview(segmentShape, color);
+            getRuleController().addPreview(segmentShape, color);
         }
     };
     split.removePreview = function (shape) {
         while (getRuleController().previewScene.children.length != 0) {
             getRuleController().previewScene.remove(getRuleController().previewScene.children[0]);
         }
-        meshes.delete(shape.id);
+        getRuleController().meshes.delete(shape.id);
         renderer.RenderSingleFrame();
     };
     split.createHandles = function (scene, shape) {
