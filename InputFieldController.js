@@ -1,4 +1,6 @@
 
+var instance;
+
 function getInputFieldController() {
     if (!instance) instance = new InputFieldController();
     return instance;
@@ -8,16 +10,25 @@ function InputFieldController() {
 
     var self = {};
 
-    self.addInputField = function(parentDiv, name, types) {
+    self.inputFields = new Map();
 
+    self.addInputField = function(parentDiv, label, types, defaults, updateCallback) {
+        [id, field] = InputField(parentDiv, label, types, defaults, updateCallback);
+        self.inputFields[id] = field;
+
+        return id;
     };
 
-    self.setValue = function(name, value) {
-
+    self.setValue = function(id, value) {
+        self.inputFields[id].setValue(value);
     };
 
-    self.getValue = function(name) {
+    self.getNumberValue = function(id) {
+        self.inputFields[id].getNumberValue(id);
+    };
 
+    self.getStringValue = function(id) {
+        self.inputFields[id].getStringValue(id);
     };
 
     return self;
