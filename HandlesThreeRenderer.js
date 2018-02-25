@@ -52,7 +52,7 @@ function HandlesThreeRenderer(domQuery) {
         uiDiv.style.maxHeight = "100%";
         uiDiv.classList = "w3-light-grey";
         scrollDiv.appendChild(uiDiv);
-        uiDiv.innerHTML = "<p><br>&emsp;Press 'Go' to start editing rules!</p>";
+        uiDiv.innerHTML = "<p><br>&emsp;Press <button type=\"button\" class=\"btn btn-primary flexStatic\" id=\"parse-button\">Go</button> to start editing rules!</p>";
         document.getElementById("graphRendererContainer").appendChild(scrollDiv);
     }
 
