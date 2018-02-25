@@ -332,13 +332,16 @@ function TempRuleController() {
     };
 
     appendModeSelector = function (parentDiv) {
+        var modeDiv = document.createElement('div');
+        modeDiv.id = 'modeDiv';
         var innerHTML = '<select id="mode_selector">';
         innerHTML += '<option value="Mode.Local">Local</option>';
         innerHTML += '<option value="Mode.LocalMid">LocalMid</option>';
         innerHTML += '<option value="Mode.Global">Global</option>';
         innerHTML += '<option value="Mode.GlobalMid">GlobalMid</option>';
-        innerHTML += '</select>'
-        parentDiv.innerHTML += innerHTML;
+        innerHTML += '</select>';
+        modeDiv.innerHTML = innerHTML;
+        parentDiv.appendChild(modeDiv);
         $('#mode_selector').change(inputChanged);
     };
     setModeSelector = function (target) {
@@ -523,111 +526,72 @@ function TempRuleController() {
                 };
                 customRule.addSelectionsString = function () {
                     var ruleString = '';
-                    for (var i = 0; i < config.options.length; i++) {
-                        var current = customRule.selections[i];
-                        switch (config.options[i].inputType) {
-
-                            case INPUTTYPE.STRING:
-                                ruleString += '"' + current + '"';
-                                break;
-
-                            case INPUTTYPE.DOUBLE:
-                                ruleString += current;
-                                break;
-
-                            case INPUTTYPE.DROPDOWN:
-                                ruleString += current;
-                                break;
-
-                            case INPUTTYPE.TAG:
-                                if (current && current.postfixes) {
-                                    if (current.postfixes[0]) {
-                                        ruleString += '"' + current.postfixes[0].tags[0] + '"';
-                                    }
-                                }
-                                break;
-
-                            case INPUTTYPE.TAGS:
-                                if (current && current.postfixes) {
-                                    if (current.postfixes[0]) {
-                                        for (var k = 0; k < Object.keys(current.postfixes[0].tags).length; k++) {
-                                            ruleString += '"' + current.postfixes[0].tags[k] + '", ';
-                                        }
-                                        ruleString = ruleString.slice(0, -2);
-                                    }
-                                }
-                                break;
-
-                            case INPUTTYPE.RAW:
-                                ruleString += current;
-                                break;
-
-                            case INPUTTYPE.VEC3:
-                                ruleString += 'Vec3(';
-                                ruleString += current[0].round() + ', ' + current[1].round() + ', ' + current[2].round();
-                                ruleString += ')';
-                                break;
-
-                            default:
-                                break;
-
+                    if (customRule.fieldIds) {
+                        var inputFieldController = getInputFieldController();
+                        for (var i = 0; i < config.options.length; i++) {
+                            ruleString += inputFieldController.getStringValue(customRule.fieldIds[i]);
+                            ruleString += ", ";
                         }
-                        ruleString += ", ";
+                    } else {
+                        for (var i = 0; i < config.options.length; i++) {
+                            var current = customRule.selections[i];
+                            switch (config.options[i].inputType) {
+
+                                case INPUTTYPE.STRING:
+                                    ruleString += '"' + current + '"';
+                                    break;
+
+                                case INPUTTYPE.DOUBLE:
+                                    ruleString += current;
+                                    break;
+
+                                case INPUTTYPE.DROPDOWN:
+                                    ruleString += current;
+                                    break;
+
+                                case INPUTTYPE.TAG:
+                                    if (current && current.postfixes) {
+                                        if (current.postfixes[0]) {
+                                            ruleString += '"' + current.postfixes[0].tags[0] + '"';
+                                        }
+                                    }
+                                    break;
+
+                                case INPUTTYPE.TAGS:
+                                    if (current && current.postfixes) {
+                                        if (current.postfixes[0]) {
+                                            for (var k = 0; k < Object.keys(current.postfixes[0].tags).length; k++) {
+                                                ruleString += '"' + current.postfixes[0].tags[k] + '", ';
+                                            }
+                                            ruleString = ruleString.slice(0, -2);
+                                        }
+                                    }
+                                    break;
+
+                                case INPUTTYPE.RAW:
+                                    ruleString += current;
+                                    break;
+
+                                case INPUTTYPE.VEC3:
+                                    ruleString += 'Vec3(';
+                                    ruleString += current[0].round() + ', ' + current[1].round() + ', ' + current[2].round();
+                                    ruleString += ')';
+                                    break;
+
+                                default:
+                                    break;
+
+                            }
+                            ruleString += ", ";
+                        }
                     }
                     ruleString = ruleString.slice(0, -2);
                     return ruleString;
                 };
                 customRule.updateRule = function () {
+                    var inputFieldController = getInputFieldController();
                     for (var i = 0; i < config.options.length; i++) {
-                        switch (config.options[i].inputType) {
-
-                            case INPUTTYPE.STRING:
-                            case INPUTTYPE.RAW:
-                                var id = "input_field" + i;
-                                var input = document.getElementById(id);
-                                customRule.selections[i] = input.value;
-                                break;
-
-                            case INPUTTYPE.DOUBLE:
-                                var id = "input_field" + i;
-                                var input = document.getElementById(id);
-                                customRule.selections[i] = parseFloat(input.value);
-                                break;
-
-                            case INPUTTYPE.DROPDOWN:
-                                var id = "dropdown" + i;
-                                var selector = document.getElementById(id);
-                                customRule.selections[i] = selector.value;
-                                break;
-
-                            case INPUTTYPE.TAG:
-                                customRule.selections[i] = {};
-                                var inputDiv = document.getElementById('inputDiv');
-                                renderer.postfixController.applyPostfixes(inputDiv, customRule.selections[i]);
-                                break;
-
-                            case INPUTTYPE.TAGS:
-                                customRule.selections[i] = {};
-                                var inputDiv = document.getElementById('inputDiv');
-                                renderer.postfixController.applyPostfixes(inputDiv, customRule.selections[i]);
-                                break;
-
-                            case INPUTTYPE.VEC3:
-                                var id = "vec3_" + i + "_elem0";
-                                var input = document.getElementById(id);
-                                customRule.selections[i][0] = parseFloat(input.value);
-                                id = "vec3_" + i + "_elem1";
-                                var input = document.getElementById(id);
-                                customRule.selections[i][1] = parseFloat(input.value);
-                                id = "vec3_" + i + "_elem2";
-                                var input = document.getElementById(id);
-                                customRule.selections[i][2] = parseFloat(input.value);
-                                break;
-
-                            default:
-                                break;
-
-                        }
+                        customRule.selections[i] = inputFieldController.getNumberValue(customRule.fieldIds[i]);
                     }
 
                     if (config.mode) {
@@ -642,193 +606,20 @@ function TempRuleController() {
                 };
                 customRule.onselectionChange = inputChanged;
                 customRule.appendInputFields = function (parentDiv, empty /* dont fill input with current values */) {
+                    customRule.fieldIds = [];
                     for (var i = 0; i < config.options.length; i++) {
                         var current = config.options[i];
+                        var defaults = current.values;
+                        if (!empty && customRule.selections[i]) defaults = customRule.selections[i];
 
-                        if (current.label != null && current.inputType != INPUTTYPE.TAG && current.inputType != INPUTTYPE.TAGS) {
-                            var label = document.createElement('span');
-                            label.id = 'label' + i;
-                            label.innerHTML = current.label + ': ';
-                            parentDiv.appendChild(label);
-                        }
-
-                        // build input
-                        switch (current.inputType) {
-
-                            case INPUTTYPE.STRING:
-                            case INPUTTYPE.DOUBLE:
-                            case INPUTTYPE.RAW:
-                                var id = "input_field" + i;
-                                var input = document.createElement("input");
-                                input.setAttribute('type', 'text');
-                                input.setAttribute('id', id);
-                                parentDiv.appendChild(input);
-                                break;
-
-                            case INPUTTYPE.DROPDOWN:
-                                var id = "dropdown" + i;
-                                var innerHTML = '<select id=' + id + '>';
-                                for (var j = 0; j < current.values.length; j++) {
-                                    innerHTML += '<option vaule ="' + current.values[j] + '">' + current.values[j] + '</options>';
-                                }
-                                innerHTML += '</select>'
-                                parentDiv.innerHTML += innerHTML;
-                                break;
-
-                            case INPUTTYPE.TAG:
-                                if (!empty && customRule.selections[i]) var settings = customRule.selections[i];
-                                else var settings = null;
-                                renderer.postfixController.addPostfix(parentDiv, settings, current.label, false, customRule.onselectionChange);
-                                break;
-
-                            case INPUTTYPE.TAGS:
-                                if (!empty && customRule.selections[i]) var settings = customRule.selections[i];
-                                else var settings = null;
-                                renderer.postfixController.addPostfix(parentDiv, settings, current.label, false, customRule.onselectionChange());
-                                break;
-
-                            case INPUTTYPE.VEC3:
-                                var id = "vec3_" + i + "_elem0";
-                                var input = document.createElement("input");
-                                input.setAttribute('type', 'text');
-                                input.setAttribute('id', id);
-                                parentDiv.appendChild(input);
-                                id = "vec3_" + i + "_elem1";
-                                input = document.createElement("input");
-                                input.setAttribute('type', 'text');
-                                input.setAttribute('id', id);
-                                parentDiv.appendChild(input);
-                                id = "vec3_" + i + "_elem2";
-                                input = document.createElement("input");
-                                input.setAttribute('type', 'text');
-                                input.setAttribute('id', id);
-                                parentDiv.appendChild(input);
-                                break;
-
-                            default:
-                                break;
-
-                        }
-
+                        var inputFieldController = getInputFieldController();
+                        customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], defaults, customRule.onselectionChange);
                     }
 
                     if (config.mode) {
                         appendModeSelector(parentDiv);
                         if (!empty) if (customRule.mode) setModeSelector(customRule.mode);
                         else setModeSelector("Local");
-                    }
-
-                    for (var i = 0; i < config.options.length; i++) {
-                        var current = config.options[i];
-
-                        // add listeners
-                        switch (current.inputType) {
-
-                            case INPUTTYPE.STRING:
-                            case INPUTTYPE.DOUBLE:
-                            case INPUTTYPE.RAW:
-                                var id = "input_field" + i;
-                                input = document.getElementById(id);
-                                input.addEventListener("change", function () {
-                                    customRule.onselectionChange()
-                                });
-                                break;
-
-                            case INPUTTYPE.DROPDOWN:
-                                var id = "dropdown" + i;
-                                var selector = document.getElementById(id);
-                                selector.addEventListener("change", function () {
-                                    customRule.onselectionChange()
-                                });
-                                break;
-
-                            case INPUTTYPE.TAG:
-                                break;
-
-                            case INPUTTYPE.TAGS:
-                                break;
-
-                            case INPUTTYPE.VEC3:
-                                var id = "vec3_" + i + "_elem0";
-                                input = document.getElementById(id);
-                                input.addEventListener("change", function () {
-                                    customRule.onselectionChange()
-                                });
-                                id = "vec3_" + i + "_elem1";
-                                input = document.getElementById(id);
-                                input.addEventListener("change", function () {
-                                    customRule.onselectionChange()
-                                });
-                                id = "vec3_" + i + "_elem2";
-                                input = document.getElementById(id);
-                                input.addEventListener("change", function () {
-                                    customRule.onselectionChange()
-                                });
-                                break;
-
-                            default:
-                                break;
-
-                        }
-
-                        // fill values
-                        switch (current.inputType) {
-                            case INPUTTYPE.STRING:
-                            case INPUTTYPE.DOUBLE:
-                            case INPUTTYPE.RAW:
-                                var id = "input_field" + i;
-                                input = document.getElementById(id);
-                                if (!empty) {
-                                    input.value = customRule.selections[i];
-                                } else if (current.values != null) {
-                                    if (isFunction(current.values)) {
-                                        input.value = current.values();
-                                    } else {
-                                        input.value = current.values;
-                                    }
-                                }
-                                break;
-
-                            case INPUTTYPE.DROPDOWN:
-                                var id = "dropdown" + i;
-                                if (!empty) {
-                                    var selector = document.getElementById(id);
-                                    for (j = 0; j < selector.options.length; j++) {
-                                        if (selector.options[j].label == customRule.selections[i])
-                                            selector.selectedIndex = j;
-                                    }
-                                }
-                                break;
-                            case INPUTTYPE.TAG:
-                            case INPUTTYPE.TAGS:
-                                break;
-                            case INPUTTYPE.VEC3:
-                                var id = "vec3_" + i + "_elem0";
-                                input0 = document.getElementById(id);
-                                id = "vec3_" + i + "_elem1";
-                                input1 = document.getElementById(id);
-                                id = "vec3_" + i + "_elem2";
-                                input2 = document.getElementById(id);
-                                if (!empty) {
-                                    input0.value = customRule.selections[i][0];
-                                    input1.value = customRule.selections[i][1];
-                                    input2.value = customRule.selections[i][2];
-                                } else if (current.values != null) {
-                                    if (isFunction(current.values)) {
-                                        input0.value = current.values()[0];
-                                        input1.value = current.values()[1];
-                                        input2.value = current.values()[2];
-                                    } else {
-                                        input0.value = current.values[0];
-                                        input1.value = current.values[1];
-                                        input2.value = current.values[2];
-                                    }
-                                }
-                                break;
-                            default:
-                                break;
-
-                        }
                     }
 
                     customRule.afterInputCreation(parentDiv);
@@ -941,48 +732,9 @@ function TempRuleController() {
                     customRule.storedPostfixes = JSON.parse(JSON.stringify(customRule.postfixes));
                 };
                 customRule.setStoredState = function () {
+                    var inputFieldController = getInputFieldController();
                     for (var i = 0; i < config.options.length; i++) {
-                        switch (config.options[i].inputType) {
-
-                            case INPUTTYPE.STRING:
-                            case INPUTTYPE.DOUBLE:
-                            case INPUTTYPE.RAW:
-                                var id = "input_field" + i;
-                                var input = document.getElementById(id);
-                                input.value = customRule.storedState[i];
-                                break;
-
-                            case INPUTTYPE.DROPDOWN:
-                                var id = "dropdown" + i;
-                                var input = document.getElementById(id);
-                                input.value = customRule.storedState[i];
-                                break;
-
-                            case INPUTTYPE.TAG:
-                                // TODO: set tags
-                                break;
-
-                            case INPUTTYPE.TAGS:
-                                // TODO: set tags
-                                break;
-
-                            case INPUTTYPE.VEC3:
-                                var id = "vec3_" + i + "_elem0";
-                                input = document.getElementById(id);
-                                input.value = customRule.storedState[i][0];
-                                id = "vec3_" + i + "_elem1";
-                                input = document.getElementById(id);
-                                input.value = customRule.storedState[i][1];
-                                id = "vec3_" + i + "_elem2";
-                                input = document.getElementById(id);
-                                input.value = customRule.storedState[i][2];
-                                break;
-
-                            default:
-                                break;
-
-                        }
-
+                        inputFieldController.setValue(customRule.fieldIds[i], customRule.storedState[i]);
                     }
 
                     if (config.mode && customRule.storedMode) {

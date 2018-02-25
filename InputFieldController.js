@@ -1,9 +1,9 @@
 
-var instance;
+var inputFieldController;
 
 function getInputFieldController() {
-    if (!instance) instance = new InputFieldController();
-    return instance;
+    if (!inputFieldController) inputFieldController = new InputFieldController();
+    return inputFieldController;
 }
 
 function InputFieldController() {
@@ -13,10 +13,15 @@ function InputFieldController() {
     self.inputFields = new Map();
 
     self.addInputField = function(parentDiv, label, types, defaults, updateCallback) {
-        [id, field] = InputField(parentDiv, label, types, defaults, updateCallback);
-        self.inputFields[id] = field;
+        var field = InputField(parentDiv, label, types, defaults, updateCallback);
+        self.inputFields[field.id] = field;
 
-        return id;
+        return field.id;
+    };
+
+    self.removeInputField = function(id) {
+        self.inputFields[id].remove();
+        self.inputFields.delete(id);
     };
 
     self.setValue = function(id, value) {
@@ -24,11 +29,11 @@ function InputFieldController() {
     };
 
     self.getNumberValue = function(id) {
-        self.inputFields[id].getNumberValue(id);
+        return self.inputFields[id].getNumberValue(id);
     };
 
     self.getStringValue = function(id) {
-        self.inputFields[id].getStringValue(id);
+        return self.inputFields[id].getStringValue(id);
     };
 
     return self;

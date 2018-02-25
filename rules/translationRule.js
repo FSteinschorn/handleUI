@@ -112,9 +112,11 @@ generatethisRule = function () {
             end: end
         };
         this.draggingHelpers.shape = shape;
-        this.draggingHelpers.startValues.x = parseFloat(document.getElementById("vec3_0_elem0").value);
-        this.draggingHelpers.startValues.y = parseFloat(document.getElementById("vec3_0_elem1").value);
-        this.draggingHelpers.startValues.z = parseFloat(document.getElementById("vec3_0_elem2").value);
+        var inputFieldController = getInputFieldController();
+        var values = inputFieldController.getNumberValue(this.fieldIds[0]);
+        this.draggingHelpers.startValues.x = values[0];
+        this.draggingHelpers.startValues.y = values[1];
+        this.draggingHelpers.startValues.z = values[2];
         this.draggingHelpers.cam = camera;
         this.draggingHelpers.intersection = intersection;
         this.draggingHelpers.arrowPos = arrowPos;
@@ -142,17 +144,22 @@ generatethisRule = function () {
         var direction = this.draggingHelpers.intersection.clone().sub(this.draggingHelpers.arrowPos);
         var angle = diff.normalize().angleTo(direction.normalize());
         if (angle > (0.5 * Math.PI)) length *= -1;
+        var newValues = [this.draggingHelpers.startValues.x,
+            this.draggingHelpers.startValues.y,
+            this.draggingHelpers.startValues.z];
         switch (this.draggingHelpers.activeHandle) {
             case 'x':
-                document.getElementById("vec3_0_elem0").value = '' + (this.draggingHelpers.startValues.x + length).round();
+                newValues[0] = (this.draggingHelpers.startValues.x + length).round();
                 break;
             case 'y':
-                document.getElementById("vec3_0_elem1").value = '' + (this.draggingHelpers.startValues.y + length).round();
+                newValues[1] = (this.draggingHelpers.startValues.y + length).round();
                 break;
             case 'z':
-                document.getElementById("vec3_0_elem2").value = '' + (this.draggingHelpers.startValues.z + length).round();
+                newValues[2] = (this.draggingHelpers.startValues.z + length).round();
                 break;
         }
+        var inputFieldController = getInputFieldController();
+        inputFieldController.setValue(this.fieldIds[0], newValues);
         inputChanged();
     };
     translation.onHandleReleased = function () {

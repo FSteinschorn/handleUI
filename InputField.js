@@ -18,7 +18,9 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
         self.parentDiv.appendChild(fieldDiv);
 
         // add label
-        if (self.label != null && !self.types.contains(INPUTTYPE.TAG) && !self.types.contains(INPUTTYPE.TAGS)) {
+        if (self.label != null &&
+            self.types.indexOf(INPUTTYPE.TAG) != -1 &&
+            self.types.indexOf(INPUTTYPE.TAGS) != -1) {
             var label = document.createElement('span');
             label.id = 'label' + i;
             label.innerHTML = self.label + ': ';
@@ -106,7 +108,7 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
                         input3.value = self.defaults[2];
                     }
                 }
-                self.inputs[] = [input1, input2, input3];
+                self.inputs = [input1, input2, input3];
                 break;
 
             default:
@@ -115,8 +117,14 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
         }
     };
 
+    self.remove = function() {
+        for (var i = 0; i < self.inputs.length; i++) {
+            self.parentDiv.removeChild(self.inputs[i]);
+        }
+    };
+
     self.setValue = function(value) {
-        switch (self.type[0]) {
+        switch (self.types[0]) {
 
             case INPUTTYPE.STRING:
             case INPUTTYPE.DOUBLE:
@@ -150,7 +158,7 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
 
     self.getNumberValue = function() {
         var value;
-        switch (self.type) {
+        switch (self.types[0]) {
 
             case INPUTTYPE.STRING:
             case INPUTTYPE.RAW:
@@ -185,7 +193,43 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
     };
 
     self.getStringValue = function() {
-        return self.getNumberValue();
+        switch (self.types[0]) {
+
+            case INPUTTYPE.STRING:
+                return ('"' + self.getNumberValue().round() + '"');
+                break;
+
+            case INPUTTYPE.DOUBLE:
+                return self.getNumberValue().round();
+                break;
+
+            case INPUTTYPE.DROPDOWN:
+            case INPUTTYPE.RAW:
+                return self.getNumberValue();
+                break;
+
+            case INPUTTYPE.TAG:
+                //TODO get tag
+                return "NOT IMPLEMENTED";
+                break;
+
+            case INPUTTYPE.TAGS:
+                // TODO get tags
+                return "NOT IMPLEMENTED";
+                break;
+
+            case INPUTTYPE.VEC3:
+                var values = self.getNumberValue();
+                var string = 'Vec3(';
+                string += values[0].round() + ', ' + values[1].round() + ', ' + values[2].round();
+                string += ')';
+                return string;
+                break;
+
+            default:
+                break;
+
+        }
     };
 
     self.create();

@@ -14,6 +14,16 @@ function charToRowCol(position) {
     return {row: line, column: position - counter};
 }
 
+function makeid() {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for (var i = 0; i < 40; i++)
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+}
+
 function HandlesThreeRenderer(domQuery) {
     var self = new InteractiveThreeRenderer(domQuery, true);
 
@@ -660,6 +670,12 @@ function HandlesThreeRenderer(domQuery) {
 
             self.ruleController.updateRule(self.selectedMesh.shape, self.selectedRule);
 
+            var inputFieldController = getInputFieldController();
+            for (var i = 0; i < self.selectedRule.fieldIds.length; i++) {
+                inputFieldController.removeInputField(self.selectedRule.fieldIds[i]);
+            }
+            self.selectedRule.fieldIds = null;
+
             self.selectedRule = null;
 
             clearUI();
@@ -697,6 +713,13 @@ function HandlesThreeRenderer(domQuery) {
                 self.ruleController.removePreview(self.selectedMesh.shape);
             }
             self.ruleController.addPreview(self.selectedMesh.shape, "green");
+
+            var inputFieldController = getInputFieldController();
+            for (var i = 0; i < self.selectedRule.fieldIds.length; i++) {
+                inputFieldController.removeInputField(self.selectedRule.fieldIds[i]);
+            }
+            self.selectedRule.fieldIds = null;
+
             self.selectedRule = null;
             clearUI();
             self.initButtonsUI();
