@@ -14,26 +14,22 @@ function InputFieldController() {
 
     self.addInputField = function(parentDiv, label, types, defaults, updateCallback) {
         var field = InputField(parentDiv, label, types, defaults, updateCallback);
-        self.inputFields[field.id] = field;
+        this.inputFields[field.id] = field;
 
         return field.id;
     };
 
     self.removeInputField = function(id) {
-        self.inputFields[id].remove();
-        self.inputFields.delete(id);
+        this.inputFields[id].remove();
+        this.inputFields.delete(id);
     };
 
-    self.setValue = function(id, value) {
-        self.inputFields[id].setValue(value);
+    self.setValue = function(id, value, updateRange) {
+        this.inputFields[id].setValue(value, updateRange);
     };
 
-    self.getNumberValue = function(id) {
-        return self.inputFields[id].getNumberValue(id);
-    };
-
-    self.getStringValue = function(id) {
-        return self.inputFields[id].getStringValue(id);
+    self.getValue = function(id) {
+        return this.inputFields[id].getValue();
     };
 
     return self;

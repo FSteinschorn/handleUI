@@ -334,13 +334,15 @@ function TempRuleController() {
     appendModeSelector = function (parentDiv) {
         var modeDiv = document.createElement('div');
         modeDiv.id = 'modeDiv';
-        var innerHTML = '<select id="mode_selector">';
+        var innerHTML = '<div style="width:10%"><span>Mode: </span></div>';
+        innerHTML += '<select id="mode_selector">';
         innerHTML += '<option value="Mode.Local">Local</option>';
         innerHTML += '<option value="Mode.LocalMid">LocalMid</option>';
         innerHTML += '<option value="Mode.Global">Global</option>';
         innerHTML += '<option value="Mode.GlobalMid">GlobalMid</option>';
         innerHTML += '</select>';
-        modeDiv.innerHTML = innerHTML;
+        modeDiv.innerHTML += innerHTML;
+        modeDiv.style.paddingLeft = '10px';
         parentDiv.appendChild(modeDiv);
         $('#mode_selector').change(inputChanged);
     };
@@ -490,10 +492,17 @@ function TempRuleController() {
                 for (var i = 0; i < config.options.length; i++) {
                     switch (config.options[i].inputType) {
                         case INPUTTYPE.DROPDOWN:
-                            customRule.selections[i] = JSON.parse(JSON.stringify(config.options[i].values[0]));
+                            customRule.selections[i] = InputFieldValue(config.options[i].values[0]);
+                            break;
+                        case INPUTTYPE.VEC3:
+                            customRule.selections[i] = InputFieldValue([
+                                InputFieldValue(config.options[i].values[0]),
+                                InputFieldValue(config.options[i].values[1]),
+                                InputFieldValue(config.options[i].values[2])
+                            ]);
                             break;
                         default:
-                            customRule.selections[i] = JSON.parse(JSON.stringify(config.options[i].values));
+                            customRule.selections[i] = InputFieldValue(config.options[i].values);
                             break;
                     }
                 }
@@ -526,64 +535,9 @@ function TempRuleController() {
                 };
                 customRule.addSelectionsString = function () {
                     var ruleString = '';
-                    if (customRule.fieldIds) {
-                        var inputFieldController = getInputFieldController();
-                        for (var i = 0; i < config.options.length; i++) {
-                            ruleString += inputFieldController.getStringValue(customRule.fieldIds[i]);
-                            ruleString += ", ";
-                        }
-                    } else {
-                        for (var i = 0; i < config.options.length; i++) {
-                            var current = customRule.selections[i];
-                            switch (config.options[i].inputType) {
-
-                                case INPUTTYPE.STRING:
-                                    ruleString += '"' + current + '"';
-                                    break;
-
-                                case INPUTTYPE.DOUBLE:
-                                    ruleString += current;
-                                    break;
-
-                                case INPUTTYPE.DROPDOWN:
-                                    ruleString += current;
-                                    break;
-
-                                case INPUTTYPE.TAG:
-                                    if (current && current.postfixes) {
-                                        if (current.postfixes[0]) {
-                                            ruleString += '"' + current.postfixes[0].tags[0] + '"';
-                                        }
-                                    }
-                                    break;
-
-                                case INPUTTYPE.TAGS:
-                                    if (current && current.postfixes) {
-                                        if (current.postfixes[0]) {
-                                            for (var k = 0; k < Object.keys(current.postfixes[0].tags).length; k++) {
-                                                ruleString += '"' + current.postfixes[0].tags[k] + '", ';
-                                            }
-                                            ruleString = ruleString.slice(0, -2);
-                                        }
-                                    }
-                                    break;
-
-                                case INPUTTYPE.RAW:
-                                    ruleString += current;
-                                    break;
-
-                                case INPUTTYPE.VEC3:
-                                    ruleString += 'Vec3(';
-                                    ruleString += current[0].round() + ', ' + current[1].round() + ', ' + current[2].round();
-                                    ruleString += ')';
-                                    break;
-
-                                default:
-                                    break;
-
-                            }
-                            ruleString += ", ";
-                        }
+                    for (var i = 0; i < config.options.length; i++) {
+                        ruleString += customRule.selections[i].toString();
+                        ruleString += ", ";
                     }
                     ruleString = ruleString.slice(0, -2);
                     return ruleString;
@@ -591,7 +545,7 @@ function TempRuleController() {
                 customRule.updateRule = function () {
                     var inputFieldController = getInputFieldController();
                     for (var i = 0; i < config.options.length; i++) {
-                        customRule.selections[i] = inputFieldController.getNumberValue(customRule.fieldIds[i]);
+                        customRule.selections[i] = inputFieldController.getValue(customRule.fieldIds[i]);
                     }
 
                     if (config.mode) {
@@ -644,20 +598,31 @@ function TempRuleController() {
                             case INPUTTYPE.TAG:
                             case INPUTTYPE.STRING:
                                 if (current.RawKind == 8511) {
-                                    customRule.selections.push(current.Text.substring(1, (current.Text.length - 1)));
+                                    customRule.selections.push(InputFieldValue(current.Text.substring(1, (current.Text.length - 1))));
                                     optionIndex += 1;
                                 }
                                 counter += 1;
                                 break;
 
                             case INPUTTYPE.RAW:
+                                if (current.RawKind == 8508 && current.Text.startsWith('Rnd')) {
+                                    var value;
+                                    [value, steps] = self.parseRnd(ruleBuffer.slice(counter));
+                                    customRule.selections.push(value);
+                                    counter += steps;
+                                    continue;
+                                }
                                 if (current.Text == '-' && current.RawKind == 8202) {
                                     minus = true;
-                                } else if (current.RawKind == 8509 ||
-                                    current.RawKind == 8511 ||
+                                } else if (current.RawKind == 8509) {
+                                    if (minus) customRule.selections.push(InputFieldValue(-1 * parseFloat(current.Text)));
+                                    else customRule.selections.push(InputFieldValue(parseFloat(current.Text)));
+                                    minus = false;
+                                    optionIndex += 1;
+                                } else if (current.RawKind == 8511 ||
                                     current.RawKind == 8323) {
-                                    if (minus) customRule.selections.push('-' + current.Text);
-                                    else customRule.selections.push(current.Text);
+                                    if (minus) customRule.selections.push(InputFieldValue('-' + current.Text));
+                                    else customRule.selections.push(InputFieldValue(current.Text));
                                     minus = false;
                                     optionIndex += 1;
                                 }
@@ -667,10 +632,10 @@ function TempRuleController() {
                             case INPUTTYPE.DROPDOWN:
                                 if (current.RawKind == 8508 && current.Text != "Rules" && ruleBuffer[counter - 1].Text != '.') {
                                     if (ruleBuffer[counter + 1].Text == '.' && ruleBuffer[counter + 2].RawKind == 8508) {
-                                        customRule.selections.push(current.Text + '.' + ruleBuffer[counter + 2].Text);
+                                        customRule.selections.push(InputFieldValue(current.Text + '.' + ruleBuffer[counter + 2].Text));
                                         counter += 3;
                                     } else {
-                                        customRule.selections.push(current.Text);
+                                        customRule.selections.push(InputFieldValue(current.Text));
                                         counter += 1;
                                     }
                                     optionIndex += 1;
@@ -680,11 +645,18 @@ function TempRuleController() {
                                 break;
 
                             case INPUTTYPE.DOUBLE:
+                                if (current.RawKind == 8508 && current.Text.startsWith('Rnd')) {
+                                    var value;
+                                    [value, steps] = self.parseRnd(ruleBuffer.slice(counter));
+                                    customRule.selections.push(value);
+                                    counter += steps;
+                                    continue;
+                                }
                                 if (current.Text == '-' && current.RawKind == 8202) {
                                     minus = true;
                                 } else if (current.RawKind == 8509) {
-                                    if (minus) customRule.selections.push(-1 * parseFloat(current.Text));
-                                    else customRule.selections.push(parseFloat(current.Text));
+                                    if (minus) customRule.selections.push(new InputFieldValue(-1 * parseFloat(current.Text)));
+                                    else customRule.selections.push(InputFieldValue(parseFloat(current.Text)));
                                     minus = false;
                                     optionIndex += 1;
                                 }
@@ -704,12 +676,18 @@ function TempRuleController() {
                                     minus = true;
                                 } else if (current.Text == "Vec3" && current.RawKind == 8508) {
                                     var vec3 = [];
+                                } else if (current.RawKind == 8508 && current.Text.startsWith('Rnd')) {
+                                    var value;
+                                    [value, steps] = self.parseRnd(ruleBuffer.slice(counter));
+                                    vec3.push(value);
+                                    counter += steps;
+                                    continue;
                                 } else if (current.RawKind == 8509) {
-                                    if (minus) vec3.push(-1 * parseFloat(current.Text))
-                                    else vec3.push(parseFloat(current.Text))
+                                    if (minus) vec3.push(InputFieldValue(-1 * parseFloat(current.Text)));
+                                    else vec3.push(InputFieldValue(parseFloat(current.Text)));
                                     minus = false;
-                                } else if (current.Text == ")" && current.RawKind == 8201) {
-                                    this.selections.push(vec3);
+                                } else if (current.Text == ")" && current.RawKind == 8201 && vec3.length == 3) {
+                                    this.selections.push(InputFieldValue(vec3));
                                     optionIndex += 1;
                                 }
                                 counter += 1;
@@ -727,14 +705,14 @@ function TempRuleController() {
                     return counter;
                 };
                 customRule.storeCurrentState = function () {
-                    customRule.storedState = JSON.parse(JSON.stringify(customRule.selections));
+                    customRule.storedState = jQuery.extend(true, {}, customRule.selections);
                     if (config.mode) customRule.storedMode = customRule.mode;
-                    customRule.storedPostfixes = JSON.parse(JSON.stringify(customRule.postfixes));
+                    customRule.storedPostfixes = jQuery.extend(true, {}, customRule.postfixes);
                 };
                 customRule.setStoredState = function () {
                     var inputFieldController = getInputFieldController();
                     for (var i = 0; i < config.options.length; i++) {
-                        inputFieldController.setValue(customRule.fieldIds[i], customRule.storedState[i]);
+                        inputFieldController.setValue(customRule.fieldIds[i], customRule.storedState[i], true /*update range*/);
                     }
 
                     if (config.mode && customRule.storedMode) {
@@ -746,6 +724,48 @@ function TempRuleController() {
                 return customRule;
             }
         }
+
+        self.parseRnd = function(ruleBuffer) {
+            var value = InputFieldValue();
+            var steps = 1;
+
+            switch(ruleBuffer[0].Text) {
+                case 'Rnd':
+                    value.setRandomType(RANDOMTYPE.RND);
+                    break;
+                case 'RndFunc':
+                    value.setRandomType(RANDOMTYPE.RNDFUNC);
+                    break;
+                default:
+                    break;
+            }
+
+            var current;
+            var min = null, max = null;
+            while (steps < ruleBuffer.length) {
+                current = ruleBuffer[steps];
+                switch (current.RawKind) {
+                    case 8200:  // '('
+                        break;
+                    case 8509:  // number
+                        if (min == null) min = parseFloat(current.Text);
+                        else if (max == null) max = parseFloat(current.Text);
+                        break;
+                    case 8216:  // ','
+                        break;
+                    case 8201:  // ')'
+                        if (min != null && max != null) value.setValue([min, max]);
+                        return [value, steps+1];
+                        break;
+                    default:
+                        break;
+                }
+                steps += 1;
+            }
+
+            return [value, 1];
+
+        };
 
     }
 

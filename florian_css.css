@@ -30,6 +30,31 @@
     top: 0px;
 }
 
+.inputField-div {
+	width: 100%;
+    margin-left: 10px;
+    padding-right: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.inputField-label {
+    width: 10%;
+    float: left;
+}
+
+.inputField-inputField {
+}
+
+.inputField-button {
+	width: 25px;
+    height: 25px;
+    float: right;
+}
+
+.inputField-buttonSelected {
+	border: 2px solid #337ab7;
+}
 
 
 .w3-accordion {

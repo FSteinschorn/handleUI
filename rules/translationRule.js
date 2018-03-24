@@ -14,8 +14,11 @@ generatethisRule = function () {
     var translation = generateCustomRule(translateConfig);
     translation.applyRule = function (shape) {
         var matrix = new THREE.Matrix4();
-        matrix.makeTranslation(parseFloat(this.selections[0][0]), parseFloat(this.selections[0][1]), parseFloat(this.selections[0][2]));
-        mat = shape.appearance.transformation;
+        matrix.makeTranslation(
+            this.selections[0].toNumber()[0],
+            this.selections[0].toNumber()[1],
+            this.selections[0].toNumber()[2]);
+        var mat = shape.appearance.transformation;
         var m = new THREE.Matrix4().fromArray(mat).transpose();
         if (this.mode == "Mode.Local" || this.mode == "Mode.LocalMid") m.premultiply(matrix);
         if (this.mode == "Mode.Global" || this.mode == "Mode.GlobalMid") m.multiply(matrix);
@@ -23,8 +26,11 @@ generatethisRule = function () {
     };
     translation.unapplyRule = function (shape) {
         var matrix = new THREE.Matrix4();
-        matrix.makeTranslation(-parseFloat(this.selections[0][0]), -parseFloat(this.selections[0][1]), -parseFloat(this.selections[0][2]));
-        mat = shape.appearance.transformation;
+        matrix.makeTranslation(
+            -this.selections[0].toNumber()[0],
+            -this.selections[0].toNumber()[1],
+            -this.selections[0].toNumber()[2]);
+        var mat = shape.appearance.transformation;
         var m = new THREE.Matrix4().fromArray(mat).transpose();
         if (this.mode == "Mode.Local" || this.mode == "Mode.LocalMid") m.premultiply(matrix);
         if (this.mode == "Mode.Global" || this.mode == "Mode.GlobalMid") m.multiply(matrix);
@@ -113,10 +119,8 @@ generatethisRule = function () {
         };
         this.draggingHelpers.shape = shape;
         var inputFieldController = getInputFieldController();
-        var values = inputFieldController.getNumberValue(this.fieldIds[0]);
-        this.draggingHelpers.startValues.x = values[0];
-        this.draggingHelpers.startValues.y = values[1];
-        this.draggingHelpers.startValues.z = values[2];
+        var value = inputFieldController.getValue(this.fieldIds[0]);
+        this.draggingHelpers.startValues = jQuery.extend(true, [], value);
         this.draggingHelpers.cam = camera;
         this.draggingHelpers.intersection = intersection;
         this.draggingHelpers.arrowPos = arrowPos;
@@ -144,26 +148,26 @@ generatethisRule = function () {
         var direction = this.draggingHelpers.intersection.clone().sub(this.draggingHelpers.arrowPos);
         var angle = diff.normalize().angleTo(direction.normalize());
         if (angle > (0.5 * Math.PI)) length *= -1;
-        var newValues = [this.draggingHelpers.startValues.x,
-            this.draggingHelpers.startValues.y,
-            this.draggingHelpers.startValues.z];
+        var newValues = this.draggingHelpers.startValues.toNumber();
         switch (this.draggingHelpers.activeHandle) {
             case 'x':
-                newValues[0] = (this.draggingHelpers.startValues.x + length).round();
+                newValues[0] = (newValues[0] + length).round();
                 break;
             case 'y':
-                newValues[1] = (this.draggingHelpers.startValues.y + length).round();
+                newValues[1] = (newValues[1] + length).round();
                 break;
             case 'z':
-                newValues[2] = (this.draggingHelpers.startValues.z + length).round();
+                newValues[2] = (newValues[2] + length).round();
                 break;
         }
         var inputFieldController = getInputFieldController();
-        inputFieldController.setValue(this.fieldIds[0], newValues);
+        var inputFieldValues = jQuery.extend(true, [], this.draggingHelpers.startValues);
+        inputFieldValues.setValue(newValues);
+        inputFieldController.setValue(this.fieldIds[0], inputFieldValues);
         inputChanged();
     };
     translation.onHandleReleased = function () {
-        oldHandle = this.draggingHelpers.activeHandle;
+        varoldHandle = this.draggingHelpers.activeHandle;
         this.draggingHelpers.activeHandle = null;
         if (this.draggingHelpers.activeHandle != oldHandle) inputChanged();
     };

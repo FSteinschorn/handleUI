@@ -10,130 +10,185 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
     self.callback = updateCallback;
 
     self.inputs = [];
+    self.children = [];
+
+    self.random = 0;
 
     self.create = function() {
 
         var fieldDiv = document.createElement('div');
-        fieldDiv.id = "fieldDiv_" + self.id;
-        self.parentDiv.appendChild(fieldDiv);
+        fieldDiv.id = "fieldDiv_" + this.id;
+        fieldDiv.classList += "inputField-div";
+        this.parentDiv.appendChild(fieldDiv);
 
         // add label
-        if (self.label != null &&
-            self.types.indexOf(INPUTTYPE.TAG) != -1 &&
-            self.types.indexOf(INPUTTYPE.TAGS) != -1) {
-            var label = document.createElement('span');
-            label.id = 'label' + i;
-            label.innerHTML = self.label + ': ';
+        if (this.label != null &&
+            this.types.indexOf(INPUTTYPE.TAG) == -1 &&
+            this.types.indexOf(INPUTTYPE.TAGS) == -1) {
+            var label = document.createElement('div');
+            label.id = 'fieldLabel_' + this.id;
+            label.classList += 'inputField-label';
+            label.innerHTML = '<span>' + this.label + ': </span>';
             fieldDiv.appendChild(label);
         }
 
+        var noButtons;
+
         // build input
-        switch (self.types[0]) {
+        switch (this.types[0]) {
 
             case INPUTTYPE.STRING:
+                noButtons = 1;
             case INPUTTYPE.DOUBLE:
             case INPUTTYPE.RAW:
-                var id = "inputField_" + self.id;
+                var id = "inputField_" + this.id;
                 var input = document.createElement("input");
                 input.setAttribute('type', 'text');
                 input.setAttribute('id', id);
-                input.addEventListener("change", self.callback);
-                if (self.defaults != null) {
-                    if (isFunction(self.defaults)) {
-                        input.value = self.defaults();
-                    } else {
-                        input.value = self.defaults;
-                    }
-                }
+                input.classList += 'inputField-inputField';
+                input.addEventListener("change", this.callback);
                 fieldDiv.appendChild(input);
-                self.inputs[0] = input;
+                this.inputs[0] = input;
                 break;
 
             case INPUTTYPE.DROPDOWN:
-                var id = "dropdown_" + self.id;
+                var id = "dropdown_" + this.id;
                 var innerHTML = '<select id=' + id + '>';
-                for (var j = 0; j < self.defaults.length; j++) {
-                    innerHTML += '<option vaule ="' + self.defaults[j] + '">' + self.defaults[j] + '</options>';
+                for (var j = 0; j < this.defaults.length; j++) {
+                    innerHTML += '<option vaule ="' + this.defaults[j] + '">' + this.defaults[j] + '</options>';
                 }
                 innerHTML += '</select>';
                 fieldDiv.innerHTML += innerHTML;
                 var selector = document.getElementById(id);
-                selector.addEventListener("change", self.callback);
-                for (j = 0; j < selector.options.length; j++) {
-                    if (selector.options[j].label == self.defaults)
-                        selector.selectedIndex = j;
-                }
-                self.inputs[0] = selector;
+                selector.addEventListener("change", this.callback);
+                selector.classList += 'inputField-inputField';
+                this.inputs[0] = selector;
+
+                noButtons = 1;
                 break;
 
             case INPUTTYPE.TAG:
-                if (self.defaults) var settings = self.defaults;
+                if (this.defaults) var settings = this.defaults;
                 else var settings = null;
-                renderer.postfixController.addPostfix(fieldDiv, settings, self.label, false, self.callback);
+                renderer.postfixController.addPostfix(fieldDiv, settings, this.label, false, this.callback);
+
+                noButtons = 1;
                 break;
 
             case INPUTTYPE.TAGS:
-                if (self.defaults) var settings = self.defaults;
+                if (this.defaults) var settings = this.defaults;
                 else var settings = null;
-                renderer.postfixController.addPostfix(fieldDiv, settings, self.label, false, self.callback);
+                renderer.postfixController.addPostfix(fieldDiv, settings, this.label, false, this.callback);
+
+                noButtons = 1;
                 break;
 
             case INPUTTYPE.VEC3:
-                var id = "vec3_" + self.id + "_elem0";
-                var input1 = document.createElement("input");
-                input1.setAttribute('type', 'text');
-                input1.setAttribute('id', id);
-                input1.addEventListener("change", self.callback);
-                fieldDiv.appendChild(input1);
-                id = "vec3_" + self.id + "_elem1";
-                var input2 = document.createElement("input");
-                input2.setAttribute('type', 'text');
-                input2.setAttribute('id', id);
-                input2.addEventListener("change", self.callback);
-                fieldDiv.appendChild(input2);
-                id = "vec3_" + self.id + "_elem2";
-                var input3 = document.createElement("input");
-                input3.setAttribute('type', 'text');
-                input3.setAttribute('id', id);
-                input3.addEventListener("change", self.callback);
-                fieldDiv.appendChild(input3);
-                if (self.defaults != null) {
-                    if (isFunction(self.defaults)) {
-                        input2.value = self.defaults()[1];
-                        input1.value = self.defaults()[0];
-                        input3.value = self.defaults()[2];
-                    } else {
-                        input1.value = self.defaults[0];
-                        input2.value = self.defaults[1];
-                        input3.value = self.defaults[2];
-                    }
-                }
-                self.inputs = [input1, input2, input3];
+                this.children.push(InputField(fieldDiv, 'x', [INPUTTYPE.DOUBLE], defaults.getValue()[0], updateCallback));
+                this.children.push(InputField(fieldDiv, 'y', [INPUTTYPE.DOUBLE], defaults.getValue()[1], updateCallback));
+                this.children.push(InputField(fieldDiv, 'z', [INPUTTYPE.DOUBLE], defaults.getValue()[2], updateCallback));
+                var label = document.getElementById('fieldLabel_' + this.id);
+                label.style.width = '100%';
+
+                noButtons = 1;
                 break;
 
             default:
                 break;
 
         }
+
+        if (!noButtons) {
+
+            // create buttons
+            var normalButton = document.createElement('button');
+            normalButton.id = 'inputField_' + this.id + '_normalButton';
+            var randomButton = document.createElement('button');
+            randomButton.id = 'inputField_' + this.id + '_randomButton';
+            var lambdaButton = document.createElement('button');
+            lambdaButton.id = 'inputField_' + this.id + '_lambdaButton';
+
+            // set classes
+            normalButton.classList.add("inputField-button");
+            normalButton.classList.add("inputField-buttonSelected");
+            randomButton.classList.add("inputField-button");
+            lambdaButton.classList.add("inputField-button");
+
+            // set text
+            var normalButton_text = document.createTextNode("1");
+            normalButton.appendChild(normalButton_text);
+            var lambdaButton_text = document.createTextNode('\u03BB');
+            lambdaButton.appendChild(lambdaButton_text);
+            randomButton.style.background = "url(https://dl.dropboxusercontent.com/s/ui63t32hhvropzy/dice.png?dl=0)"
+
+            // append to div
+            fieldDiv.appendChild(lambdaButton);
+            fieldDiv.appendChild(randomButton);
+            fieldDiv.appendChild(normalButton);
+
+            // set functions
+            $('#inputField_' + this.id + '_normalButton').click(function() {this.normalButton_clicked();});
+            $('#inputField_' + this.id + '_randomButton').click(function() {this.randomButton_clicked();});
+            $('#inputField_' + this.id + '_lambdaButton').click(function() {this.lambdaButton_clicked();});
+
+        }
+
     };
 
     self.remove = function() {
-        for (var i = 0; i < self.inputs.length; i++) {
-            self.parentDiv.removeChild(self.inputs[i]);
+        for (var i = 0; i < this.children; i++) {
+            this.children[i].remove();
+        }
+        for (var i = 0; i < this.inputs.length; i++) {
+            this.parentDiv.removeChild(this.inputs[i]);
         }
     };
 
-    self.setValue = function(value) {
-        switch (self.types[0]) {
+    self.setValue = function(value, updateRange) {
+        if (updateRange) {
+            if (!this.random && value.type == INPUTFIELDVALUETYPE.RANGE) {
+                this.randomButton_clicked(true);
+            }
+            if (this.random && value.type == INPUTFIELDVALUETYPE.LAMBDA) {
+                this.lambdaButton_clicked(true);
+            }
+            else if (this.random && value.type != INPUTFIELDVALUETYPE.RANGE) {
+                this.normalButton_clicked(true);
+            }
+        }
+
+        if (value.type == INPUTFIELDVALUETYPE.RANGE) {
+            var selector = document.getElementById('selector' + this.id);
+            switch (value.rndType) {
+                case RANDOMTYPE.RND:
+                    selector.value = 'Rnd';
+                    break;
+                case RANDOMTYPE.RNDFUNC:
+                    selector.value = 'RndFunc';
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        switch (this.types[0]) {
 
             case INPUTTYPE.STRING:
             case INPUTTYPE.DOUBLE:
             case INPUTTYPE.RAW:
-                self.inputs[0].value = value;
+                if (this.random && value.getValue().length == 2) {
+                    this.inputs[0].value = value.getValue()[0];
+                    this.inputs[1].value = value.getValue()[1];
+                } else if (this.random) {
+                    this.inputs[0].value = value.getValue();
+                    this.inputs[1].value = value.getValue();
+                } else {
+                    this.inputs[0].value = value.getValue();
+                }
                 break;
 
             case INPUTTYPE.DROPDOWN:
-                self.inputs[0].value = value;
+                this.inputs[0].value = value.getValue();
                 break;
 
             case INPUTTYPE.TAG:
@@ -145,9 +200,9 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
                 break;
 
             case INPUTTYPE.VEC3:
-                self.inputs[0].value = value[0];
-                self.inputs[1].value = value[1];
-                self.inputs[2].value = value[2];
+                this.children[0].setValue(value.getValue()[0], updateRange);
+                this.children[1].setValue(value.getValue()[1], updateRange);
+                this.children[2].setValue(value.getValue()[2], updateRange);
                 break;
 
             default:
@@ -156,83 +211,193 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
         }
     };
 
-    self.getNumberValue = function() {
-        var value;
-        switch (self.types[0]) {
+    self.getValue = function() {
+        var value = InputFieldValue();
+        switch (this.types[0]) {
 
             case INPUTTYPE.STRING:
-            case INPUTTYPE.RAW:
             case INPUTTYPE.DROPDOWN:
-                value = self.inputs[0].value;
+                value.setValue(this.inputs[0].value);
+                break;
+
+            case INPUTTYPE.RAW:
+                if (!isNaN(this.inputs[0].value)) {
+                    value.setValue(parseFloat(this.inputs[0].value));
+                } else {
+                    if (this.random) {
+                        value.setValue([this.inputs[0].value, this.inputs[1].value]);
+                    } else {
+                        value.setValue(this.inputs[0].value);
+                    }
+                }
                 break;
 
             case INPUTTYPE.DOUBLE:
-                value = parseFloat(self.inputs[0].value);
+                if (this.random) {
+                    value.setValue([parseFloat(this.inputs[0].value), parseFloat(this.inputs[1].value)]);
+                } else {
+                    value.setValue(parseFloat(this.inputs[0].value));
+                }
                 break;
 
             case INPUTTYPE.TAG:
             case INPUTTYPE.TAGS:
+                // TODO add tags to value
+                /*
                 value = {};
                 var inputDiv = document.getElementById('inputDiv');
                 renderer.postfixController.applyPostfixes(inputDiv, value);
+                */
                 break;
 
             case INPUTTYPE.VEC3:
-                value = [];
-                value[0] = parseFloat(self.inputs[0].value);
-                value[1] = parseFloat(self.inputs[1].value);
-                value[2] = parseFloat(self.inputs[2].value);
+                var values = [];
+                values[0] = this.children[0].getValue();
+                values[1] = this.children[1].getValue();
+                values[2] = this.children[2].getValue();
+                value.setValue(values);
                 break;
 
             default:
                 break;
 
+        }
+
+        if (this.random) {
+            var selector = document.getElementById('selector' + this.id);
+            var rndType = selector.value;
+            switch (rndType) {
+                case 'Rnd':
+                    value.setRandomType(RANDOMTYPE.RND);
+                    break;
+                case 'RndFunc':
+                    value.setRandomType(RANDOMTYPE.RNDFUNC);
+                    break;
+                default:
+                    break;
+            }
         }
 
         return value;
     };
 
-    self.getStringValue = function() {
-        switch (self.types[0]) {
-
-            case INPUTTYPE.STRING:
-                return ('"' + self.getNumberValue().round() + '"');
-                break;
-
-            case INPUTTYPE.DOUBLE:
-                return self.getNumberValue().round();
-                break;
-
-            case INPUTTYPE.DROPDOWN:
-            case INPUTTYPE.RAW:
-                return self.getNumberValue();
-                break;
-
-            case INPUTTYPE.TAG:
-                //TODO get tag
-                return "NOT IMPLEMENTED";
-                break;
-
-            case INPUTTYPE.TAGS:
-                // TODO get tags
-                return "NOT IMPLEMENTED";
-                break;
-
-            case INPUTTYPE.VEC3:
-                var values = self.getNumberValue();
-                var string = 'Vec3(';
-                string += values[0].round() + ', ' + values[1].round() + ', ' + values[2].round();
-                string += ')';
-                return string;
-                break;
-
-            default:
-                break;
-
+    self.normalButton_clicked = function(noSetting) {
+        var normalButton = document.getElementById('inputField_' + this.id + '_normalButton');
+        var randomButton = document.getElementById('inputField_' + this.id + '_randomButton');
+        var lambdaButton = document.getElementById('inputField_' + this.id + '_lambdaButton');
+        if (!normalButton.classList.contains('inputField-buttonSelected')) {
+            normalButton.classList.add('inputField-buttonSelected');
+            randomButton.classList.remove('inputField-buttonSelected');
+            lambdaButton.classList.remove('inputField-buttonSelected');
+            if (!lambdaButton.classList.contains('inputField-buttonSelected')) {
+                var currentValue = this.getValue();
+                this.switchToSingleInput();
+                currentValue.switchType(INPUTFIELDVALUETYPE.NUMBER);
+                if (!noSetting) this.setValue(currentValue);
+            }
+            if (!noSetting) this.callback();
         }
     };
 
+    self.randomButton_clicked = function(noSetting) {
+        var normalButton = document.getElementById('inputField_' + this.id + '_normalButton');
+        var randomButton = document.getElementById('inputField_' + this.id + '_randomButton');
+        var lambdaButton = document.getElementById('inputField_' + this.id + '_lambdaButton');
+        if (!randomButton.classList.contains('inputField-buttonSelected')) {
+            randomButton.classList.add('inputField-buttonSelected');
+            normalButton.classList.remove('inputField-buttonSelected');
+            lambdaButton.classList.remove('inputField-buttonSelected');
+            var currentValue = this.getValue();
+            this.switchToRndInput();
+            currentValue.switchType(INPUTFIELDVALUETYPE.RANGE);
+            if (!noSetting) {
+                this.setValue(currentValue);
+                this.callback();
+            }
+        }
+    };
+
+    self.lambdaButton_clicked = function(noSetting) {
+        var normalButton = document.getElementById('inputField_' + this.id + '_normalButton');
+        var randomButton = document.getElementById('inputField_' + this.id + '_randomButton');
+        var lambdaButton = document.getElementById('inputField_' + this.id + '_lambdaButton');
+        if (!lambdaButton.classList.contains('inputField-buttonSelected')) {
+            lambdaButton.classList.add('inputField-buttonSelected');
+            randomButton.classList.remove('inputField-buttonSelected');
+            normalButton.classList.remove('inputField-buttonSelected');
+            if (!normalButton.classList.contains('inputField-buttonSelected')) {
+                var currentValue = this.getValue();
+                this.switchToSingleInput();
+                currentValue.switchType(INPUTFIELDVALUETYPE.LAMBDA);
+                if (!noSetting) this.setValue(currentValue);
+            }
+            if (!noSetting) this.callback();
+        }
+    };
+
+    self.switchToSingleInput = function() {
+        for (var i = 0; i < this.inputs.length; i++) {
+            this.inputs[i].parentNode.removeChild(this.inputs[i]);
+        }
+        var selector = document.getElementById('selector' + this.id);
+        selector.parentNode.removeChild(selector);
+        this.inputs = [];
+
+        var id = "inputField_" + this.id;
+        var input = document.createElement("input");
+        input.setAttribute('type', 'text');
+        input.setAttribute('id', id);
+        input.classList += 'inputField-inputField';
+        input.addEventListener("change", this.callback);
+        var fieldDiv = document.getElementById("fieldDiv_" + this.id);
+        fieldDiv.appendChild(input);
+        this.inputs[0] = input;
+
+        this.random = 0;
+    };
+
+    self.switchToRndInput = function() {
+        for (var i = 0; i < this.inputs.length; i++) {
+            this.inputs[i].parentNode.removeChild(this.inputs[i]);
+        }
+        this.inputs = [];
+
+        var selector = document.createElement('select');
+        selector.id = 'selector' + this.id;
+        var rnd_option = document.createElement('option');
+        rnd_option.text = rnd_option.value = 'Rnd';
+        var rndFunc_options = document.createElement('option');
+        rndFunc_options.text = rndFunc_options.value = 'RndFunc';
+        selector.add(rnd_option, 0);
+        selector.add(rndFunc_options, 0);
+        selector.onchange = this.callback;
+        var fieldDiv = document.getElementById("fieldDiv_" + this.id);
+        fieldDiv.appendChild(selector);
+
+        var id = "inputField1_" + this.id;
+        var input = document.createElement("input");
+        input.setAttribute('type', 'text');
+        input.setAttribute('id', id);
+        input.classList += 'inputField-inputField';
+        input.addEventListener("change", this.callback);
+        fieldDiv.appendChild(input);
+        this.inputs[0] = input;
+
+        id = "inputField2_" + this.id;
+        input = document.createElement("input");
+        input.setAttribute('type', 'text');
+        input.setAttribute('id', id);
+        input.classList += 'inputField-inputField';
+        input.addEventListener("change", this.callback);
+        fieldDiv.appendChild(input);
+        this.inputs[1] = input;
+
+        this.random = 1;
+    };
+
+
     self.create();
+    self.setValue(defaults, true);
     return self;
 
 }
