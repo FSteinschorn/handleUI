@@ -23,11 +23,12 @@ generateSizeRule = function () {
     sizeRule.initialSize = null;
 
     sizeRule.applyRule = function (shape) {
+        if (this.selections[1].isNULL()) return;
         var matrix = new THREE.Matrix4();
         var translation = new THREE.Matrix4();
 
-        var scale = this.selections[1] / this.initialSize || 1;
-        switch (this.selections[0]) {
+        var scale = this.selections[1].toNumber() / this.initialSize || 1;
+        switch (this.selections[0].getValue()) {
             case 'Axis.X':
                 matrix.makeScale(scale, 1, 1);
                 translation.makeTranslation(this.initialSize * (scale - 1) / 2, 0, 0);
@@ -44,59 +45,60 @@ generateSizeRule = function () {
                 break;
         }
 
-        mat = shape.appearance.transformation;
+        var mat = shape.appearance.transformation;
         var m = new THREE.Matrix4().fromArray(mat).transpose();
-        if (scale.mode == "Mode.Local") {
+        if (this.mode == "Mode.Local") {
             m.multiply(translation);
             m.multiply(matrix);
-        } else if (scale.mode == "Mode.LocalMid") {
+        } else if (this.mode == "Mode.LocalMid") {
             m.multiply(matrix);
-        } else if (scale.mode == "Mode.Global") {
+        } else if (this.mode == "Mode.Global") {
             m.premultiply(matrix);
-        } else if (scale.mode == "Mode.GlobalMid") {
+        } else if (this.mode == "Mode.GlobalMid") {
             m.multiply(matrix);
         }
         shape.appearance.transformation = m.transpose().toArray();
     };
     sizeRule.unapplyRule = function (shape) {
+        if (this.selections[1].isNULL()) return;
         var matrix = new THREE.Matrix4();
         var translation = new THREE.Matrix4();
 
-        var scale = this.initialSize / this.selections[1] || 1;
-        switch (this.selections[0]) {
+        var scale = this.initialSize / this.selections[1].toNumber() || 1;
+        switch (this.selections[0].getValue()) {
             case 'Axis.X':
                 matrix.makeScale(scale, 1, 1);
                 translation.makeTranslation(
-                    -(this.selections[1] / 2) + (this.selections[1] * scale / 2),
+                    -(this.selections[1].toNumber() / 2) + (this.selections[1].toNumber() * scale / 2),
                     0, 0);
                 break;
             case 'Axis.Y':
                 matrix.makeScale(1, scale, 1);
                 translation.makeTranslation(
                     0,
-                    -(this.selections[1] / 2) + (this.selections[1] * scale / 2),
+                    -(this.selections[1].toNumber() / 2) + (this.selections[1].toNumber() * scale / 2),
                     0);
                 break;
             case 'Axis.Z':
                 matrix.makeScale(1, 1, scale);
                 translation.makeTranslation(
                     0, 0,
-                    -(this.selections[1] / 2) + (this.selections[1] * scale / 2));
+                    -(this.selections[1].toNumber() / 2) + (this.selections[1].toNumber() * scale / 2));
                 break;
             default:
                 break;
         }
 
-        mat = shape.appearance.transformation;
+        var mat = shape.appearance.transformation;
         var m = new THREE.Matrix4().fromArray(mat).transpose();
-        if (scale.mode == "Mode.Local") {
+        if (this.mode == "Mode.Local") {
             m.multiply(matrix);
             m.multiply(translation);
-        } else if (scale.mode == "Mode.LocalMid") {
+        } else if (this.mode == "Mode.LocalMid") {
             m.multiply(matrix);
-        } else if (scale.mode == "Mode.Global") {
+        } else if (this.mode == "Mode.Global") {
             m.premultiply(matrix);
-        } else if (scale.mode == "Mode.GlobalMid") {
+        } else if (this.mode == "Mode.GlobalMid") {
             m.multiply(matrix);
         }
         shape.appearance.transformation = m.transpose().toArray();
@@ -105,8 +107,6 @@ generateSizeRule = function () {
 
         // necessary calculations
         var m = shape.shape.appearance.transformation;
-        var selector = document.getElementById('dropdown0');
-        var selection = selector[selector.selectedIndex].label;
 
         if (!this.initialSizeX) {
             var dir = new THREE.Vector3(m[0], m[1], m[2]);
@@ -122,39 +122,40 @@ generateSizeRule = function () {
         }
 
         if (!this.initialSize) {
-            if (this.selections[0] == 'Axis.X') {
+            if (this.selections[0].getValue() == 'Axis.X') {
                 this.initialSize = this.initialSizeX;
-            } else if (this.selections[0] == 'Axis.Y') {
+            } else if (this.selections[0].getValue() == 'Axis.Y') {
                 this.initialSize = this.initialSizeY;
             } else {
                 this.initialSize = this.initialSizeZ;
             }
         }
 
-        if (!this.selections[1]) this.selections[1] = this.initialSize;
+        if (this.selections[1].getValue() == null)
+            this.selections[1].setValue(this.initialSize);
 
         //create handles
         var basicColors = [0xAA3030, 0x30AA30, 0x3030AA];
         var highlightColors = [0xFF0000, 0x00FF00, 0x0000FF];
 
-        mat = shape.shape.appearance.transformation;
+        var mat = shape.shape.appearance.transformation;
         var m = new THREE.Matrix4().set(mat[0], mat[1], mat[2], mat[3], mat[4], mat[5], mat[6], mat[7], mat[8], mat[9], mat[10], mat[11], mat[12], mat[13], mat[14], mat[15]);
-        center = new THREE.Vector3(0, 0, 0);
+        var center = new THREE.Vector3(0, 0, 0);
         center.applyProjection(m);
 
         var dir, length;
-        switch (this.selections[0]) {
+        switch (this.selections[0].getValue()) {
             case 'Axis.X':
                 dir = new THREE.Vector3(1.0, 0, 0);
-                length = new THREE.Vector3(this.selections[1], 0, 0);
+                length = new THREE.Vector3(this.selections[1].toNumber(), 0, 0);
                 break;
             case 'Axis.Y':
                 dir = new THREE.Vector3(0, 1.0, 0);
-                length = new THREE.Vector3(0, this.selections[1], 0);
+                length = new THREE.Vector3(0, this.selections[1].toNumber(), 0);
                 break;
             case 'Axis.Z':
                 dir = new THREE.Vector3(0, 0, 1.0);
-                length = new THREE.Vector3(0, 0, this.selections[1]);
+                length = new THREE.Vector3(0, 0, this.selections[1].toNumber());
                 break;
             default:
                 break;
@@ -170,7 +171,8 @@ generateSizeRule = function () {
 
         var oldStartingId = this.draggingHelpers.arrowIds[0] || 0;
         this.draggingHelpers.arrowIds = [];
-        switch (this.selections[0]) {
+        var color;
+        switch (this.selections[0].getValue()) {
             case 'Axis.X':
                 if (this.draggingHelpers.highlight) color = highlightColors[0];
                 else color = basicColors[0];
@@ -196,16 +198,19 @@ generateSizeRule = function () {
 
         this.draggingHelpers.idOffset = this.draggingHelpers.arrowIds[0] - oldStartingId;
 
-        var input = document.getElementById('input_field1');
-        if (!input.value) input.value = this.selections[1].round();
+        var inputFieldController = getInputFieldController();
+        var currentValue = inputFieldController.getValue(this.fieldIds[1]);
+        if (currentValue.isNULL()) {
+            inputFieldController.setValue(this.fieldIds[1], this.selections[1]);
+        }
     };
     sizeRule.onMouseOverHandle = function (id) {
-        oldHandle = this.draggingHelpers.overHandle;
+        var oldHandle = this.draggingHelpers.overHandle;
         this.draggingHelpers.overHandle = true;
         if (this.draggingHelpers.overHandle != oldHandle) inputChanged();
     };
     sizeRule.onMouseNotOverHandle = function () {
-        oldHandle = this.draggingHelpers.overHandle;
+        var oldHandle = this.draggingHelpers.overHandle;
         this.draggingHelpers.overHandle = null;
         if (this.draggingHelpers.overHandle != oldHandle) inputChanged();
     };
@@ -218,9 +223,11 @@ generateSizeRule = function () {
         this.draggingHelpers.segment = {
             start: start,
             end: end
-        }
+        };
 
-        this.draggingHelpers.startValue = parseFloat(document.getElementById("input_field1").value);
+        var inputFieldController = getInputFieldController();
+        var value = inputFieldController.getValue(this.fieldIds[1]);
+        this.draggingHelpers.startValue = jQuery.extend(true, [], value);
         this.draggingHelpers.cam = camera;
         this.draggingHelpers.intersection = intersection;
         this.draggingHelpers.arrowPos = arrowPos;
@@ -246,17 +253,19 @@ generateSizeRule = function () {
         var angle = diff.normalize().angleTo(direction.normalize());
         if (angle > (0.5 * Math.PI)) length *= -1;
 
-        document.getElementById("input_field1").value = (this.draggingHelpers.startValue + length).round();
+        var inputFieldController = getInputFieldController();
+        var newValue = this.draggingHelpers.startValue.toNumber() + length;
+        inputFieldController.setValue(this.fieldIds[1], InputFieldValue(newValue.round()));
 
         inputChanged();
     };
     sizeRule.onHandleReleased = function () {
-        oldHandle = this.draggingHelpers.activeHandle;
+        var oldHandle = this.draggingHelpers.activeHandle;
         this.draggingHelpers.activeHandle = null;
         if (this.draggingHelpers.activeHandle != oldHandle) inputChanged();
     };
     sizeRule.additionalUpdates = function () {
-        switch (this.selections[0]) {
+        switch (this.selections[0].getValue()) {
             case 'Axis.X':
                 this.initialSize = this.initialSizeX;
                 break;

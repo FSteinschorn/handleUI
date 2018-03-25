@@ -154,13 +154,21 @@ function TempRuleController() {
         if (!shape) return;
 
         // update rule
+        renderer.RenderSingleFrame();
         rule.removePreview(shape);
+        renderer.RenderSingleFrame();
         rule.unapplyRule(shape);
+        renderer.RenderSingleFrame();
         rule.afterUnapply(shape);
+        renderer.RenderSingleFrame();
         rule.updateRule();
+        renderer.RenderSingleFrame();
         rule.applyRule(shape);
+        renderer.RenderSingleFrame();
         rule.afterApply(shape);
+        renderer.RenderSingleFrame();
         rule.addPreview(shape, "green");
+        renderer.RenderSingleFrame();
 
         var editor = ace.edit("code_text_ace");
         var newString = rule.generateRuleString();
@@ -488,24 +496,7 @@ function TempRuleController() {
 
                 var customRule = jQuery.extend(true, [], abstractRule);
                 customRule.type = config.type;
-                customRule.selections = {};
-                for (var i = 0; i < config.options.length; i++) {
-                    switch (config.options[i].inputType) {
-                        case INPUTTYPE.DROPDOWN:
-                            customRule.selections[i] = InputFieldValue(config.options[i].values[0]);
-                            break;
-                        case INPUTTYPE.VEC3:
-                            customRule.selections[i] = InputFieldValue([
-                                InputFieldValue(config.options[i].values[0]),
-                                InputFieldValue(config.options[i].values[1]),
-                                InputFieldValue(config.options[i].values[2])
-                            ]);
-                            break;
-                        default:
-                            customRule.selections[i] = InputFieldValue(config.options[i].values);
-                            break;
-                    }
-                }
+                customRule.selections = self.initSelections(config.options);
                 customRule.generateRuleString = function () {
                     var ruleString = "new Rules." + config.type + "(";
 
@@ -561,13 +552,21 @@ function TempRuleController() {
                 customRule.onselectionChange = inputChanged;
                 customRule.appendInputFields = function (parentDiv, empty /* dont fill input with current values */) {
                     customRule.fieldIds = [];
-                    for (var i = 0; i < config.options.length; i++) {
-                        var current = config.options[i];
-                        var defaults = current.values;
-                        if (!empty && customRule.selections[i]) defaults = customRule.selections[i];
+                    var defaults = [];
+                    var inputFieldController = getInputFieldController();
+                    if (!empty && customRule.selections[0]) {
+                        for (var i = 0; i < config.options.length; i++) {
+                            var current = config.options[i];
+                            defaults = customRule.selections[i];
 
-                        var inputFieldController = getInputFieldController();
-                        customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], defaults, customRule.onselectionChange);
+                            customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], defaults, customRule.onselectionChange);
+                        }
+                    } else {
+                        defaults = self.prepareDefaults(config.options);
+                        for (var i = 0; i < config.options.length; i++) {
+                            var current = config.options[i];
+                            customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], defaults[i], customRule.onselectionChange);
+                        }
                     }
 
                     if (config.mode) {
@@ -766,6 +765,37 @@ function TempRuleController() {
             return [value, 1];
 
         };
+
+        self.initSelections = function (options) {
+            var selections = Array(options.length);
+            for (var i = 0; i < options.length; i++) {
+                switch (options[i].inputType) {
+                    case INPUTTYPE.DROPDOWN:
+                        selections[i] = InputFieldValue(options[i].values[0]);
+                        break;
+                    case INPUTTYPE.VEC3:
+                        selections[i] = InputFieldValue([
+                            InputFieldValue(options[i].values[0]),
+                            InputFieldValue(options[i].values[1]),
+                            InputFieldValue(options[i].values[2])
+                        ]);
+                        break;
+                    default:
+                        selections[i] = InputFieldValue(options[i].values);
+                        break;
+                }
+            }
+            return selections;
+        };
+
+        self.prepareDefaults = function(options) {
+            var defaults = self.initSelections(options);
+            for (var i = 0; i < options.length; i++) {
+                if (options[i].inputType == INPUTTYPE.DROPDOWN)
+                    defaults[i] = options[i].values;
+            }
+            return defaults;
+        }
 
     }
 

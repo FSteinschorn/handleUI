@@ -12,11 +12,14 @@ scaleConfig = {
 
 generateScaleRule = function () {
 
-    var scale = generateCustomRule(self.scaleConfig);
+    var scale = generateCustomRule(scaleConfig);
 
     scale.applyRule = function (shape) {
         var matrix = new THREE.Matrix4();
-        matrix.makeScale(parseFloat(this.selections[0][0]), parseFloat(this.selections[0][1]), parseFloat(this.selections[0][2]));
+        matrix.makeScale(
+            this.selections[0].toNumber()[0],
+            this.selections[0].toNumber()[1],
+            this.selections[0].toNumber()[2]);
         var m = shape.appearance.transformation;
         var mat = new THREE.Matrix4().fromArray(m).transpose();
         if (this.mode == "Mode.Local") {
@@ -24,9 +27,9 @@ generateScaleRule = function () {
             var ySize = new THREE.Vector3(m[4], m[5], m[6]).length();
             var zSize = new THREE.Vector3(m[8], m[9], m[10]).length();
             var translation = new THREE.Matrix4().makeTranslation(
-                xSize * (this.selections[0][0] - 1) / 2,
-                ySize * (this.selections[0][1] - 1) / 2,
-                zSize * (this.selections[0][2] - 1) / 2
+                xSize * (this.selections[0].toNumber()[0] - 1) / 2,
+                ySize * (this.selections[0].toNumber()[1] - 1) / 2,
+                zSize * (this.selections[0].toNumber()[2] - 1) / 2
             );
             mat.multiply(translation);
             mat.multiply(matrix);
@@ -41,7 +44,10 @@ generateScaleRule = function () {
     };
     scale.unapplyRule = function (shape) {
         var matrix = new THREE.Matrix4();
-        matrix.makeScale(1 / parseFloat(this.selections[0][0]), 1 / parseFloat(this.selections[0][1]), 1 / parseFloat(this.selections[0][2]));
+        matrix.makeScale(
+            1 / this.selections[0].toNumber()[0],
+            1 / this.selections[0].toNumber()[1],
+            1 / this.selections[0].toNumber()[2]);
         var m = shape.appearance.transformation;
         var mat = new THREE.Matrix4().fromArray(m).transpose();
         if (this.mode == "Mode.Local") {
@@ -49,9 +55,9 @@ generateScaleRule = function () {
             var ySize = new THREE.Vector3(m[4], m[5], m[6]).length();
             var zSize = new THREE.Vector3(m[8], m[9], m[10]).length();
             var translation = new THREE.Matrix4().makeTranslation(
-                -(xSize / 2) + (xSize / this.selections[0][0] / 2),
-                -(ySize / 2) + (ySize / this.selections[0][1] / 2),
-                -(zSize / 2) + (zSize / this.selections[0][2] / 2)
+                -(xSize / 2) + (xSize / this.selections[0].toNumber()[0] / 2),
+                -(ySize / 2) + (ySize / this.selections[0].toNumber()[1] / 2),
+                -(zSize / 2) + (zSize / this.selections[0].toNumber()[2] / 2)
             );
             mat.multiply(matrix);
             mat.multiply(translation);
@@ -128,7 +134,7 @@ generateScaleRule = function () {
         this.draggingHelpers.ids.z = ids[2];
     };
     scale.onMouseOverHandle = function (id) {
-        oldHandle = this.draggingHelpers.overHandle;
+        var oldHandle = this.draggingHelpers.overHandle;
         if (this.draggingHelpers.ids.x <= id && id <= this.draggingHelpers.ids.x + 2) {
             this.draggingHelpers.overHandle = 'x';
         }
@@ -141,7 +147,7 @@ generateScaleRule = function () {
         if (this.draggingHelpers.overHandle != oldHandle) inputChanged();
     };
     scale.onMouseNotOverHandle = function () {
-        oldHandle = this.draggingHelpers.overHandle;
+        var oldHandle = this.draggingHelpers.overHandle;
         this.draggingHelpers.overHandle = null;
         if (this.draggingHelpers.overHandle != oldHandle) inputChanged();
     };
@@ -154,11 +160,11 @@ generateScaleRule = function () {
         this.draggingHelpers.segment = {
             start: start,
             end: end
-        }
+        };
 
-        this.draggingHelpers.startValues.x = parseFloat(document.getElementById("vec3_0_elem0").value);
-        this.draggingHelpers.startValues.y = parseFloat(document.getElementById("vec3_0_elem1").value);
-        this.draggingHelpers.startValues.z = parseFloat(document.getElementById("vec3_0_elem2").value);
+        var inputFieldController = getInputFieldController();
+        var value = inputFieldController.getValue(this.fieldIds[0]);
+        this.draggingHelpers.startValues = jQuery.extend(true, [], value);
         this.draggingHelpers.cam = camera;
         this.draggingHelpers.intersection = intersection;
         this.draggingHelpers.arrowPos = arrowPos;
@@ -194,27 +200,34 @@ generateScaleRule = function () {
         var angle = diff.normalize().angleTo(direction.normalize());
         if (angle > (0.5 * Math.PI)) length *= -1;
 
+        var newValues = this.draggingHelpers.startValues.toNumber();
         switch (this.draggingHelpers.activeHandle) {
             case 'x':
-                var scaleFactor = this.draggingHelpers.startSizeX * this.draggingHelpers.startValues.x + length;
+                var scaleFactor = this.draggingHelpers.startSizeX * newValues[0] + length;
                 scaleFactor = scaleFactor / this.draggingHelpers.startSizeX;
-                document.getElementById("vec3_0_elem0").value = scaleFactor.round();
+                newValues[0] = scaleFactor.round();
                 break;
             case 'y':
-                var scaleFactor = this.draggingHelpers.startSizeY * this.draggingHelpers.startValues.y + length;
+                var scaleFactor = this.draggingHelpers.startSizeY * newValues[1] + length;
                 scaleFactor = scaleFactor / this.draggingHelpers.startSizeY;
-                document.getElementById("vec3_0_elem1").value = scaleFactor.round();
+                newValues[1] = scaleFactor.round();
                 break;
             case 'z':
-                var scaleFactor = this.draggingHelpers.startSizeZ * this.draggingHelpers.startValues.z + length;
+                var scaleFactor = this.draggingHelpers.startSizeZ * newValues[2] + length;
                 scaleFactor = scaleFactor / this.draggingHelpers.startSizeZ;
-                document.getElementById("vec3_0_elem2").value = scaleFactor.round();
+                newValues[2] = scaleFactor.round();
                 break;
         }
+
+        var inputFieldController = getInputFieldController();
+        var inputFieldValues = jQuery.extend(true, [], this.draggingHelpers.startValues);
+        inputFieldValues.setValue(newValues);
+        inputFieldController.setValue(this.fieldIds[0], inputFieldValues);
+
         inputChanged();
     };
     scale.onHandleReleased = function () {
-        oldHandle = this.draggingHelpers.activeHandle;
+        var oldHandle = this.draggingHelpers.activeHandle;
         this.draggingHelpers.activeHandle = null;
         if (this.draggingHelpers.activeHandle != oldHandle) inputChanged();
     };

@@ -31,8 +31,8 @@ generatePaintRule = function () {
     var paint = generateCustomRule(self.paintConfig);
 
     paint.generateRuleString = function () {
-        var ruleString = "new Rules.Paint(" + this.selections[0];
-        if (this.selections[1] != null) ruleString += '(' + this.selections[1] + ')';
+        var ruleString = "new Rules.Paint(" + this.selections[0].toString();
+        if (this.selections[1] != null) ruleString += '(' + this.selections[1].toString() + ')';
         ruleString += ')';
         ruleString = addTags(paint, ruleString);
         ruleString += ";";
@@ -42,8 +42,8 @@ generatePaintRule = function () {
         return ruleString;
     };
     paint.generateShortString = function () {
-        var ruleString = "Paint with " + this.selections[0];
-        if (this.selections[1] != null) ruleString += '(' + this.selections[1] + ')';
+        var ruleString = "Paint with " + this.selections[0].toString();
+        if (this.selections[1] != null) ruleString += '(' + this.selections[1].toString() + ')';
         return ruleString;
     };
     paint.onselectionChange = function () {

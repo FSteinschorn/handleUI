@@ -127,9 +127,9 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
             fieldDiv.appendChild(normalButton);
 
             // set functions
-            $('#inputField_' + this.id + '_normalButton').click(function() {this.normalButton_clicked();});
-            $('#inputField_' + this.id + '_randomButton').click(function() {this.randomButton_clicked();});
-            $('#inputField_' + this.id + '_lambdaButton').click(function() {this.lambdaButton_clicked();});
+            $('#inputField_' + this.id + '_normalButton').click(function() {self.normalButton_clicked();});
+            $('#inputField_' + this.id + '_randomButton').click(function() {self.randomButton_clicked();});
+            $('#inputField_' + this.id + '_lambdaButton').click(function() {self.lambdaButton_clicked();});
 
         }
 
@@ -140,7 +140,9 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
             this.children[i].remove();
         }
         for (var i = 0; i < this.inputs.length; i++) {
-            this.parentDiv.removeChild(this.inputs[i]);
+            var fieldDiv = this.inputs[0].parentNode;
+            fieldDiv.removeChild(this.inputs[i]);
+            fieldDiv.parentNode.removeChild(fieldDiv);
         }
     };
 
@@ -188,7 +190,13 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
                 break;
 
             case INPUTTYPE.DROPDOWN:
-                this.inputs[0].value = value.getValue();
+                var selector = this.inputs[0];
+                for (var i = 0; i < selector.options.length; i++) {
+                    if (selector.options[i].value == value.toString()) {
+                        selector.selectedIndex = i;
+                        break;
+                    }
+                }
                 break;
 
             case INPUTTYPE.TAG:

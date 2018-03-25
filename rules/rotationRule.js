@@ -28,9 +28,9 @@ generateRotationRule = function () {
 
     rotation.generateRuleString = function () {
         var amount = null;
-        if (this.selections[2] == "deg") amount = "Deg(" + this.selections[1] + ")";
-        else if (this.selections[2] == "rad") amount = "Rad(" + this.selections[1] + ")";
-        var ruleString = "new Rules.Rotate(" + this.selections[0] + ", " + amount + ", " + this.mode + ")";
+        if (this.selections[2].getValue() == "deg") amount = "Deg(" + this.selections[1].toNumber() + ")";
+        else if (this.selections[2].getValue() == "rad") amount = "Rad(" + this.selections[1].toNumber() + ")";
+        var ruleString = "new Rules.Rotate(" + this.selections[0].getValue() + ", " + amount + ", " + this.mode + ")";
         ruleString = addTags(rotation, ruleString);
         ruleString += ";";
 
@@ -39,11 +39,13 @@ generateRotationRule = function () {
         return ruleString;
     };
     rotation.generateShortString = function () {
-        return ("Rotation by " + this.selections[1] + " " + this.selections[2] + " on " + this.selections[0] + ", " + this.mode);
+        return ("Rotation by " + this.selections[1].toNumber()
+            + " " + this.selections[2].getValue()
+            + " on " + this.selections[0].getValue() + ", " + this.mode);
     };
     rotation.applyRule = function (shape) {
-        var amount = -this.selections[1];
-        if (this.selections[2] == 'deg') {
+        var amount = -this.selections[1].toNumber();
+        if (this.selections[2].getValue() == 'deg') {
             amount = Math.PI * amount / 180;
         }
 
@@ -55,7 +57,7 @@ generateRotationRule = function () {
         m.transpose();
 
         var matrix = new THREE.Matrix4();
-        switch (this.selections[0]) {
+        switch (this.selections[0].getValue()) {
             case 'Axis.X':
                 matrix.makeRotationX(amount);
                 break;
@@ -74,7 +76,7 @@ generateRotationRule = function () {
             var sizeY = new THREE.Vector3(mat[4], mat[5], mat[6]).length();
             var sizeZ = new THREE.Vector3(mat[8], mat[9], mat[10]).length();
             var pivot_offset = new THREE.Matrix4();
-            switch (this.selections[0]) {
+            switch (this.selections[0].getValue()) {
                 case 'Axis.X':
                     pivot_offset.makeTranslation(0, sizeY / 2, sizeZ / 2);
                     break;
@@ -137,7 +139,7 @@ generateRotationRule = function () {
         // Turn circle depending on axis
         var material = null;
         var rotationMat = new THREE.Matrix4();
-        switch (this.selections[0]) {
+        switch (this.selections[0].getValue()) {
             case 'Axis.X':
                 material = new THREE.LineBasicMaterial({color: colors[0]});
                 rotationMat.makeRotationY(Math.PI / 2);
@@ -163,7 +165,7 @@ generateRotationRule = function () {
         geometry.vertices.shift();
 
         // Move circle to correct position
-        mat = this.initialTransform;
+        var mat = this.initialTransform;
         var m = new THREE.Matrix4().fromArray(mat).transpose();
         switch(this.mode) {
             case 'Mode.Local':
@@ -171,7 +173,7 @@ generateRotationRule = function () {
                 var sizeY = new THREE.Vector3(mat[4], mat[5], mat[6]).length();
                 var sizeZ = new THREE.Vector3(mat[8], mat[9], mat[10]).length();
                 var pivot_offset = new THREE.Matrix4();
-                switch (this.selections[0]) {
+                switch (this.selections[0].getValue()) {
                     case 'Axis.X':
                         pivot_offset.makeTranslation(0, -sizeY / 2, -sizeZ / 2);
                         break;
@@ -215,7 +217,7 @@ generateRotationRule = function () {
                 var position = new THREE.Vector4();
                 position.applyMatrix4(translation);
 
-                switch(this.selections[0]) {
+                switch(this.selections[0].getValue()) {
                     case 'Axis.X':
                         translation.elements[13] = 0;
                         translation.elements[14] = 0;
@@ -271,7 +273,7 @@ generateRotationRule = function () {
         if (oldHandle != this.draggingHelpers.overHandle) inputChanged();
     };
     rotation.onMouseNotOverHandle = function () {
-        oldHandle = this.draggingHelpers.overHandle;
+        var oldHandle = this.draggingHelpers.overHandle;
         this.draggingHelpers.overHandle = null;
         if (this.draggingHelpers.overHandle != oldHandle) inputChanged();
     };
@@ -283,7 +285,7 @@ generateRotationRule = function () {
         this.draggingHelpers.startValue = this.selections[1];
 
         var segment = this.draggingHelpers.scene.getObjectById(id);
-        this.draggingHelpers.vertices = segment.geometry.vertices
+        this.draggingHelpers.vertices = segment.geometry.vertices;
     };
     rotation.onHandleDragged = function (mouse) {
         var vertices = this.draggingHelpers.vertices;
@@ -331,27 +333,30 @@ generateRotationRule = function () {
         var direction = -1;
         if (viewingAngle < (0.5 * Math.PI)) direction *= -1;
         if (standardAngle > (0.5 * Math.PI)) direction *= -1;
-        if (this.selections[0] == "Axis.Y") direction *= -1;
+        if (this.selections[0].getValue() == "Axis.Y") direction *= -1;
 
         // calc rotation angle
         var angle = startDir.angleTo(endDir);
 
         // update input fields
+        var inputFieldController = getInputFieldController();
+        var newValue = jQuery.extend(true, [], this.draggingHelpers.startValue);
         if (this.selections[2] == "rad") {
-            document.getElementById("input_field1").value = '' + (this.draggingHelpers.startValue + direction * angle).round();
+            newValue.setValue((this.draggingHelpers.startValue.toNumber() + direction * angle).round());
         } else {
-            document.getElementById("input_field1").value = '' + (this.draggingHelpers.startValue + direction * ((angle * 180) / Math.PI)).round();
+            newValue.setValue((this.draggingHelpers.startValue.toNumber() + direction * ((angle * 180) / Math.PI)).round());
         }
+        inputFieldController.setValue(this.fieldIds[1], newValue);
 
         inputChanged();
     };
     rotation.onHandleReleased = function () {
-        oldHandle = this.draggingHelpers.activeHandle;
+        var oldHandle = this.draggingHelpers.activeHandle;
         this.draggingHelpers.activeHandle = null;
         if (this.draggingHelpers.activeHandle != oldHandle) inputChanged();
     };
     rotation.parseCode = function(ruleBuffer) {
-        this.selections = [];
+        this.selections = [InputFieldValue(), InputFieldValue(), InputFieldValue()];
         var counter = 0;
         var minus = false;
         var current = null;
@@ -365,7 +370,7 @@ generateRotationRule = function () {
                         && current.Text == "Axis"
                         && ruleBuffer[counter + 1].Text == '.'
                         && ruleBuffer[counter + 2].RawKind == 8508) {
-                        this.selections.push(current.Text + '.' + ruleBuffer[counter + 2].Text);
+                        this.selections[0].setValue(current.Text + '.' + ruleBuffer[counter + 2].Text);
                         counter += 3;
                         next = 'degrad';
                     } else {
@@ -374,8 +379,7 @@ generateRotationRule = function () {
                     break;
                 case 'degrad':
                     if (current.RawKind == 8508) {
-                        this.selections.push("");
-                        this.selections.push(current.Text.toLowerCase());
+                        this.selections[2].setValue(current.Text.toLowerCase());
                         counter += 1;
                         next = 'amount';
                     } else {
@@ -386,8 +390,10 @@ generateRotationRule = function () {
                     if (current.Text == '-' && current.RawKind == 8202) {
                         minus = true;
                     } else if (current.RawKind == 8509) {
-                        this.selections[1] = parseFloat(current.Text);
-                        if (minus) this.selections[1] *= -1;
+                        if (minus)
+                            this.selections[1].setValue(-parseFloat(current.Text));
+                        else
+                            this.selections[1].setValue(parseFloat(current.Text));
                         done = true;
                     }
                     counter += 1;

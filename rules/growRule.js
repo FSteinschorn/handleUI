@@ -12,16 +12,16 @@ growConfig = {
 
 generateGrowRule = function () {
 
-    var grow = generateCustomRule(self.growConfig);
+    var grow = generateCustomRule(growConfig);
 
     grow.applyRule = function (shape) {
         var transform = shape.appearance.transformation;
         var sizeX = new THREE.Vector3(transform[0], transform[1], transform[2]).length();
         var sizeY = new THREE.Vector3(transform[4], transform[5], transform[6]).length();
         var sizeZ = new THREE.Vector3(transform[8], transform[9], transform[10]).length();
-        var scaleX = (sizeX + parseFloat(this.selections[0][0])) / sizeX;
-        var scaleY = (sizeY + parseFloat(this.selections[0][1])) / sizeY;
-        var scaleZ = (sizeZ + parseFloat(this.selections[0][2])) / sizeZ;
+        var scaleX = (sizeX + this.selections[0].toNumber()[0]) / sizeX;
+        var scaleY = (sizeY + this.selections[0].toNumber()[1]) / sizeY;
+        var scaleZ = (sizeZ + this.selections[0].toNumber()[2]) / sizeZ;
 
         var matrix = new THREE.Matrix4();
         matrix.makeScale(scaleX, scaleY, scaleZ);
@@ -49,9 +49,9 @@ generateGrowRule = function () {
         var sizeX = new THREE.Vector3(transform[0], transform[1], transform[2]).length();
         var sizeY = new THREE.Vector3(transform[4], transform[5], transform[6]).length();
         var sizeZ = new THREE.Vector3(transform[8], transform[9], transform[10]).length();
-        var scaleX = sizeX / (sizeX - parseFloat(this.selections[0][0]));
-        var scaleY = sizeY / (sizeY - parseFloat(this.selections[0][1]));
-        var scaleZ = sizeZ / (sizeZ - parseFloat(this.selections[0][2]));
+        var scaleX = sizeX / (sizeX - this.selections[0].toNumber()[0]);
+        var scaleY = sizeY / (sizeY - this.selections[0].toNumber()[1]);
+        var scaleZ = sizeZ / (sizeZ - this.selections[0].toNumber()[2]);
 
         var matrix = new THREE.Matrix4();
         matrix.makeScale(1 / scaleX, 1 / scaleY, 1 / scaleZ);
@@ -138,7 +138,7 @@ generateGrowRule = function () {
         this.draggingHelpers.ids.z = ids[2];
     };
     grow.onMouseOverHandle = function (id) {
-        oldHandle = this.draggingHelpers.overHandle;
+        var oldHandle = this.draggingHelpers.overHandle;
         if (this.draggingHelpers.ids.x <= id && id <= this.draggingHelpers.ids.x + 2) {
             this.draggingHelpers.overHandle = 'x';
         }
@@ -151,7 +151,7 @@ generateGrowRule = function () {
         if (this.draggingHelpers.overHandle != oldHandle) inputChanged();
     };
     grow.onMouseNotOverHandle = function () {
-        oldHandle = this.draggingHelpers.overHandle;
+        var oldHandle = this.draggingHelpers.overHandle;
         this.draggingHelpers.overHandle = null;
         if (this.draggingHelpers.overHandle != oldHandle) inputChanged();
     };
@@ -164,11 +164,11 @@ generateGrowRule = function () {
         this.draggingHelpers.segment = {
             start: start,
             end: end
-        }
+        };
 
-        this.draggingHelpers.startValues.x = parseFloat(document.getElementById("vec3_0_elem0").value);
-        this.draggingHelpers.startValues.y = parseFloat(document.getElementById("vec3_0_elem1").value);
-        this.draggingHelpers.startValues.z = parseFloat(document.getElementById("vec3_0_elem2").value);
+        var inputFieldController = getInputFieldController();
+        var value = inputFieldController.getValue(this.fieldIds[0]);
+        this.draggingHelpers.startValues = jQuery.extend(true, [], value);
         this.draggingHelpers.cam = camera;
         this.draggingHelpers.intersection = intersection;
         this.draggingHelpers.arrowPos = arrowPos;
@@ -204,30 +204,37 @@ generateGrowRule = function () {
         var angle = diff.normalize().angleTo(direction.normalize());
         if (angle > (0.5 * Math.PI)) length *= -1;
 
+        var newValues = this.draggingHelpers.startValues.toNumber();
         switch (this.draggingHelpers.activeHandle) {
             case 'x':
                 var scale = this.draggingHelpers.startSizeX + length;
                 scale = scale / this.draggingHelpers.startSizeX;
                 var growFactor = scale * this.draggingHelpers.sizeX - this.draggingHelpers.sizeX;
-                document.getElementById("vec3_0_elem0").value = (this.draggingHelpers.startValues.x + length).round();
+                newValues[0] = (newValues[0] + length).round();
                 break;
             case 'y':
                 var scale = this.draggingHelpers.startSizeY + length;
                 scale = scale / this.draggingHelpers.startSizeY;
                 var growFactor = scale * this.draggingHelpers.sizeY - this.draggingHelpers.sizeY;
-                document.getElementById("vec3_0_elem1").value = (this.draggingHelpers.startValues.y + length).round();
+                newValues[1] = (this.draggingHelpers.startValues.y + length).round();
+                newValues[1] = (newValues[1] + length).round();
                 break;
             case 'z':
                 var scale = this.draggingHelpers.startSizeZ + length;
                 scale = scale / this.draggingHelpers.startSizeZ;
                 var growFactor = scale * this.draggingHelpers.sizeZ - this.draggingHelpers.sizeZ;
-                document.getElementById("vec3_0_elem2").value = (this.draggingHelpers.startValues.z + length).round();
+                newValues[2] = (this.draggingHelpers.startValues.z + length).round();
+                newValues[2] = (newValues[2] + length).round();
                 break;
         }
+        var inputFieldController = getInputFieldController();
+        var inputFieldValues = jQuery.extend(true, [], this.draggingHelpers.startValues);
+        inputFieldValues.setValue(newValues);
+        inputFieldController.setValue(this.fieldIds[0], inputFieldValues);
         inputChanged();
     };
     grow.onHandleReleased = function () {
-        oldHandle = this.draggingHelpers.activeHandle;
+        var oldHandle = this.draggingHelpers.activeHandle;
         this.draggingHelpers.activeHandle = null;
         if (this.draggingHelpers.activeHandle != oldHandle) inputChanged();
     };

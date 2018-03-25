@@ -3,7 +3,8 @@ var INPUTFIELDVALUETYPE = {
     RANGE: 354318,
     LAMBDA: 648618,
     VECTOR: 348431,
-    STRING: 672167
+    STRING: 672167,
+    NULL: 400000
 };
 
 var RANDOMTYPE = {
@@ -15,7 +16,7 @@ function InputFieldValue(value) {
 
     var self = {};
 
-    self.type = INPUTFIELDVALUETYPE.NUMBER;
+    self.type = INPUTFIELDVALUETYPE.NULL;
 
     // simple number value
     self.number = 0;
@@ -35,6 +36,11 @@ function InputFieldValue(value) {
     self.string = "";
 
     self.setValue = function(value) {
+        if (value == null || value != value ) { // NULL or NaN
+            this.inputType = INPUTFIELDVALUETYPE.NULL;
+            return;
+        }
+
         var range = this.max - this.min;
         if (isNaN(range)) range = 0;
 
@@ -114,6 +120,10 @@ function InputFieldValue(value) {
                     this.vec[2].toNumber()];
                 break;
 
+            case INPUTFIELDVALUETYPE.NULL:
+                return null;
+                break;
+
             default:
                 return NaN;
                 break;
@@ -140,6 +150,10 @@ function InputFieldValue(value) {
 
             case INPUTFIELDVALUETYPE.STRING:
                 return this.string;
+                break;
+
+            case INPUTFIELDVALUETYPE.NULL:
+                return null;
                 break;
 
             default:
@@ -185,6 +199,10 @@ function InputFieldValue(value) {
                 return '"' + this.string + '"';
                 break;
 
+            case INPUTFIELDVALUETYPE.NULL:
+                return 'NULL';
+                break;
+
             default:
                 return "ERROR";
                 break;
@@ -199,7 +217,11 @@ function InputFieldValue(value) {
         this.rndType = newType;
     };
 
-    if (value) self.setValue(value);
+    self.isNULL = function() {
+        return this.type == INPUTFIELDVALUETYPE.NULL;
+    };
+
+    if (value || value == 0) self.setValue(value);
     return self;
 
 }
