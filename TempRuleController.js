@@ -203,6 +203,9 @@ function TempRuleController() {
 
     self.createRule = function (type) {
         var factory = self.rules.get(type);
+        if (!factory) {
+            return jQuery.extend(true, [], abstractRule);
+        }
         return factory();
     };
 
@@ -610,8 +613,11 @@ function TempRuleController() {
                                     customRule.selections.push(value);
                                     counter += steps;
                                     continue;
-                                }
-                                if (current.Text == '-' && current.RawKind == 8202) {
+                                } else if (current.RawKind == 8508 && self.detectLambda(ruleBuffer.slice(counter))) {
+                                    [value, steps] = self.getLambda(ruleBuffer.slice(counter));
+                                    customRule.selections.push(value);
+                                    counter += steps;
+                                } else if (current.Text == '-' && current.RawKind == 8202) {
                                     minus = true;
                                 } else if (current.RawKind == 8509) {
                                     if (minus) customRule.selections.push(InputFieldValue(-1 * parseFloat(current.Text)));
@@ -650,8 +656,11 @@ function TempRuleController() {
                                     customRule.selections.push(value);
                                     counter += steps;
                                     continue;
-                                }
-                                if (current.Text == '-' && current.RawKind == 8202) {
+                                } else if (current.RawKind == 8508 && self.detectLambda(ruleBuffer.slice(counter))) {
+                                    [value, steps] = self.getLambda(ruleBuffer.slice(counter));
+                                    customRule.selections.push(value);
+                                    counter += steps;
+                                } else if (current.Text == '-' && current.RawKind == 8202) {
                                     minus = true;
                                 } else if (current.RawKind == 8509) {
                                     if (minus) customRule.selections.push(new InputFieldValue(-1 * parseFloat(current.Text)));
@@ -681,6 +690,10 @@ function TempRuleController() {
                                     vec3.push(value);
                                     counter += steps;
                                     continue;
+                                } else if (current.RawKind == 8508 && self.detectLambda(ruleBuffer.slice(counter))) {
+                                    [value, steps] = self.getLambda(ruleBuffer.slice(counter));
+                                    vec3.push(value);
+                                    counter += steps;
                                 } else if (current.RawKind == 8509) {
                                     if (minus) vec3.push(InputFieldValue(-1 * parseFloat(current.Text)));
                                     else vec3.push(InputFieldValue(parseFloat(current.Text)));
@@ -764,6 +777,48 @@ function TempRuleController() {
 
             return [value, 1];
 
+        };
+
+        self.detectLambda = function(ruleBuffer) {
+            var depth = 0;
+            for (var i = 0; i < ruleBuffer.length; i++) {
+                if (ruleBuffer[i].RawKind == 8200 && ruleBuffer[i].Text == '(')
+                    depth += 1;
+                if (ruleBuffer[i].RawKind == 8201 && ruleBuffer[i].Text == ')') {
+                    depth -= 1;
+                    if (depth < 0) return false;
+                }
+                if (ruleBuffer[i].RawKind == 8269 && ruleBuffer[i].Text == '=>')
+                    return true;
+                if (ruleBuffer[i].RawKind == 8216 && ruleBuffer[i].Text == ',')
+                    if (depth == 0) return false;
+            }
+        };
+
+        self.getLambda = function(ruleBuffer) {
+            var depth = 0;
+            var lambdaString = "";
+            var value = InputFieldValue();
+            for (var i = 0; i < ruleBuffer.length; i++) {
+                if (ruleBuffer[i].RawKind == 8200 && ruleBuffer[i].Text == '(') {
+                    depth += 1;
+                }
+                if (ruleBuffer[i].RawKind == 8201 && ruleBuffer[i].Text == ')') {
+                    depth -= 1;
+                    if (depth < 0) {
+                        value.setValue(lambdaString);
+                        return [value, i];
+                    }
+                }
+                if (ruleBuffer[i].RawKind == 8216 && ruleBuffer[i].Text == ','){
+                    if (depth == 0) {
+                        value.setValue(lambdaString);
+                        return [value, i];
+                    }
+                }
+                lambdaString += ruleBuffer[i].Text;
+            }
+            return false;
         };
 
         self.initSelections = function (options) {

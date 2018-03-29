@@ -68,7 +68,7 @@ function InputFieldValue(value) {
                 this.number = ((value[0] + value[1]) / 2).round();
                 this.min = value[0];
                 this.max = value[1];
-                this.lambda = ((value[1] + value[0]) / 2).round();
+                this.lambda = "x => " + this.toString();
                 this.vec[0].setValue((value[1] + value[0]) / 2);
                 this.vec[1].setValue((value[1] + value[0]) / 2);
                 this.vec[2].setValue((value[1] + value[0]) / 2);
@@ -82,14 +82,14 @@ function InputFieldValue(value) {
                     this.vec[0].setValue(value[0]);
                     this.vec[1].setValue(value[1]);
                     this.vec[2].setValue(value[2]);
-                    this.lambda = this.toString();
+                    this.lambda = "x => " + this.toString();
                     this.string = this.toString();
                 } else {
                     this.number = value[0].toNumber();
                     this.min = (value[0].toNumber() - range / 2).round();
                     this.max = (value[0].toNumber() + range / 2).round();
                     this.vec = value;
-                    this.lambda = this.toString();
+                    this.lambda = "x => " + this.toString();
                     this.string = this.toString();
                 }
             }
@@ -99,8 +99,8 @@ function InputFieldValue(value) {
             this.number = value;
             this.min = (value - range/2).round();
             this.max = (value + range/2).round();
-            this.lambda = value;
-            this.string = value;
+            this.lambda = "x => " + this.toString();
+            this.string = this.toString();
         }
     };
 
@@ -186,7 +186,7 @@ function InputFieldValue(value) {
                 break;
 
             case INPUTFIELDVALUETYPE.LAMBDA:
-                return "x => " + this.lambda;
+                return this.lambda;
                 break;
 
             case INPUTFIELDVALUETYPE.VECTOR:

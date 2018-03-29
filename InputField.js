@@ -147,14 +147,12 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
     };
 
     self.setValue = function(value, updateRange) {
-        if (updateRange) {
-            if (!this.random && value.type == INPUTFIELDVALUETYPE.RANGE) {
+        if (updateRange && self.types[0] != INPUTTYPE.VEC3) {
+            if (value.type == INPUTFIELDVALUETYPE.RANGE) {
                 this.randomButton_clicked(true);
-            }
-            if (this.random && value.type == INPUTFIELDVALUETYPE.LAMBDA) {
+            } else if (value.type == INPUTFIELDVALUETYPE.LAMBDA) {
                 this.lambdaButton_clicked(true);
-            }
-            else if (this.random && value.type != INPUTFIELDVALUETYPE.RANGE) {
+            } else if (value.type != INPUTFIELDVALUETYPE.RANGE) {
                 this.normalButton_clicked(true);
             }
         }
@@ -243,8 +241,10 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
             case INPUTTYPE.DOUBLE:
                 if (this.random) {
                     value.setValue([parseFloat(this.inputs[0].value), parseFloat(this.inputs[1].value)]);
-                } else {
+                } else if (!isNaN(this.inputs[0].value)) {
                     value.setValue(parseFloat(this.inputs[0].value));
+                } else {
+                    value.setValue(this.inputs[0].value);
                 }
                 break;
 
@@ -294,9 +294,6 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
         var randomButton = document.getElementById('inputField_' + this.id + '_randomButton');
         var lambdaButton = document.getElementById('inputField_' + this.id + '_lambdaButton');
         if (!normalButton.classList.contains('inputField-buttonSelected')) {
-            normalButton.classList.add('inputField-buttonSelected');
-            randomButton.classList.remove('inputField-buttonSelected');
-            lambdaButton.classList.remove('inputField-buttonSelected');
             if (!lambdaButton.classList.contains('inputField-buttonSelected')) {
                 var currentValue = this.getValue();
                 this.switchToSingleInput();
@@ -304,6 +301,10 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
                 if (!noSetting) this.setValue(currentValue);
             }
             if (!noSetting) this.callback();
+
+            normalButton.classList.add('inputField-buttonSelected');
+            randomButton.classList.remove('inputField-buttonSelected');
+            lambdaButton.classList.remove('inputField-buttonSelected');
         }
     };
 
@@ -312,9 +313,6 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
         var randomButton = document.getElementById('inputField_' + this.id + '_randomButton');
         var lambdaButton = document.getElementById('inputField_' + this.id + '_lambdaButton');
         if (!randomButton.classList.contains('inputField-buttonSelected')) {
-            randomButton.classList.add('inputField-buttonSelected');
-            normalButton.classList.remove('inputField-buttonSelected');
-            lambdaButton.classList.remove('inputField-buttonSelected');
             var currentValue = this.getValue();
             this.switchToRndInput();
             currentValue.switchType(INPUTFIELDVALUETYPE.RANGE);
@@ -322,6 +320,10 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
                 this.setValue(currentValue);
                 this.callback();
             }
+
+            randomButton.classList.add('inputField-buttonSelected');
+            normalButton.classList.remove('inputField-buttonSelected');
+            lambdaButton.classList.remove('inputField-buttonSelected');
         }
     };
 
@@ -330,9 +332,6 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
         var randomButton = document.getElementById('inputField_' + this.id + '_randomButton');
         var lambdaButton = document.getElementById('inputField_' + this.id + '_lambdaButton');
         if (!lambdaButton.classList.contains('inputField-buttonSelected')) {
-            lambdaButton.classList.add('inputField-buttonSelected');
-            randomButton.classList.remove('inputField-buttonSelected');
-            normalButton.classList.remove('inputField-buttonSelected');
             if (!normalButton.classList.contains('inputField-buttonSelected')) {
                 var currentValue = this.getValue();
                 this.switchToSingleInput();
@@ -340,6 +339,10 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
                 if (!noSetting) this.setValue(currentValue);
             }
             if (!noSetting) this.callback();
+
+            lambdaButton.classList.add('inputField-buttonSelected');
+            randomButton.classList.remove('inputField-buttonSelected');
+            normalButton.classList.remove('inputField-buttonSelected');
         }
     };
 

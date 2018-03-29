@@ -245,7 +245,9 @@ generateConcatRule = function () {
                 [rule, lastPosition] = renderer.postfixController.parsePostfixes(rule, ruleBuffer.slice(counter));
                 counter += lastPosition;
                 rule.start = ruleStart;
-                rule.end = ruleBuffer[counter].SpanStart + ruleBuffer[counter].SpanLength;
+                if (counter < ruleBuffer.length)
+                    rule.end = ruleBuffer[counter].SpanStart + ruleBuffer[counter].SpanLength;
+                else lastPosition = 0;  // if failed, dont jump over rest of rules
                 rule.deleted = false;
                 rule.edited = false;
                 rule.wasParsed = true;
