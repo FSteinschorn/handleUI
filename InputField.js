@@ -1,4 +1,4 @@
-function InputField(parentDiv, label, types, defaults, updateCallback) {
+function InputField(parentDiv, label, types, defaults, updateCallback, additionalData) {
 
     var self = {};
 
@@ -8,6 +8,7 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
     self.types = types;
     self.defaults = defaults;
     self.callback = updateCallback;
+    self.additionalData = additionalData;
 
     self.inputs = [];
     self.children = [];
@@ -54,8 +55,8 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
             case INPUTTYPE.DROPDOWN:
                 var id = "dropdown_" + this.id;
                 var innerHTML = '<select id=' + id + '>';
-                for (var j = 0; j < this.defaults.length; j++) {
-                    innerHTML += '<option vaule ="' + this.defaults[j] + '">' + this.defaults[j] + '</options>';
+                for (var j = 0; j < this.additionalData.length; j++) {
+                    innerHTML += '<option vaule ="' + this.additionalData[j] + '">' + this.additionalData[j] + '</options>';
                 }
                 innerHTML += '</select>';
                 fieldDiv.innerHTML += innerHTML;
@@ -152,7 +153,9 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
                 this.randomButton_clicked(true);
             } else if (value.type == INPUTFIELDVALUETYPE.LAMBDA) {
                 this.lambdaButton_clicked(true);
-            } else if (value.type != INPUTFIELDVALUETYPE.RANGE) {
+            } else if (value.type != INPUTFIELDVALUETYPE.RANGE &&
+                        (this.types[0] == INPUTTYPE.RAW ||
+                        this.types[0] == INPUTTYPE.DOUBLE)) {
                 this.normalButton_clicked(true);
             }
         }
@@ -190,7 +193,7 @@ function InputField(parentDiv, label, types, defaults, updateCallback) {
             case INPUTTYPE.DROPDOWN:
                 var selector = this.inputs[0];
                 for (var i = 0; i < selector.options.length; i++) {
-                    if (selector.options[i].value == value.toString()) {
+                    if (selector.options[i].value == value.getValue()) {
                         selector.selectedIndex = i;
                         break;
                     }

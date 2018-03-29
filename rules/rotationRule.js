@@ -108,7 +108,8 @@ generateRotationRule = function () {
         shape.appearance.transformation = m.toArray();
     };
     rotation.unapplyRule = function (shape) {
-        shape.appearance.transformation = this.lastTransform;
+        if (this.lastTransform)
+            shape.appearance.transformation = this.lastTransform;
     };
     rotation.createHandles = function (scene, shape) {
         this.draggingHelpers.scene = scene;

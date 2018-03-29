@@ -572,13 +572,22 @@ function TempRuleController() {
                             var current = config.options[i];
                             defaults = customRule.selections[i];
 
-                            customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], defaults, customRule.onselectionChange);
+                            if (current.inputType == INPUTTYPE.DROPDOWN) {
+                                customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], defaults, customRule.onselectionChange, current.values);
+                            } else {
+                                customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], defaults, customRule.onselectionChange);
+                            }
                         }
                     } else {
-                        defaults = self.prepareDefaults(config.options);
+                        customRule.selections = self.initSelections(config.options);
                         for (var i = 0; i < config.options.length; i++) {
                             var current = config.options[i];
-                            customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], defaults[i], customRule.onselectionChange);
+
+                            if (current.inputType == INPUTTYPE.DROPDOWN) {
+                                customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], customRule.selections[i], customRule.onselectionChange, current.values);
+                            } else {
+                                customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], customRule.selections[i], customRule.onselectionChange);
+                            }
                         }
                     }
 
@@ -852,15 +861,6 @@ function TempRuleController() {
             }
             return selections;
         };
-
-        self.prepareDefaults = function(options) {
-            var defaults = self.initSelections(options);
-            for (var i = 0; i < options.length; i++) {
-                if (options[i].inputType == INPUTTYPE.DROPDOWN)
-                    defaults[i] = options[i].values;
-            }
-            return defaults;
-        }
 
     }
 

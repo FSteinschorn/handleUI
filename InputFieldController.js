@@ -12,8 +12,8 @@ function InputFieldController() {
 
     self.inputFields = new Map();
 
-    self.addInputField = function(parentDiv, label, types, defaults, updateCallback) {
-        var field = InputField(parentDiv, label, types, defaults, updateCallback);
+    self.addInputField = function(parentDiv, label, types, defaults, updateCallback, additionalData) {
+        var field = InputField(parentDiv, label, types, defaults, updateCallback, additionalData);
         this.inputFields[field.id] = field;
 
         return field.id;
