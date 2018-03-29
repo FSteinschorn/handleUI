@@ -36,7 +36,6 @@ function HandlesThreeRenderer(domQuery) {
     uneditedRule = null;
     uneditedCode = null;
     currentRuleWasParsed = false;
-    self.ruleIndex = 0;
 
     handlesType = null;
     handleId = 0;
@@ -45,29 +44,6 @@ function HandlesThreeRenderer(domQuery) {
 
     self.postfixController = new PostfixController(self);
     self.ruleController = getRuleController(self);
-
-    //create div container
-    {
-        var scrollDiv = document.createElement('div');
-        scrollDiv.ui = "scrollDiv";
-        scrollDiv.style.width = "100%";
-        scrollDiv.style.height = "100%";
-        var uiDiv = document.createElement('div');
-        uiDiv.id = "uiDiv";
-        uiDiv.style.position = "absolute";
-        uiDiv.style.bottom = "0px";
-        uiDiv.style.width = "100%";
-        uiDiv.style.overflowY = "auto";
-        uiDiv.style.overflowX = "hidden";
-        uiDiv.style.maxHeight = "100%";
-        uiDiv.classList = "w3-light-grey";
-        scrollDiv.appendChild(uiDiv);
-        uiDiv.innerHTML = "<p><br>&emsp;Press <button type=\"button\" class=\"btn btn-primary flexStatic\" id=\"parse-button-2\">Go</button> to start editing rules!</p>";
-        document.getElementById("graphRendererContainer").appendChild(scrollDiv);
-        $('#parse-button-2').click(function() {
-            document.getElementById('parse-button').click();
-        } );
-    }
 
     self.codeParseNeeded = true;
 
@@ -174,11 +150,32 @@ function HandlesThreeRenderer(domQuery) {
 
         var goButton = document.getElementById("parse-button");
         goButton.addEventListener("click", function () {
-            clearUI();
-            self.selectedMesh = null;
-            self.selectedRule = null;
-            self.codeParseNeeded = true;
+            self.cleanup();
         }, false);
+
+        //create div container
+        {
+            var scrollDiv = document.createElement('div');
+            scrollDiv.ui = "scrollDiv";
+            scrollDiv.style.width = "100%";
+            scrollDiv.style.height = "100%";
+            var uiDiv = document.createElement('div');
+            uiDiv.id = "uiDiv";
+            uiDiv.style.position = "absolute";
+            uiDiv.style.bottom = "0px";
+            uiDiv.style.width = "100%";
+            uiDiv.style.overflowY = "auto";
+            uiDiv.style.overflowX = "hidden";
+            uiDiv.style.maxHeight = "100%";
+            uiDiv.classList = "w3-light-grey";
+            scrollDiv.appendChild(uiDiv);
+            uiDiv.innerHTML = "<p><br>&emsp;Press <button type=\"button\" class=\"btn btn-primary flexStatic\" id=\"parse-button-2\">Go</button> to start editing rules!</p>";
+            document.getElementById("graphRendererContainer").appendChild(scrollDiv);
+
+            $('#parse-button-2').click(function() {
+                document.getElementById('parse-button').click();
+            } );
+        }
     });
     self.updateCalls.push(function () {
         self.raycastScene(self.ruleController.previewScene.children, false, self.wireframeHitCallback, self.wireframeClearCallback);
@@ -459,7 +456,6 @@ function HandlesThreeRenderer(domQuery) {
                             self.selectedRule.uneditedRule = jQuery.extend(true, [], self.selectedRule);
                         var editor = ace.edit("code_text_ace");
                         uneditedCode = editor.getValue();
-                        self.ruleIndex = i;
                         self.selectedMesh.shape.appliedRules += 1;
 
                         //init helper variables for will/was
@@ -773,21 +769,13 @@ function HandlesThreeRenderer(domQuery) {
     };
 
     clearUI = function () {
+        if (self.handlesScene)
         for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
             self.handlesScene.remove(self.handlesScene.children[i]);
+        if (uiDiv)
         for (var i = uiDiv.children.length - 1; i >= 0; --i) {
             uiDiv.removeChild(uiDiv.childNodes[i]);
         }
-    };
-    removeRuleUI = function () {
-        var uiDiv = document.getElementById("uiDiv");
-        if (uiDiv != null)
-            uiDiv.parentNode.removeChild(uiDiv);
-    };
-    removeButtonUI = function () {
-        var buttonDiv = document.getElementById("buttonDiv");
-        if (buttonDiv != null)
-            buttonDiv.parentNode.removeChild(buttonDiv);
     };
 
     self.inputChanged = function () {
@@ -815,6 +803,21 @@ function HandlesThreeRenderer(domQuery) {
         }
 
         self.RenderSingleFrame();
+    };
+
+    self.cleanup = function() {
+        var inputFieldController = getInputFieldController();
+        inputFieldController.removeAll();
+
+        this.ruleController.removeAll();
+
+        clearUI();
+
+        this.selectedMesh = null;
+        this.selectedRule = null;
+        this.handlesScene = new THREE.Scene();
+
+        this.codeParseNeeded = true;
     };
 
     return self;

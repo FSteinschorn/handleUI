@@ -149,6 +149,16 @@ function TempRuleController() {
         rule.deleted = true;
     };
 
+    self.removeAll = function() {
+        for (var i = this.previewScene.children.length - 1; i >= 0; --i)
+            this.previewScene.remove(this.previewScene.children[i]);
+
+        this.meshes = new Map();
+
+        this.tmpRules = [];
+        this.parsedRules = [];
+    };
+
     self.updateRule = function (shape, rule) {
         if (!rule) return;
         if (!shape) return;
@@ -614,7 +624,7 @@ function TempRuleController() {
                                     counter += steps;
                                     continue;
                                 } else if (current.RawKind == 8508 && self.detectLambda(ruleBuffer.slice(counter))) {
-                                    [value, steps] = self.getLambda(ruleBuffer.slice(counter));
+                                    [value, steps] = self.parseLambda(ruleBuffer.slice(counter));
                                     customRule.selections.push(value);
                                     counter += steps;
                                 } else if (current.Text == '-' && current.RawKind == 8202) {
@@ -657,7 +667,7 @@ function TempRuleController() {
                                     counter += steps;
                                     continue;
                                 } else if (current.RawKind == 8508 && self.detectLambda(ruleBuffer.slice(counter))) {
-                                    [value, steps] = self.getLambda(ruleBuffer.slice(counter));
+                                    [value, steps] = self.parseLambda(ruleBuffer.slice(counter));
                                     customRule.selections.push(value);
                                     counter += steps;
                                 } else if (current.Text == '-' && current.RawKind == 8202) {
@@ -691,7 +701,7 @@ function TempRuleController() {
                                     counter += steps;
                                     continue;
                                 } else if (current.RawKind == 8508 && self.detectLambda(ruleBuffer.slice(counter))) {
-                                    [value, steps] = self.getLambda(ruleBuffer.slice(counter));
+                                    [value, steps] = self.parseLambda(ruleBuffer.slice(counter));
                                     vec3.push(value);
                                     counter += steps;
                                 } else if (current.RawKind == 8509) {
@@ -791,11 +801,11 @@ function TempRuleController() {
                 if (ruleBuffer[i].RawKind == 8269 && ruleBuffer[i].Text == '=>')
                     return true;
                 if (ruleBuffer[i].RawKind == 8216 && ruleBuffer[i].Text == ',')
-                    if (depth == 0) return false;
+                    return false;
             }
         };
 
-        self.getLambda = function(ruleBuffer) {
+        self.parseLambda = function(ruleBuffer) {
             var depth = 0;
             var lambdaString = "";
             var value = InputFieldValue();

@@ -32,5 +32,12 @@ function InputFieldController() {
         return this.inputFields[id].getValue();
     };
 
+    self.removeAll = function() {
+        for (var idx in this.inputFields) {
+            this.inputFields[idx].remove();
+        }
+        this.inputFields = new Map();
+    };
+
     return self;
 }
