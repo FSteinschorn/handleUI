@@ -23,10 +23,10 @@
 	top: 5px;
 }
 
-.postfixInput {
+.postfix_input {
     width: 70%;
     position: absolute;
-    right: 3em;
+    right: 36px;
     top: 0px;
 }
 
@@ -41,9 +41,7 @@
 .inputField-label {
     width: 10%;
     float: left;
-}
-
-.inputField-inputField {
+	margin: 5px 0px;
 }
 
 .inputField-button {
@@ -54,6 +52,65 @@
 
 .inputField-buttonSelected {
 	border: 2px solid #337ab7;
+}
+
+.ui_selector {
+	display:inline-block;
+	outline:0;
+	overflow:hidden;
+	text-decoration:none!important;
+	color:#fff;
+	background-color:#337ab7;
+	text-align:center;
+	cursor:pointer;
+	white-space:nowrap;
+}
+
+.ui_selector:hover{
+	background-color:#286090;
+	box-shadow:0 8px 16px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+}
+
+.postfix_selector {
+	border:none;
+	padding:3px 16px;
+	margin:2px 2px;
+	width: 33%;
+}
+
+.rule_selector {
+	border:none;
+	padding:4px 15px;
+	width: 20%;
+}
+
+.ui_inputField {
+	border: 1px solid #eee;
+	background: #fafafa;
+}
+
+.ui_inputField:focus {
+	outline: none;
+}
+
+.ui_inputField::placeholder {
+	color: #bbb;
+	font-family: helvetica neue,Helvetica,Arial,sans-serif;
+	font-size: 12px;
+}
+
+.postfix_inputField {
+	padding:3px 1em;
+	margin:0px 0px;
+	font-size: 14px;
+	width: 33%;
+}
+
+.rule_inputField {
+	padding:3px 1em;
+	margin:0px 0px;
+	font-size: 14px;
+	width: 20%;
 }
 
 
@@ -104,7 +161,7 @@
 	background-color:#337ab7;
 	text-align:center;
 	cursor:pointer;
-	white-space:nowrap
+	white-space:nowrap;
 	width: 80%;
     position: absolute;
     right: 0px;

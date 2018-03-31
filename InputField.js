@@ -46,7 +46,8 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
                 var input = document.createElement("input");
                 input.setAttribute('type', 'text');
                 input.setAttribute('id', id);
-                input.classList += 'inputField-inputField';
+                input.classList.add('ui_inputField');
+                input.classList.add('rule_inputField');
                 input.addEventListener("change", this.callback);
                 fieldDiv.appendChild(input);
                 this.inputs[0] = input;
@@ -62,7 +63,8 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
                 fieldDiv.innerHTML += innerHTML;
                 var selector = document.getElementById(id);
                 selector.addEventListener("change", this.callback);
-                selector.classList += 'inputField-inputField';
+                selector.classList.add("ui_selector");
+                selector.classList.add("rule_selector");
                 this.inputs[0] = selector;
 
                 noButtons = 1;
@@ -361,7 +363,8 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
         var input = document.createElement("input");
         input.setAttribute('type', 'text');
         input.setAttribute('id', id);
-        input.classList += 'inputField-inputField';
+        input.classList.add('ui_inputField');
+        input.classList.add('rule_inputField');
         input.addEventListener("change", this.callback);
         var fieldDiv = document.getElementById("fieldDiv_" + this.id);
         fieldDiv.appendChild(input);
@@ -378,6 +381,8 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
 
         var selector = document.createElement('select');
         selector.id = 'selector' + this.id;
+        selector.classList.add("ui_selector");
+        selector.classList.add("rule_selector");
         var rnd_option = document.createElement('option');
         rnd_option.text = rnd_option.value = 'Rnd';
         var rndFunc_options = document.createElement('option');
@@ -392,7 +397,8 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
         var input = document.createElement("input");
         input.setAttribute('type', 'text');
         input.setAttribute('id', id);
-        input.classList += 'inputField-inputField';
+        input.classList.add('ui_inputField');
+        input.classList.add('rule_inputField');
         input.addEventListener("change", this.callback);
         fieldDiv.appendChild(input);
         this.inputs[0] = input;
@@ -401,7 +407,8 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
         input = document.createElement("input");
         input.setAttribute('type', 'text');
         input.setAttribute('id', id);
-        input.classList += 'inputField-inputField';
+        input.classList.add('ui_inputField');
+        input.classList.add('rule_inputField');
         input.addEventListener("change", this.callback);
         fieldDiv.appendChild(input);
         this.inputs[1] = input;

@@ -68,6 +68,8 @@ function TempRuleController() {
 
     self.previewScene = new THREE.Scene();
 
+    self.modeID;
+
     self.addRuleFactory = function(type, factory) {
         self.rules.set(type, factory);
     };
@@ -355,6 +357,27 @@ function TempRuleController() {
     appendModeSelector = function (parentDiv) {
         var modeDiv = document.createElement('div');
         modeDiv.id = 'modeDiv';
+        modeDiv.style.height = "3em";
+        modeDiv.style.position = "relative";
+        var inputDiv = document.createElement('div');
+        inputDiv.style.position = "absolute";
+        inputDiv.style.width = "100%";
+        inputDiv.style.top = "50%";
+        inputDiv.style.transform = "translateY(-50%)";
+
+        parentDiv.appendChild(modeDiv);
+        modeDiv.appendChild(inputDiv);
+
+        var inputFieldController = getInputFieldController();
+        self.modeID = inputFieldController.addInputField(
+            inputDiv,
+            "Mode",
+            [INPUTTYPE.DROPDOWN],
+            InputFieldValue("Local"),
+            inputChanged,
+            ["Local", "LocalMid", "Global", "GlobalMid"]);
+
+        /*
         var innerHTML = '<div style="width:10%"><span>Mode: </span></div>';
         innerHTML += '<select id="mode_selector">';
         innerHTML += '<option value="Mode.Local">Local</option>';
@@ -366,18 +389,30 @@ function TempRuleController() {
         modeDiv.style.paddingLeft = '10px';
         parentDiv.appendChild(modeDiv);
         $('#mode_selector').change(inputChanged);
+        */
     };
     setModeSelector = function (target) {
         if (!target.startsWith("Mode.")) target = "Mode." + target;
+
+        var value = InputFieldValue(target);
+        var inputFieldController = getInputFieldController();
+        inputFieldController.setValue(self.modeID, value);
+        /*
         var selector = document.getElementById("mode_selector");
         for (i = 0; i < selector.options.length; i++) {
             if (selector.options[i].value == target)
                 selector.selectedIndex = i;
         }
+        */
     };
     getMode = function () {
+        var inputFieldController = getInputFieldController();
+        var value = inputFieldController.getValue(self.modeID);
+        return "Mode." + value.getValue();
+        /*
         var selector = document.getElementById("mode_selector");
         return selector.options[selector.selectedIndex].value;
+        */
     };
     parseMode = function(ruleBuffer, rule) {
         var i = 0;

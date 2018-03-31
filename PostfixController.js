@@ -90,7 +90,6 @@ function PostfixController(renderer) {
 
     self.addPostfix = function (parentDiv, settings, type, deleteButton, changeFunction, fulfills) {
         var div = document.createElement('div');
-        postfixDivId = makeid();
         div.style = 'position:relative;height:2em;left:2em';
 
         var id = makeid();
@@ -98,7 +97,7 @@ function PostfixController(renderer) {
 
         if (type.constructor == Array) {
             var selector_id = makeid();
-            innerHTML = '<select id=' + selector_id + '>';
+            innerHTML = '<select id=' + selector_id + ' class="ui_selector postfix_selector">';
             for (var i = 0; i < type.length; i++) {
                 innerHTML += '<option value="' + type[i] + '">' + type[i] + '</option>';
             }
@@ -113,7 +112,9 @@ function PostfixController(renderer) {
         switch (currentType) {
 
             case 'Paint':
-                var innerHTML = '<select id=' + id + ' name=' + currentType + '>';
+                var inputDiv = document.createElement('div');
+                inputDiv.classList.add('postfix_input');
+                var innerHTML = '<select id=' + id + ' name=' + currentType + ' class="ui_selector postfix_selector">';
                 innerHTML += '<option vaule ="none">none</options>';
                 for (var j = 0; j < paintConfig.options[0].values.length; j++) {
                     innerHTML += '<option vaule ="' + paintConfig.options[0].values[j] + '">' + paintConfig.options[0].values[j] + '</options>';
@@ -121,47 +122,59 @@ function PostfixController(renderer) {
                 innerHTML += '</select>';
                 var id2 = makeid();
                 ids.push(id2);
-                innerHTML += '<select id=' + id2 + '>';
+                innerHTML += '<select id=' + id2 + ' class="ui_selector postfix_selector">';
                 for (var j = 0; j < 10; j++) {
                     innerHTML += '<option vaule ="' + j + '">' + j + '</options>';
                 }
                 innerHTML += '</select>';
-                div.innerHTML += innerHTML;
+                inputDiv.innerHTML += innerHTML;
+                div.appendChild(inputDiv);
                 break;
 
             case 'Asset':
-                var innerHTML = '<select id=' + id + ' name=' + currentType + '>';
+                var inputDiv = document.createElement('div');
+                inputDiv.classList.add('postfix_input');
+                var innerHTML = '<select id=' + id + ' name=' + currentType + ' class="ui_selector postfix_selector">';
                 innerHTML += '<option vaule ="none">none</options>';
                 for (var j = 0; j < assetConfig.options[0].values.length; j++) {
                     innerHTML += '<option vaule ="' + assetConfig.options[0].values[j] + '">' + assetConfig.options[0].values[j] + '</options>';
                 }
                 innerHTML += '</select>';
-                div.innerHTML += innerHTML;
+                inputDiv.innerHTML += innerHTML;
+                div.appendChild(inputDiv)
                 break;
 
             case 'FirstOrientation':
             case 'Orientation':
-                var innerHTML = '<select id=' + id + ' name=' + currentType + '>';
+                var inputDiv = document.createElement('div');
+                inputDiv.classList.add('postfix_input');
+                var innerHTML = '<select id=' + id + ' name=' + currentType + ' class="ui_selector postfix_selector">';
                 innerHTML += '<option vaule ="none">none</options>';
                 for (var j = 0; j < orientationConfig.options[0].values.length; j++) {
                     innerHTML += '<option vaule ="' + orientationConfig.options[0].values[j] + '">' + orientationConfig.options[0].values[j] + '</options>';
                 }
                 innerHTML += '</select>';
-                div.innerHTML += innerHTML;
+                inputDiv.innerHTML += innerHTML;
+                div.appendChild(inputDiv);
                 break;
 
             case 'Reflect':
-                var innerHTML = '<select id=' + id + ' name=' + currentType + '>';
+                var inputDiv = document.createElement('div');
+                inputDiv.classList.add('postfix_input');
+                var innerHTML = '<select id=' + id + ' name=' + currentType + ' class="ui_selector postfix_selector">';
                 innerHTML += '<option vaule ="none">none</options>';
                 for (var j = 0; j < reflectionConfig.options[0].values.length; j++) {
                     innerHTML += '<option vaule ="' + reflectionConfig.options[0].values[j] + '">' + reflectionConfig.options[0].values[j] + '</options>';
                 }
                 innerHTML += '</select>';
-                div.innerHTML += innerHTML;
+                inputDiv.innerHTML += innerHTML;
+                div.appendChild(inputDiv);
                 break;
 
             case 'Set':
             case 'Firstset':
+                var inputDiv = document.createElement('div');
+                inputDiv.classList.add('postfix_input');
                 var id2 = makeid();
                 ids.push(id2);
                 var id3 = makeid();
@@ -170,28 +183,40 @@ function PostfixController(renderer) {
                 keyInput.type = "text";
                 keyInput.id = id;
                 keyInput.name = currentType;
-                div.appendChild(keyInput);
-                var innerHTML = '<select id=' + id2 + '>';
+                keyInput.classList.add("ui_inputField");
+                keyInput.classList.add("postfix_inputField");
+                keyInput.placeholder = "Enter key ...";
+                inputDiv.appendChild(keyInput);
+                var innerHTML = '<select id=' + id2 + ' class="ui_selector postfix_selector">';
                 innerHTML += '<option vaule ="none">none</options>';
                 innerHTML += '<option vaule ="bool">bool</options>';
                 innerHTML += '<option vaule ="int">int</options>';
                 innerHTML += '<option vaule ="double">double</options>';
                 innerHTML += '<option vaule ="none">string</options>';
                 innerHTML += '</select>';
-                div.innerHTML += innerHTML;
+                inputDiv.innerHTML += innerHTML;
                 var valueInput = document.createElement("input");
                 valueInput.type = "text";
                 valueInput.id = id3;
-                div.appendChild(valueInput);
+                valueInput.classList.add("ui_inputField");
+                valueInput.classList.add("postfix_inputField");
+                valueInput.placeholder = "Enter value ...";
+                inputDiv.appendChild(valueInput);
+                div.appendChild(inputDiv);
                 break;
 
             case 'Probability':
+                var inputDiv = document.createElement('div');
+                inputDiv.classList.add('postfix_input');
                 var input = document.createElement("input");
                 input.type = "text";
                 input.id = id;
-                input.classList += "postfixInput";
                 input.name = currentType;
-                div.appendChild(input);
+                input.classList.add("ui_inputField");
+                input.classList.add("postfix_inputField");
+                input.placeholder = "Enter probability ...";
+                inputDiv.appendChild(input);
+                div.appendChild(inputDiv);
                 break;
 
             default:
@@ -205,7 +230,7 @@ function PostfixController(renderer) {
         if (deleteButton) {
             var button = document.createElement('button');
             button.style = 'position:absolute;width:1.5em;right:1em';
-            removeButtonId = makeid();
+            var removeButtonId = makeid();
             button.id = removeButtonId;
             var text = document.createTextNode('X');
             button.appendChild(text);
