@@ -66,7 +66,7 @@ function TempRuleController() {
     self.tmpRules = [];
     self.parsedRules = [];
 
-    self.previewScene = new THREE.Scene();
+//    self.previewScene = new THREE.Scene();
 
     self.modeID;
 
@@ -94,8 +94,8 @@ function TempRuleController() {
 
         rule.applyRule(shape);
         rule.afterApply(shape);
-        if (self.meshes[shape.id])
-            rule.removePreview(shape);
+//        if (self.meshes[shape.id])
+//            rule.removePreview(shape);
         rule.addPreview(shape);
 
         var editor = ace.edit("code_text_ace");
@@ -146,15 +146,15 @@ function TempRuleController() {
         if (shape) shape = shape.shape;
         else if (rule.wasAppliedTo) shape = rule.wasAppliedTo;
 
-        if (shape && shape.appliedRules == 0) rule.removePreview(shape);
+        // unapply
+        rule.unapplyRule(shape);
+        rule.afterUnapply(shape);
+        rule.removePreview(shape);
 
         rule.deleted = true;
     };
 
     self.removeAll = function() {
-        for (var i = this.previewScene.children.length - 1; i >= 0; --i)
-            this.previewScene.remove(this.previewScene.children[i]);
-
         this.meshes = new Map();
 
         this.tmpRules = [];
@@ -166,21 +166,13 @@ function TempRuleController() {
         if (!shape) return;
 
         // update rule
-        renderer.RenderSingleFrame();
-        rule.removePreview(shape);
-        renderer.RenderSingleFrame();
         rule.unapplyRule(shape);
-        renderer.RenderSingleFrame();
+        rule.removePreview(shape);
         rule.afterUnapply(shape);
-        renderer.RenderSingleFrame();
         rule.updateRule();
-        renderer.RenderSingleFrame();
         rule.applyRule(shape);
-        renderer.RenderSingleFrame();
         rule.afterApply(shape);
-        renderer.RenderSingleFrame();
         rule.addPreview(shape, "green");
-        renderer.RenderSingleFrame();
 
         var editor = ace.edit("code_text_ace");
         var newString = rule.generateRuleString();
@@ -256,56 +248,11 @@ function TempRuleController() {
     };
 
     self.addPreview = function (shape, color) {
-        color = lookupColor(color);
-        var geo;
-        var t = shape.appearance.transformation;
-        var matrix = new THREE.Matrix4().set(t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8], t[9], t[10], t[11], t[12], t[13], t[14], t[15]);
-        var positiveDeterminant = matrix.determinant() > 0.0;
-        var visible = true;
-        if (shape.appearance.primitive) {
-            geo = GeometricPrimitives.Get(shape.appearance.primitive, positiveDeterminant);
-            visible = shape.appearance.primitive !== 'Empty';
-        }
-        else {
-            geo = new THREE.Geometry();
-            var vertices = shape.appearance.geometry.points;
-            for (var i = 2; i < vertices.length; i += 3) {
-                geo.vertices.push(new THREE.Vector3(vertices[i - 2], vertices[i - 1], vertices[i]));
-            }
-            if (shape.appearance.geometry.indexed) {
-                var indices = shape.appearance.geometry.indices;
-                for (var i = 2; i < indices.length; i += 3)
-                    geo.faces.push(new THREE.Face3(indices[i - (positiveDeterminant ? 2 : 1)], indices[i - (positiveDeterminant ? 1 : 2)], indices[i]));
-            }
-            else {
-                for (var i = 2, j = 8; j < vertices.length; i += 3, j += 9)
-                    geo.faces.push(new THREE.Face3(i - (positiveDeterminant ? 2 : 1), i - (positiveDeterminant ? 1 : 2), i));
-            }
-            geo.computeFaceNormals();
-            if (!positiveDeterminant) {
-                for (var i = 0; i < geo.faces.length; ++i)
-                    geo.faces[i].normal.multiplyScalar(-1.0);
-            }
-        }
-        var wireFrameMaterial = new THREE.MeshBasicMaterial({
-            color: color,
-            wireframe: true
-        });
-        var mesh = new THREE.Mesh(geo, wireFrameMaterial);
-        mesh.matrixAutoUpdate = false;
-        mesh.applyMatrix(matrix);
-        mesh.mName = shape.id;
-        mesh.mMaterial = wireFrameMaterial;
-        mesh.visible = visible;
-        self.previewScene.add(mesh);
-
-        self.meshes[shape.id] = mesh;
-
+        getPreviewController().addPreview(shape);
     };
 
     self.removePreview = function (shape) {
-        self.previewScene.remove(self.meshes[shape.id]);
-        self.meshes.delete(shape.id);
+        getPreviewController().removePreview(shape);
     };
 
     self.changePreviewColor = function (shape, color, rule) {
@@ -376,20 +323,6 @@ function TempRuleController() {
             InputFieldValue("Local"),
             inputChanged,
             ["Local", "LocalMid", "Global", "GlobalMid"]);
-
-        /*
-        var innerHTML = '<div style="width:10%"><span>Mode: </span></div>';
-        innerHTML += '<select id="mode_selector">';
-        innerHTML += '<option value="Mode.Local">Local</option>';
-        innerHTML += '<option value="Mode.LocalMid">LocalMid</option>';
-        innerHTML += '<option value="Mode.Global">Global</option>';
-        innerHTML += '<option value="Mode.GlobalMid">GlobalMid</option>';
-        innerHTML += '</select>';
-        modeDiv.innerHTML += innerHTML;
-        modeDiv.style.paddingLeft = '10px';
-        parentDiv.appendChild(modeDiv);
-        $('#mode_selector').change(inputChanged);
-        */
     };
     setModeSelector = function (target) {
         if (!target.startsWith("Mode.")) target = "Mode." + target;
@@ -397,22 +330,11 @@ function TempRuleController() {
         var value = InputFieldValue(target);
         var inputFieldController = getInputFieldController();
         inputFieldController.setValue(self.modeID, value);
-        /*
-        var selector = document.getElementById("mode_selector");
-        for (i = 0; i < selector.options.length; i++) {
-            if (selector.options[i].value == target)
-                selector.selectedIndex = i;
-        }
-        */
     };
     getMode = function () {
         var inputFieldController = getInputFieldController();
         var value = inputFieldController.getValue(self.modeID);
         return "Mode." + value.getValue();
-        /*
-        var selector = document.getElementById("mode_selector");
-        return selector.options[selector.selectedIndex].value;
-        */
     };
     parseMode = function(ruleBuffer, rule) {
         var i = 0;
@@ -466,14 +388,11 @@ function TempRuleController() {
             abstractRule.applyRule = function (shape) {
             };
             abstractRule.afterApply = function (shape) {
-                if (!shape.appliedRules) shape.appliedRules = 1;
-                else shape.appliedRules += 1;
                 this.wasAppliedTo = shape;
             };
             abstractRule.unapplyRule = function (shape) {
             };
             abstractRule.afterUnapply = function (shape) {
-                shape.appliedRules -= 1;
             };
             abstractRule.appendInputFields = function (parentDiv) {
             };

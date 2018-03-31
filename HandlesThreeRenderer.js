@@ -44,6 +44,7 @@ function HandlesThreeRenderer(domQuery) {
 
     self.postfixController = new PostfixController(self);
     self.ruleController = getRuleController(self);
+    self.previewController = getPreviewController();
 
     self.codeParseNeeded = true;
 
@@ -178,11 +179,12 @@ function HandlesThreeRenderer(domQuery) {
         }
     });
     self.updateCalls.push(function () {
-        self.raycastScene(self.ruleController.previewScene.children, false, self.wireframeHitCallback, self.wireframeClearCallback);
+        self.raycastScene(self.previewController.previewScene.children, false, self.wireframeHitCallback, self.wireframeClearCallback);
         self.raycastScene(self.handlesScene.children, true, self.lineHitCallback, self.lineClearCallback);
     });
     self.renderCalls.push(function () {
-        this.renderer.render(self.ruleController.previewScene, this.camera);
+        self.previewController.preparePreview(self.selectedMesh);
+        this.renderer.render(self.previewController.previewScene, this.camera);
 
         this.renderer.context.disable(this.renderer.context.DEPTH_TEST);
         this.renderer.render(self.handlesScene, this.camera);
@@ -206,8 +208,6 @@ function HandlesThreeRenderer(domQuery) {
             if (self.selectedMesh) {
                 // remove old selection and ui
                 self.selectedMesh.shape.interaction.selected(false);
-                if (self.selectedMesh.shape.appliedRules == 0) self.ruleController.removePreview(self.selectedMesh.shape);
-                else self.ruleController.changePreviewColor(self.selectedMesh.shape, "blue", self.selectedRule);
                 self.selectedMesh = null;
                 for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
                     self.handlesScene.remove(self.handlesScene.children[i]);
@@ -216,9 +216,7 @@ function HandlesThreeRenderer(domQuery) {
             // create new selection and ui
             node.shape.interaction.selected(true);
             self.selectedMesh = node;
-            if (!self.selectedMesh.shape.appliedRules) self.selectedMesh.shape.appliedRules = 0;
-            if (self.selectedMesh.shape.appliedRules == 0) self.ruleController.addPreview(self.selectedMesh.shape, "green");
-            else self.ruleController.changePreviewColor(self.selectedMesh.shape, "green", self.selectedRule);
+            self.previewController.storeShape(self.selectedMesh.shape);
 
             clearUI();
             self.initButtonsUI();
@@ -258,8 +256,6 @@ function HandlesThreeRenderer(domQuery) {
             case 27:    // ESC
                 if (self.selectedMesh) {
                     self.selectedMesh.shape.interaction.selected(false);
-                    if (self.selectedMesh.shape.appliedRules == 0) self.ruleController.removePreview(self.selectedMesh.shape);
-                    else self.ruleController.changePreviewColor(self.selectedMesh.shape, "blue");
                     self.selectedMesh = null;
                     for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
                         self.handlesScene.remove(self.handlesScene.children[i]);
@@ -456,7 +452,6 @@ function HandlesThreeRenderer(domQuery) {
                             self.selectedRule.uneditedRule = jQuery.extend(true, [], self.selectedRule);
                         var editor = ace.edit("code_text_ace");
                         uneditedCode = editor.getValue();
-                        self.selectedMesh.shape.appliedRules += 1;
 
                         //init helper variables for will/was
                         if (!self.selectedRule.wasAppliedToList) {
@@ -497,7 +492,6 @@ function HandlesThreeRenderer(domQuery) {
                         self.selectedRule.storeCurrentState();
                         if (!self.selectedRule.uneditedRule)
                             self.selectedRule.uneditedRule = jQuery.extend(true, [], self.selectedRule);
-                        self.selectedMesh.shape.appliedRules += 1;
 
                         //init helper variables for will/was
 
@@ -522,7 +516,6 @@ function HandlesThreeRenderer(domQuery) {
             $("#deleteRule_Button_" + (i + parsedRules.length)).click(function (i) {
                 return function () {
                     self.ruleController.removeRule(tmpRules[i], self.selectedMesh);
-                    self.ruleController.addPreview(self.selectedMesh.shape, "green");
                     clearUI();
                     self.initButtonsUI();
                     self.Update();
@@ -604,7 +597,7 @@ function HandlesThreeRenderer(domQuery) {
         //set selector to current rule
         var selector = document.getElementById("rule_selector");
         if (!creatingNewRule) {
-            for (i = 0; i < selector.options.length; i++) {
+            for (var i = 0; i < selector.options.length; i++) {
                 if (selector.options[i].value == self.selectedRule.type)
                     selector.selectedIndex = i;
             }
@@ -688,11 +681,13 @@ function HandlesThreeRenderer(domQuery) {
                 !self.selectedRule.storedWasAppliedToList.includes(self.selectedMesh.shape)) {
                 self.selectedRule.uneditedRule.applyRule(self.selectedMesh.shape);
                 self.selectedRule.uneditedRule.afterUnapply(self.selectedMesh.shape);
+                self.selectedRule.uneditedRule.removePreview(self.selectedMesh.shape);
             }
             if (self.selectedRule.willAppliedToList.includes(self.selectedMesh.shape) &&
                 !self.selectedRule.storedWillAppliedToList.includes(self.selectedMesh.shape)) {
                 self.selectedRule.uneditedRule.unapplyRule(self.selectedMesh.shape);
                 self.selectedRule.uneditedRule.afterUnapply(self.selectedMesh.shape);
+                self.selectedRule.uneditedRule.removePreview(self.selectedMesh.shape);
             }
             self.selectedRule.wasAppliedToList = self.selectedRule.storedWasAppliedToList.slice();
             self.selectedRule.willAppliedToList = self.selectedRule.storedWillAppliedToList.slice();
@@ -709,9 +704,7 @@ function HandlesThreeRenderer(domQuery) {
                     var editor = ace.edit("code_text_ace");
                     editor.setValue(uneditedCode);
                 }
-                self.ruleController.removePreview(self.selectedMesh.shape);
             }
-            self.ruleController.addPreview(self.selectedMesh.shape, "green");
 
             var inputFieldController = getInputFieldController();
             for (var i = 0; i < self.selectedRule.fieldIds.length; i++) {
@@ -737,8 +730,6 @@ function HandlesThreeRenderer(domQuery) {
                 status.innerHTML = "Currently the rule WILL be applied. ";
                 self.selectedRule.uneditedRule.applyRule(self.selectedMesh.shape);
 
-                self.selectedRule.removePreview(self.selectedMesh.shape);
-                self.selectedRule.addPreview(self.selectedMesh.shape, "green");
                 renderer.RenderSingleFrame();
 
                 self.inputChanged();
@@ -751,8 +742,6 @@ function HandlesThreeRenderer(domQuery) {
                 status.innerHTML = "Currently the rule WAS applied. ";
                 self.selectedRule.uneditedRule.unapplyRule(self.selectedMesh.shape);
 
-                self.selectedRule.uneditedRule.removePreview(self.selectedMesh.shape);
-                self.selectedRule.uneditedRule.addPreview(self.selectedMesh.shape, "green");
                 renderer.RenderSingleFrame();
 
                 self.inputChanged();
@@ -810,6 +799,8 @@ function HandlesThreeRenderer(domQuery) {
         inputFieldController.removeAll();
 
         this.ruleController.removeAll();
+
+        this.previewController.removeAll();
 
         clearUI();
 
