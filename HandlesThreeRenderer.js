@@ -452,7 +452,7 @@ function HandlesThreeRenderer(domQuery) {
                             self.selectedRule.uneditedRule = jQuery.extend(true, [], self.selectedRule);
                         var editor = ace.edit("code_text_ace");
                         uneditedCode = editor.getValue();
-
+/*
                         //init helper variables for will/was
                         if (!self.selectedRule.wasAppliedToList) {
                             self.selectedRule.wasAppliedToList = [];
@@ -466,7 +466,7 @@ function HandlesThreeRenderer(domQuery) {
                             self.selectedRule.uneditedRule.applyRule(self.selectedMesh.shape);
                             self.selectedRule.willAppliedToList.push(self.selectedMesh.shape);
                         }
-
+*/
                         clearUI();
                         self.initRuleUI();
                     };
@@ -494,7 +494,7 @@ function HandlesThreeRenderer(domQuery) {
                             self.selectedRule.uneditedRule = jQuery.extend(true, [], self.selectedRule);
 
                         //init helper variables for will/was
-
+/*
                         if (!self.selectedRule.wasAppliedToList) {
                             self.selectedRule.wasAppliedToList = [];
                             self.selectedRule.wasAppliedToList.push(self.selectedMesh.shape);
@@ -507,7 +507,7 @@ function HandlesThreeRenderer(domQuery) {
                             self.selectedRule.uneditedRule.applyRule(self.selectedMesh.shape);
                             self.selectedRule.willAppliedToList.push(self.selectedMesh.shape);
                         }
-
+*/
                         clearUI();
                         self.initRuleUI();
                     };
@@ -529,7 +529,7 @@ function HandlesThreeRenderer(domQuery) {
         else creatingNewRule = false;
                 
         //create selector
-        selectionDiv = document.createElement('div');
+        var selectionDiv = document.createElement('div');
         selectionDiv.id = "selectionDiv";
         var innerHTML;
         if (creatingNewRule) innerHTML = '<select id="rule_selector">';
@@ -613,7 +613,7 @@ function HandlesThreeRenderer(domQuery) {
             selector.disabled = false;
             self.selectedRule.uneditedRule = null;
         }
-
+/*
         //init helper variables for will/was
         if (!self.selectedRule.wasAppliedToList) {
             self.selectedRule.wasAppliedToList = [];
@@ -622,7 +622,7 @@ function HandlesThreeRenderer(domQuery) {
         if (!self.selectedRule.willAppliedToList) self.selectedRule.willAppliedToList = [];
         if (!self.selectedRule.storedWasAppliedToList) self.selectedRule.storedWasAppliedToList = self.selectedRule.wasAppliedToList.slice();
         if (!self.selectedRule.storedWillAppliedToList) self.selectedRule.storedWillAppliedToList = self.selectedRule.willAppliedToList.slice();
-
+*/
         //create new input fields
         self.selectedRule.appendInputFields(inputDiv);
 
@@ -644,6 +644,7 @@ function HandlesThreeRenderer(domQuery) {
             var postfixDiv = document.getElementById("postfixDiv");
             if (postfixDiv) self.postfixController.applyPostfixes(postfixDiv, self.selectedRule);
 
+            /*
             //init helper variables for will/was
             if (!self.selectedRule.wasAppliedToList) {
                 self.selectedRule.wasAppliedToList = [];
@@ -652,14 +653,15 @@ function HandlesThreeRenderer(domQuery) {
             if (!self.selectedRule.willAppliedToList) self.selectedRule.willAppliedToList = [];
             if (!self.selectedRule.storedWasAppliedToList) self.selectedRule.storedWasAppliedToList = self.selectedRule.wasAppliedToList.slice();
             if (!self.selectedRule.storedWillAppliedToList) self.selectedRule.storedWillAppliedToList = self.selectedRule.willAppliedToList.slice();
-
+*/
             self.inputChanged();
         });
 
         $("#commit_Button").click(function () {
+            /*
             self.selectedRule.storedWasAppliedToList = null;
             self.selectedRule.storedWillAppliedToList = null;
-
+*/
             self.ruleController.updateRule(self.selectedMesh.shape, self.selectedRule);
 
             var inputFieldController = getInputFieldController();
@@ -677,6 +679,7 @@ function HandlesThreeRenderer(domQuery) {
         });
 
         $("#cancel_Button").click(function () {
+            /*
             if (self.selectedRule.wasAppliedToList.includes(self.selectedMesh.shape) &&
                 !self.selectedRule.storedWasAppliedToList.includes(self.selectedMesh.shape)) {
                 self.selectedRule.uneditedRule.applyRule(self.selectedMesh.shape);
@@ -693,7 +696,7 @@ function HandlesThreeRenderer(domQuery) {
             self.selectedRule.willAppliedToList = self.selectedRule.storedWillAppliedToList.slice();
             self.selectedRule.storedWasAppliedToList = null;
             self.selectedRule.storedWillAppliedToList = null;
-
+*/
 
             if (creatingNewRule) {
                 self.ruleController.removeRule(self.selectedRule, self.selectedMesh);
