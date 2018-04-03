@@ -364,7 +364,7 @@ function HandlesThreeRenderer(domQuery) {
 
         var rules = self.ruleController.getRules();
         for (var i in rules) {
-            if (!rules[i].deleted && !rules[i].inConcat) {
+            if (!rules[i].deleted) {
                 var ruleDiv = document.createElement('div');
                 ruleDiv.style = "height:2em;position:relative;padding-left:16px";
                 ruleDiv.id = "rule_" + i + "_div";

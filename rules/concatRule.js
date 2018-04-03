@@ -6,6 +6,8 @@ var concatRule = {
 
 generateConcatRule = function () {
     var concat = generateCustomRule(concatRule);
+    concat.selections = [];
+    concat.fieldIds = [];
     concat.generateRuleString = function () {
         var output = "new Rules.Concat(";
         for (var i = 0; i < this.selections.length; i++) {
@@ -99,12 +101,12 @@ generateConcatRule = function () {
         for (var i = 0; i < this.selections.length; i++) {
             $("#up_Button_" + i).click(function (i) {
                 return function () {
-                    var tmp = this.selections[i];
-                    this.selections[i] = this.selections[i - 1];
-                    this.selections[i - 1] = tmp;
+                    var tmp = concat.selections[i];
+                    concat.selections[i] = concat.selections[i - 1];
+                    concat.selections[i - 1] = tmp;
 
-                    this.inputChanged();
-                    this.appendInputFields(parentDiv, rule, true);
+                    concat.inputChanged();
+                    concat.appendInputFields(parentDiv, rule, true);
                 };
             }(i))
         }
@@ -113,12 +115,12 @@ generateConcatRule = function () {
         for (var i = 0; i < this.selections.length; i++) {
             $("#down_Button_" + i).click(function (i) {
                 return function () {
-                    var tmp = this.selections[i];
-                    this.selections[i] = this.selections[i + 1];
-                    this.selections[i + 1] = tmp;
+                    var tmp = concat.selections[i];
+                    concat.selections[i] = concat.selections[i + 1];
+                    concat.selections[i + 1] = tmp;
 
-                    this.inputChanged();
-                    this.appendInputFields(parentDiv, rule, true);
+                    concat.inputChanged();
+                    concat.appendInputFields(parentDiv, rule, true);
                 };
             }(i))
         }
@@ -127,11 +129,11 @@ generateConcatRule = function () {
         for (var i = 0; i < this.selections.length; i++) {
             $("#removeRule_Button_" + i).click(function (i) {
                 return function () {
-                    parsedRules[this.selections[i].index].inConcat = false;
-                    this.selections.splice(i, 1);
+                    rules[concat.selections[i].index].inConcat = false;
+                    concat.selections.splice(i, 1);
 
-                    this.inputChanged();
-                    this.appendInputFields(parentDiv, rule, true);
+                    concat.inputChanged();
+                    concat.appendInputFields(parentDiv, rule, true);
                 };
             }(i))
         }
@@ -143,17 +145,15 @@ generateConcatRule = function () {
         ruleListDiv.style = "position:relative;";
 
         var lastAdded = null;
-        for (var i = 0; i < parsedRules.length; i++) {
-            if (!parsedRules[i].deleted &&
-                !parsedRules[i].edited &&
-                !parsedRules[i].inConcat &&
-                parsedRules[i] != concat &&
+        var rules = getRuleController().getRules();
+        for (var i = 0; i < rules.length; i++) {
+            if (rules[i] != concat &&
                 !(lastAdded && lastAdded.generatesMultipleShapes)) {
 
                 var ruleDiv = document.createElement('div');
                 ruleDiv.style = "height:2em;position:relative;";
                 ruleListDiv.appendChild(ruleDiv);
-                ruleDiv.innerHTML = "<span class='tag-tag'>" + parsedRules[i].generateShortString() + "</span>";
+                ruleDiv.innerHTML = "<span class='tag-tag'>" + rules[i].generateShortString() + "</span>";
 
                 var add_button = document.createElement("button");
                 add_button.id = "addRule_Button_" + i;
@@ -161,58 +161,24 @@ generateConcatRule = function () {
                 add_button.style = "height:2em;float:right;padding:3px 16px;"
                 var add_button_text = document.createTextNode("add");
 
-                lastAdded = parsedRules[i];
+                lastAdded = rules[i];
 
                 add_button.appendChild(add_button_text);
                 ruleDiv.appendChild(add_button);
             }
         }
-        for (var i = 0; i < tmpRules.length; i++) {
-            if (tmpRules[i] != concat &&
-                !tmpRules[i].inConcat &&
-                !(lastAdded && lastAdded.generatesMultipleShapes)) {
-                var ruleDiv = document.createElement('div');
-                ruleDiv.style = "height:2em;position:relative;";
-                ruleListDiv.appendChild(ruleDiv);
-                ruleDiv.innerHTML = "<span class='tag-tag'>" + tmpRules[i].generateShortString() + "</span>";
-
-                var add_button = document.createElement("button");
-                add_button.id = "addRule_Button_" + (i + parsedRules.length);
-                add_button.classList = "w3-btn";
-                add_button.style = "height:2em;float:right;padding:3px 16px;"
-                var add_button_text = document.createTextNode("add");
-
-                lastAdded = parsedRules[i];
-
-                add_button.appendChild(add_button_text);
-                ruleDiv.appendChild(add_button);
-            }
-        }
-
         parentDiv.appendChild(ruleListDiv);
 
         // add buttons functions
-        for (var i = 0; i < parsedRules.length; i++) {
+        for (var i = 0; i < rules.length; i++) {
             $("#addRule_Button_" + i).click(function (i) {
                 return function () {
-                    parsedRules[i].index = i;
-                    this.selections.push(parsedRules[i]);
-                    parsedRules[i].inConcat = true;
-                    this.inputChanged();
+                    rules[i].index = i;
+                    concat.selections.push(rules[i]);
+                    rules[i].inConcat = true;
+                    concat.inputChanged();
 
-                    this.appendInputFields(parentDiv, rule, true);
-                };
-            }(i))
-        }
-        for (var i = 0; i < tmpRules.length; i++) {
-            $("#addRule_Button_" + (i + parsedRules.length)).click(function (i) {
-                return function () {
-                    tmpRules[i].index = i;
-                    this.selections.push(tmpRules[i]);
-                    tmpRules[i].inConcat = true;
-                    this.inputChanged();
-
-                    this.appendInputFields(parentDiv, rule, true);
+                    concat.appendInputFields(parentDiv, rule, true);
                 };
             }(i))
         }

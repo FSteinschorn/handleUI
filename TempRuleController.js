@@ -282,21 +282,13 @@ function TempRuleController() {
         if (!shape) return;
 
         // update rule
-        renderer.RenderSingleFrame();
         rule.unapplyRule(shape);
-        renderer.RenderSingleFrame();
         rule.removePreview(shape);
-        renderer.RenderSingleFrame();
         rule.afterUnapply(shape);
-        renderer.RenderSingleFrame();
         rule.updateRule();
-        renderer.RenderSingleFrame();
         rule.applyRule(shape);
-        renderer.RenderSingleFrame();
         rule.afterApply(shape);
-        renderer.RenderSingleFrame();
         rule.addPreview(shape);
-        renderer.RenderSingleFrame();
 
         var editor = ace.edit("code_text_ace");
         var newString = rule.generateRuleString();
