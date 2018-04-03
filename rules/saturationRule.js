@@ -10,13 +10,35 @@ saturationConfig = {
         {
             label: 'Value',
             inputType: INPUTTYPE.DOUBLE,
-            values: null
+            values: 0.0
         }
     ]
 };
 
 generateSaturationRule = function () {
-    return generateCustomRule(self.saturationConfig);
+
+    var saturation =  generateCustomRule(self.saturationConfig);
+
+    saturation.generateRuleString = function () {
+        var ruleString = "new Rules.Saturate(" + this.selections[0].getValue();
+        ruleString += ', ' + this.selections[1].toNumber();
+        ruleString += ', ' + this.mode;
+        ruleString += ')';
+        ruleString = addTags(saturation, ruleString);
+        ruleString += ";";
+
+        this.lastRuleString = ruleString;
+
+        return ruleString;
+    };
+    saturation.generateShortString = function () {
+        var ruleString = "Saturate " + this.selections[0].getValue();
+        ruleString += ' at ' + this.selections[1].toNumber();
+        ruleString += ', ' + this.mode;
+        return ruleString;
+    };
+
+    return saturation;
 };
 
 getRuleController().addRuleFactory(saturationConfig.type, generateSaturationRule);

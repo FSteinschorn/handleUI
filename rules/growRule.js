@@ -124,7 +124,7 @@ generateGrowRule = function () {
                 break;
         }
 
-        var m = shape.shape.appearance.transformation;
+        var m = shape.appearance.transformation;
         var xDir = new THREE.Vector3(m[0], m[1], m[2]);
         var yDir = new THREE.Vector3(m[4], m[5], m[6]);
         var zDir = new THREE.Vector3(m[8], m[9], m[10]);
@@ -207,23 +207,12 @@ generateGrowRule = function () {
         var newValues = this.draggingHelpers.startValues.toNumber();
         switch (this.draggingHelpers.activeHandle) {
             case 'x':
-                var scale = this.draggingHelpers.startSizeX + length;
-                scale = scale / this.draggingHelpers.startSizeX;
-                var growFactor = scale * this.draggingHelpers.sizeX - this.draggingHelpers.sizeX;
                 newValues[0] = (newValues[0] + length).round();
                 break;
             case 'y':
-                var scale = this.draggingHelpers.startSizeY + length;
-                scale = scale / this.draggingHelpers.startSizeY;
-                var growFactor = scale * this.draggingHelpers.sizeY - this.draggingHelpers.sizeY;
-                newValues[1] = (this.draggingHelpers.startValues.y + length).round();
                 newValues[1] = (newValues[1] + length).round();
                 break;
             case 'z':
-                var scale = this.draggingHelpers.startSizeZ + length;
-                scale = scale / this.draggingHelpers.startSizeZ;
-                var growFactor = scale * this.draggingHelpers.sizeZ - this.draggingHelpers.sizeZ;
-                newValues[2] = (this.draggingHelpers.startValues.z + length).round();
                 newValues[2] = (newValues[2] + length).round();
                 break;
         }

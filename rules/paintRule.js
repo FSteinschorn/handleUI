@@ -31,8 +31,8 @@ generatePaintRule = function () {
     var paint = generateCustomRule(self.paintConfig);
 
     paint.generateRuleString = function () {
-        var ruleString = "new Rules.Paint(" + this.selections[0].toString();
-        if (this.selections[1] != null) ruleString += '(' + this.selections[1].toString() + ')';
+        var ruleString = "new Rules.Paint(" + this.selections[0].getValue();
+        if (this.selections[1].getValue() != null) ruleString += '(' + this.selections[1].getValue() + ')';
         ruleString += ')';
         ruleString = addTags(paint, ruleString);
         ruleString += ";";
@@ -42,20 +42,17 @@ generatePaintRule = function () {
         return ruleString;
     };
     paint.generateShortString = function () {
-        var ruleString = "Paint with " + this.selections[0].toString();
-        if (this.selections[1] != null) ruleString += '(' + this.selections[1].toString() + ')';
+        var ruleString = "Paint with " + this.selections[0].getValue();
+        if (this.selections[1].getValue() != null) ruleString += '(' + this.selections[1].getValue() + ')';
         return ruleString;
     };
     paint.onselectionChange = function () {
-        var selector = document.getElementById('dropdown0');
-        var toneSelector = document.getElementById('dropdown1');
-        var toneLabel = document.getElementById('label1');
-        if (selector.selectedIndex > 19) {
-            toneSelector.style.display = 'inline';
-            toneLabel.style.display = 'inline';
+        this.updateRule();
+        var selectorInput = this.selections[0].getValue();
+        if (materials.indexOf(selectorInput) > 19) {
+            getInputFieldController().enable(this.fieldIds[1]);
         } else {
-            toneSelector.style.display = 'none';
-            toneLabel.style.display = 'none';
+            getInputFieldController().disable(this.fieldIds[1]);
         }
         inputChanged();
     };

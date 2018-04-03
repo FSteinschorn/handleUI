@@ -17,18 +17,29 @@ function PreviewController() {
     self.storeShape = function(shape) {
         if (!shape.previewID) {
             shape.previewID = makeid();
-            shape.appliedRules = 0;
+            shape.nrAppliedRules = 0;
+            if (!shape.appliedRules)
+                shape.appliedRules = [];
             this.shapes[shape.previewID] = shape;
         }
     };
 
+    self.forgetShape = function(shape) {
+        delete this.shapes[shape.previewID];
+        shape.previewID = null;
+    };
+
+    self.getShape = function(previewID) {
+        return this.shapes[previewID];
+    };
+
     self.addPreview = function(shape) {
         this.storeShape(shape);
-        shape.appliedRules += 1;
+        shape.nrAppliedRules += 1;
     };
 
     self.removePreview = function(shape) {
-        shape.appliedRules -= 1;
+        shape.nrAppliedRules -= 1;
         this.shapes[shape.previewID] = shape;
     };
 
@@ -39,10 +50,13 @@ function PreviewController() {
 
         for (var id in this.shapes) {
             var shape = this.shapes[id];
-            if (shape.appliedRules <= 0 && shape != selectedMesh.shape) continue;
+            //if (!selectedMesh || (shape.nrAppliedRules <= 0 && shape != selectedMesh.shape)) continue;
+            if (!selectedMesh) continue;
+            if (shape.appliedRules.length <= 0 && shape != selectedMesh) continue;
+            if (shape.childShapes && shape.childShapes.length != 0) continue;
 
             var color = 0x0099ff;
-            if (shape == selectedMesh.shape) color = 0x44ff3b;
+            if (selectedMesh && shape == selectedMesh) color = 0x44ff3b;
 
             var geo;
             var t = shape.appearance.transformation;
@@ -81,6 +95,7 @@ function PreviewController() {
             var mesh = new THREE.Mesh(geo, wireFrameMaterial);
             mesh.matrixAutoUpdate = false;
             mesh.applyMatrix(matrix);
+            mesh.previewID = shape.previewID;
             mesh.mName = shape.id;
             mesh.mMaterial = wireFrameMaterial;
             mesh.visible = visible;

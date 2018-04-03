@@ -59,19 +59,16 @@ function TempRuleController() {
 
     var self = {};
 
-    self.rules = new Map();
+    self.factories = new Map();
 
     self.meshes = new Map();
 
-    self.tmpRules = [];
-    self.parsedRules = [];
-
-//    self.previewScene = new THREE.Scene();
+    self.rules = [];
 
     self.modeID;
 
     self.addRuleFactory = function(type, factory) {
-        self.rules.set(type, factory);
+        self.factories.set(type, factory);
     };
 
     self.generateShortString = function (rule) {
@@ -89,15 +86,22 @@ function TempRuleController() {
         }
     };
 
-    self.addRule = function (shape, rule) {
-        self.tmpRules.push(rule);
-
+    self.onNewClicked = function(rule, shape) {
+        // apply new rule
         rule.applyRule(shape);
         rule.afterApply(shape);
-//        if (self.meshes[shape.id])
-//            rule.removePreview(shape);
         rule.addPreview(shape);
 
+        // store new rule
+        self.rules.push(rule);
+
+        // set relations rule <-> shape
+        if (!shape.appliedRules) shape.appliedRules = [];
+        shape.appliedRules.push(rule);
+        rule.appliedShapes = [];
+        rule.appliedShapes.push(shape);
+
+        // add new rule to code
         var editor = ace.edit("code_text_ace");
         var selection = editor.getSelection();
         selection.clearSelection();
@@ -112,14 +116,28 @@ function TempRuleController() {
         selection.selectToPosition(rule.end);
     };
 
-    self.removeRule = function (rule, shape) {
-        // unapply for other shapes
-        for (var otherShape in rule.willAppliedToList) {
-            rule.unapplyRule(rule.willAppliedToList[otherShape]);
-            rule.afterUnapply(rule.willAppliedToList[otherShape]);
-            self.removePreview(rule.willAppliedToList[otherShape]);
-        }
+    self.onEditClicked = function(rule, shape) {
+        // fill necessary parameters of rule
+        if (!rule.mode) rule.mode = "Mode.Local";
+        rule.storeCurrentState();
+        if (!rule.uneditedRule)
+            rule.uneditedRule = jQuery.extend(true, [], rule);
 
+        if (!shape.appliedRules) shape.appliedRules = [];
+        if (!rule.appliedShapes) rule.appliedShapes = [];
+        if (shape.appliedRules[shape.appliedRules.length - 1] != rule) {
+            // set relations rule <-> shape
+            shape.appliedRules.push(rule);
+            rule.appliedShapes.push(shape);
+
+            // apply rule
+            rule.applyRule(shape);
+            rule.afterApply(shape);
+            rule.addPreview(shape);
+        }
+    };
+
+    self.onDeleteClicked = function(rule, shape) {
         // remove from code
         var editor = ace.edit("code_text_ace");
         var fullString = editor.getValue();
@@ -127,38 +145,136 @@ function TempRuleController() {
         editor.setValue(fullString);
         var diff = rule.end - rule.start;
 
-        for (var index in self.parsedRules) {
-            if (self.parsedRules[index].start > rule.start) {
-                self.parsedRules[index].start -= diff;
-                self.parsedRules[index].end -= diff;
-            }
-        }
-        for (index in self.tmpRules) {
-            if (self.tmpRules[index].start > rule.start) {
-                self.tmpRules[index].start -= diff;
-                self.tmpRules[index].end -= diff;
+        for (var index in self.rules) {
+            if (self.rules[index].start > rule.start) {
+                self.rules[index].start -= diff;
+                self.rules[index].end -= diff;
             }
         }
         var selection = editor.getSelection();
         selection.clearSelection();
 
-        // remove preview if necessary
-        if (shape) shape = shape.shape;
-        else if (rule.wasAppliedTo) shape = rule.wasAppliedTo;
+        // unapply rule
+        if (!shape.appliedRules) shape.appliedRules = [];
+        if (!rule.appliedShapes) rule.appliedShapes = [];
+        if (shape.appliedRules[shape.appliedRules.length - 1] == rule) {
+            rule.unapplyRule(shape);
+            rule.afterUnapply(shape);
+            rule.removePreview(shape);
+        }
 
-        // unapply
+        // remove relation rule <-> shape
+        removeLast(rule.appliedShapes, shape);
+        removeLast(shape.appliedRules, rule);
+
+        // delete rule
+        remove(self.rules, rule);
+    };
+
+    self.onCancelClicked = function(rule, shape) {
+        // reset code
+        if (creatingNewRule) {
+            var editor = ace.edit("code_text_ace");
+            var fullString = editor.getValue();
+            fullString = fullString.substr(0, rule.start) + fullString.substr(rule.end);
+            editor.setValue(fullString);
+            var diff = rule.end - rule.start;
+
+            for (var index in self.rules) {
+                if (self.rules[index].start > rule.start) {
+                    self.rules[index].start -= diff;
+                    self.rules[index].end -= diff;
+                }
+            }
+            var selection = editor.getSelection();
+            selection.clearSelection();
+        } else {
+            rule.setStoredState();
+            self.updateRule(shape, rule);
+        }
+
+        // unapply rule
         rule.unapplyRule(shape);
         rule.afterUnapply(shape);
         rule.removePreview(shape);
 
+        // remove relation rule <-> shape
+        removeLast(rule.appliedShapes, shape);
+        removeLast(shape.appliedRules, rule);
+
+        if (creatingNewRule) {
+            remove(self.rules, rule);
+        }
+    };
+
+    self.onCommitClicked = function(rule, shape) {
+        self.updateRule(shape, rule);
+    };
+
+    self.addRule = function (shape, rule) {
+        if (shape.lastAppliedRule != rule) {
+            rule.applyRule(shape);
+            rule.afterApply(shape);
+            rule.addPreview(shape);
+        }
+
+        if (creatingNewRule) {
+            self.rules.push(rule);
+
+            var editor = ace.edit("code_text_ace");
+            var selection = editor.getSelection();
+            selection.clearSelection();
+            editor.setValue(editor.getValue() + "\n\n", 1);
+            selection.moveCursorFileEnd();
+            rule.start = editor.session.doc.positionToIndex(editor.getCursorPosition());
+            editor.setValue(editor.getValue() + rule.generateRuleString(rule), 1);
+            selection.moveCursorFileEnd();
+            rule.end = editor.session.doc.positionToIndex(editor.getCursorPosition());
+            editor.clearSelection();
+            selection.moveCursorToPosition(rule.start);
+            selection.selectToPosition(rule.end);
+        }
+    };
+
+    self.removeRule = function (rule, shape) {
+        if (shape.lastAppliedRule != shape) {
+            rule.unapplyRule(shape);
+            rule.afterUnapply(shape);
+            rule.removePreview(shape);
+            shape.lastAppliedRule = rule;
+        }
+
+        if (creatingNewRule) {
+            remove(self.rules, rule);
+        }
+    };
+
+    self.deleteRule = function(rule, shape) {
+        // remove from code
+        var editor = ace.edit("code_text_ace");
+        var fullString = editor.getValue();
+        fullString = fullString.substr(0, rule.start) + fullString.substr(rule.end);
+        editor.setValue(fullString);
+        var diff = rule.end - rule.start;
+
+        for (var index in self.rules) {
+            if (self.rules[index].start > rule.start) {
+                self.rules[index].start -= diff;
+                self.rules[index].end -= diff;
+            }
+        }
+        var selection = editor.getSelection();
+        selection.clearSelection();
+
         rule.deleted = true;
+
+        self.removeRule(rule, shape);
     };
 
     self.removeAll = function() {
         this.meshes = new Map();
 
-        this.tmpRules = [];
-        this.parsedRules = [];
+        this.rules = [];
     };
 
     self.updateRule = function (shape, rule) {
@@ -166,13 +282,21 @@ function TempRuleController() {
         if (!shape) return;
 
         // update rule
+        renderer.RenderSingleFrame();
         rule.unapplyRule(shape);
+        renderer.RenderSingleFrame();
         rule.removePreview(shape);
+        renderer.RenderSingleFrame();
         rule.afterUnapply(shape);
+        renderer.RenderSingleFrame();
         rule.updateRule();
+        renderer.RenderSingleFrame();
         rule.applyRule(shape);
+        renderer.RenderSingleFrame();
         rule.afterApply(shape);
-        rule.addPreview(shape, "green");
+        renderer.RenderSingleFrame();
+        rule.addPreview(shape);
+        renderer.RenderSingleFrame();
 
         var editor = ace.edit("code_text_ace");
         var newString = rule.generateRuleString();
@@ -182,16 +306,10 @@ function TempRuleController() {
         var diff = newString.length - (rule.end - rule.start);
         rule.end += diff;
 
-        for (var index in self.parsedRules) {
-            if (self.parsedRules[index].start > rule.start) {
-                self.parsedRules[index].start += diff;
-                self.parsedRules[index].end += diff;
-            }
-        }
-        for (index in self.tmpRules) {
-            if (self.tmpRules[index].start > rule.start) {
-                self.tmpRules[index].start += diff;
-                self.tmpRules[index].end += diff;
+        for (var index in self.rules) {
+            if (self.rules[index].start > rule.start) {
+                self.rules[index].start += diff;
+                self.rules[index].end += diff;
             }
         }
 
@@ -206,7 +324,7 @@ function TempRuleController() {
     };
 
     self.createRule = function (type) {
-        var factory = self.rules.get(type);
+        var factory = self.factories.get(type);
         if (!factory) {
             return jQuery.extend(true, [], abstractRule);
         }
@@ -215,7 +333,7 @@ function TempRuleController() {
 
     self.parseRule = function (ruleBuffer) {
         var ruleType = ruleBuffer[2].Text;
-        var factory = self.rules.get(ruleType);
+        var factory = self.factories.get(ruleType);
         var rule;
         if (!factory) {
             rule = { type: 'ruleNotFound' };
@@ -227,24 +345,12 @@ function TempRuleController() {
         return [rule, position];
     };
 
-    self.setParsedRules = function(rules) {
-        self.parsedRules = rules;
+    self.setRules = function(rules) {
+        self.rules = rules;
     };
 
-    self.getParsedRules = function () {
-        return self.parsedRules;
-    };
-
-    self.getRuleHistory = function (shape) {
-        return self.getAlltmpRules[shape.id];
-    };
-
-    self.getAllTmpRules = function () {
-        return self.tmpRules;
-    };
-
-    self.getRuleByIndex = function (indey) {
-        return self.tmpRules[index];
+    self.getRules = function () {
+        return self.rules;
     };
 
     self.addPreview = function (shape, color) {
@@ -264,7 +370,7 @@ function TempRuleController() {
 
     //call with node.shape.appearance.transformation
     buildStandardAxes = function (scene, shape, colors, noMode) {
-        mat = shape.shape.appearance.transformation;
+        var mat = shape.appearance.transformation;
 
         var axes = [];
 
@@ -344,7 +450,7 @@ function TempRuleController() {
             }
             if (i < ruleBuffer.length && i < 10 && ruleBuffer[i + 1].Text == '.') {
                 var mode = ruleBuffer[i + 2].Text;
-                rule.mode = mode;
+                rule.mode = "Mode." + mode;
                 return i + 2;
             } else return 0;
         }
@@ -527,9 +633,9 @@ function TempRuleController() {
                             defaults = customRule.selections[i];
 
                             if (current.inputType == INPUTTYPE.DROPDOWN) {
-                                customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], defaults, customRule.onselectionChange, current.values);
+                                customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], defaults, function() {customRule.onselectionChange();}, current.values);
                             } else {
-                                customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], defaults, customRule.onselectionChange);
+                                customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], defaults, function() {customRule.onselectionChange();});
                             }
                         }
                     } else {
@@ -538,9 +644,9 @@ function TempRuleController() {
                             var current = config.options[i];
 
                             if (current.inputType == INPUTTYPE.DROPDOWN) {
-                                customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], customRule.selections[i], customRule.onselectionChange, current.values);
+                                customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], customRule.selections[i], function() {customRule.onselectionChange();}, current.values);
                             } else {
-                                customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], customRule.selections[i], customRule.onselectionChange);
+                                customRule.fieldIds[i] = inputFieldController.addInputField(parentDiv, current.label, [current.inputType], customRule.selections[i], function() {customRule.onselectionChange();});
                             }
                         }
                     }
@@ -553,7 +659,7 @@ function TempRuleController() {
 
                     customRule.afterInputCreation(parentDiv);
 
-                    customRule.onselectionChange();
+//                    customRule.onselectionChange();
                 };
                 customRule.parseCode = function (ruleBuffer) {
                     customRule.selections = [];

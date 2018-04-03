@@ -120,7 +120,7 @@ generateScaleRule = function () {
                 break;
         }
 
-        var m = shape.shape.appearance.transformation;
+        var m = shape.appearance.transformation;
         var xDir = new THREE.Vector3(m[0], m[1], m[2]);
         var yDir = new THREE.Vector3(m[4], m[5], m[6]);
         var zDir = new THREE.Vector3(m[8], m[9], m[10]);

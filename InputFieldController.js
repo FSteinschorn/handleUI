@@ -39,5 +39,13 @@ function InputFieldController() {
         this.inputFields = new Map();
     };
 
+    self.enable = function(id) {
+        this.inputFields[id].enable();
+    };
+
+    self.disable = function(id) {
+        this.inputFields[id].disable();
+    };
+
     return self;
 }

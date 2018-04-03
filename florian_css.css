@@ -71,6 +71,15 @@
 	box-shadow:0 8px 16px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
 }
 
+.ui_selector:disabled{
+	background-color: #b2c0e0;
+}
+
+.ui_selector:disabled:hover{
+	background-color: #b2c0e0;
+	box-shadow: none;
+}
+
 .postfix_selector {
 	border:none;
 	padding:3px 16px;

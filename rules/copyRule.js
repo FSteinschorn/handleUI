@@ -6,6 +6,11 @@ var copyConfig = {
 
 generatecopyRule = function () {
     var copy = generateCustomRule(copyConfig);
+
+    copy.childShapes = [];
+
+    copy.parts = [];
+
     // helpers
     {
         copy.draggingHelpers = {
@@ -128,6 +133,32 @@ generatecopyRule = function () {
             this.addPart(false);
             this.addPart(false);
         }
+    };
+    copy.applyRule = function (shape) {
+        // create childShapes
+        if (this.childShapes.length != Object.keys(this.parts).length) {
+            while (this.childShapes.length > Object.keys(this.parts).length) {
+                getPreviewController().forgetShape(this.childShapes.pop());
+            }
+            while (this.childShapes.length < Object.keys(this.parts).length) {
+                var newChild = jQuery.extend(true, {}, shape);
+                newChild.previewID = null;
+                getPreviewController().storeShape(newChild);
+                this.childShapes.push(newChild);
+            }
+        }
+        shape.childShapes = this.childShapes;
+
+        for (var i = 0; i < this.childShapes.length; i++) {
+            if (!this.childShapes[i].previewID)
+                getPreviewController().storeShape(this.childShapes[i]);
+        }
+    };
+    copy.unapplyRule = function (shape) {
+        for (var i = 0; i < this.childShapes.length; i++) {
+            getPreviewController().forgetShape(this.childShapes[i]);
+        }
+        shape.childShapes = [];
     };
     copy.updateRule = function () {
         this.parts = [];

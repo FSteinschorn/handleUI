@@ -6,7 +6,11 @@ var repeatConfig = {
 
 generaterepeatRule = function () {
     var repeat = generateCustomRule(repeatConfig);
+
+    repeat.childShapes = [];
+
     repeat.parts = [];
+
     // helpers
     {
         repeat.draggingHelpers = {
@@ -109,7 +113,10 @@ generaterepeatRule = function () {
     repeat.applyRule = function (shape) {
         var parts = this.parts;
         var partname = Object.keys(parts)[0];
-        if (Object.keys(parts).length == 0) parts[partname] = { mode: "Relative", amount: 1.0 };
+        if (Object.keys(parts).length == 0) {
+            this.draggingHelpers.dontDraw = true;
+            parts[partname] = { mode: "Relative", amount: 1.0 };
+        }
         var targetSize = isNaN(parseFloat(parts[partname].amount)) ? -1 : parseFloat(parts[partname].amount);
         if (targetSize <= 0) return;
         var mode = parts[partname].mode;
@@ -160,34 +167,23 @@ generaterepeatRule = function () {
 
         this.draggingHelpers.unitsPerInput = 1;
         this.draggingHelpers.sumRel = 1;
-    };
-    repeat.unapplyRule = function (shape) {
-        this.draggingHelpers.segments = [1];
-    };
-    repeat.updateRule = function () {
-        this.parts = [];
-        var selector = document.getElementById("axis_selector");
-        var selection = selector.options[selector.selectedIndex].value;
-        this.axis = selection;
-        var sumAbs = 0;
-        for (var i = 0; i < this.draggingHelpers.nextIndex; i++) {
-            var amountInput = document.getElementById('part' + i + '_amount_input_field');
-            var mode = 'Absolute';
-            var amount = amountInput.value;
-            if (mode == 'Absolute') sumAbs += parseFloat(amount);
-            this.parts['part' + i] = {mode: mode, amount: amount};
-            var partId = 'partDiv' + i;
-            var part = document.getElementById(partId)
-            readTags(part, this.parts['part' + i]);
-        }
-        if (!this.draggingHelpers.fullSize) this.draggingHelpers.fullSize = 99999999;
-        if (this.draggingHelpers.fullSize < sumAbs - this.draggingHelpers.epsilon) {
-            this.draggingHelpers.dontDraw = true;
-            alert("Sum of absolute parts is larger than available size.\nThis would result in an error!");
-        } else this.draggingHelpers.dontDraw = false;
-    };
-    repeat.addPreview = function (shape, color) {
+
         if (this.draggingHelpers.dontDraw) return;
+        // create childShapes
+        if (this.childShapes.length != this.draggingHelpers.segments.length) {
+            while (this.childShapes.length > this.draggingHelpers.segments.length) {
+                getPreviewController().forgetShape(this.childShapes.pop());
+            }
+            while (this.childShapes.length < this.draggingHelpers.segments.length) {
+                var newChild = jQuery.extend(true, {}, shape);
+                newChild.previewID = null;
+                getPreviewController().storeShape(newChild);
+                this.childShapes.push(newChild);
+            }
+        }
+        shape.childShapes = this.childShapes;
+
+        // transform child shapes
         var offset = -this.draggingHelpers.fullSize / 2;
         var scale;
         var translate;
@@ -214,27 +210,48 @@ generaterepeatRule = function () {
             offset += size;
             m.premultiply(scale);
             m.multiply(translate.transpose());
-            var segmentShape = jQuery.extend(true, {}, shape);
-            segmentShape.appearance.transformation = m.toArray();
-            getRuleController().addPreview(segmentShape, color);
+            this.childShapes[i].appearance.transformation = m.toArray();
+            if (!this.childShapes[i].previewID)
+                getPreviewController().storeShape(this.childShapes[i]);
         }
     };
-    repeat.removePreview = function (shape) {
-        while (getRuleController().previewScene.children.length != 0) {
-            getRuleController().previewScene.remove(getRuleController().previewScene.children[0]);
+    repeat.unapplyRule = function (shape) {
+        for (var i = 0; i < this.childShapes.length; i++) {
+            getPreviewController().forgetShape(this.childShapes[i]);
         }
-        getRuleController().meshes.delete(shape.id);
-        renderer.RenderSingleFrame();
+        shape.childShapes = [];
+    };
+    repeat.updateRule = function () {
+        this.parts = [];
+        var selector = document.getElementById("axis_selector");
+        var selection = selector.options[selector.selectedIndex].value;
+        this.axis = selection;
+        var sumAbs = 0;
+        for (var i = 0; i < this.draggingHelpers.nextIndex; i++) {
+            var amountInput = document.getElementById('part' + i + '_amount_input_field');
+            var mode = 'Absolute';
+            var amount = amountInput.value;
+            if (mode == 'Absolute') sumAbs += parseFloat(amount);
+            this.parts['part' + i] = {mode: mode, amount: amount};
+            var partId = 'partDiv' + i;
+            var part = document.getElementById(partId)
+            readTags(part, this.parts['part' + i]);
+        }
+        if (!this.draggingHelpers.fullSize) this.draggingHelpers.fullSize = 99999999;
+        if (this.draggingHelpers.fullSize < sumAbs - this.draggingHelpers.epsilon) {
+            this.draggingHelpers.dontDraw = true;
+            alert("Sum of absolute parts is larger than available size.\nThis would result in an error!");
+        } else this.draggingHelpers.dontDraw = false;
     };
     repeat.createHandles = function (scene, shape) {
         if (this.draggingHelpers.dontDraw) return;
-        if (!this.draggingHelpers.segments) this.applyRule(shape.shape);
+        if (!this.draggingHelpers.segments) this.applyRule(shape);
         this.draggingHelpers.scene = scene;
         var basicColors = [0xAA3030, 0x30AA30, 0x3030AA];
         var highlightColors = [0xFF0000, 0x00FF00, 0x0000FF];
-        mat = shape.shape.appearance.transformation;
+        var mat = shape.appearance.transformation;
         var m = new THREE.Matrix4().set(mat[0], mat[1], mat[2], mat[3], mat[4], mat[5], mat[6], mat[7], mat[8], mat[9], mat[10], mat[11], mat[12], mat[13], mat[14], mat[15]);
-        center = new THREE.Vector3(0, 0, 0);
+        var center = new THREE.Vector3(0, 0, 0);
         center.applyProjection(m);
         var dir;
         switch (this.axis) {

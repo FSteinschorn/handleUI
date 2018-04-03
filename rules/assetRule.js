@@ -16,7 +16,25 @@ assetConfig = {
 };
 
 generateAssetRule = function () {
-    return generateCustomRule(self.assetConfig);
+
+    var asset =  generateCustomRule(self.assetConfig);
+
+    asset.generateRuleString = function () {
+        var ruleString = "new Rules.Asset(" + this.selections[0].getValue();
+        ruleString += ')';
+        ruleString = addTags(asset, ruleString);
+        ruleString += ";";
+
+        this.lastRuleString = ruleString;
+
+        return ruleString;
+    };
+    asset.generateShortString = function () {
+        var ruleString = "Asset: " + this.selections[0].getValue();
+        return ruleString;
+    };
+
+    return asset
 };
 
 getRuleController().addRuleFactory(assetConfig.type, generateAssetRule);

@@ -7,7 +7,11 @@ var splitConfig = {
 generateSplitRule = function () {
 
     var split = generateCustomRule(splitConfig);
+
+    split.childShapes = [];
+
     split.parts = [];
+
     // helpers
     {
         split.draggingHelpers = {
@@ -218,42 +222,23 @@ generateSplitRule = function () {
         this.draggingHelpers.unitsPerInput = 1;
         if (sumRel != 0) this.draggingHelpers.unitsPerInput = segRelSize / sumRel;
         this.draggingHelpers.sumRel = segRelSize;
-    };
-    split.unapplyRule = function (shape) {
-        this.draggingHelpers.segments = [1];
-    };
-    split.updateRule = function () {
-        this.parts = [];
 
-        var selector = document.getElementById("axis_selector");
-        var selection = selector.options[selector.selectedIndex].value;
-        this.axis = selection;
-
-        var sumAbs = 0;
-        for (var i = 0; i < this.draggingHelpers.nextIndex; i++) {
-            var name = 'part' + i + '_mode_selector';
-            var modeSelector = document.getElementById(name);
-            if (modeSelector) {
-                var amountInput = document.getElementById('part' + i + '_amount_input_field');
-                var mode = modeSelector.options[modeSelector.selectedIndex].value;
-                var amount = amountInput.value;
-                if (mode == 'Absolute') sumAbs += parseFloat(amount);
-                this.parts['part' + i] = {mode: mode, amount: amount};
-
-                var partId = 'partDiv' + i;
-                var part = document.getElementById(partId)
-                readTags(part, this.parts['part' + i]);
+        if (this.draggingHelpers.dontDraw) return;
+        // create childShapes
+        if (this.childShapes.length != this.draggingHelpers.segments.length) {
+            while (this.childShapes.length > this.draggingHelpers.segments.length) {
+                getPreviewController().forgetShape(this.childShapes.pop());
+            }
+            while (this.childShapes.length < this.draggingHelpers.segments.length) {
+                var newChild = jQuery.extend(true, {}, shape);
+                newChild.previewID = null;
+                getPreviewController().storeShape(newChild);
+                this.childShapes.push(newChild);
             }
         }
+        shape.childShapes = this.childShapes;
 
-        if (!this.draggingHelpers.fullSize) this.draggingHelpers.fullSize = 99999999;
-        if (this.draggingHelpers.fullSize < sumAbs - this.draggingHelpers.epsilon) {
-            this.draggingHelpers.dontDraw = true;
-            alert("Sum of absolute parts is larger than available size.\nThis would result in an error!");
-        } else this.draggingHelpers.dontDraw = false;
-    };
-    split.addPreview = function (shape, color) {
-        if (this.draggingHelpers.dontDraw) return;
+        // transform child shapes
         var offset = -this.draggingHelpers.fullSize / 2;
         var scale;
         var translate;
@@ -280,29 +265,52 @@ generateSplitRule = function () {
             offset += size;
             m.premultiply(scale);
             m.multiply(translate.transpose());
-            var segmentShape = jQuery.extend(true, {}, shape);
-            segmentShape.appearance.transformation = m.toArray();
-            getRuleController().addPreview(segmentShape, color);
+            this.childShapes[i].appearance.transformation = m.toArray();
+            if (!this.childShapes[i].previewID)
+                getPreviewController().storeShape(this.childShapes[i]);
         }
     };
-    split.removePreview = function (shape) {
-        while (getRuleController().previewScene.children.length != 0) {
-            getRuleController().previewScene.remove(getRuleController().previewScene.children[0]);
+    split.unapplyRule = function (shape) {
+        for (var i = 0; i < this.childShapes.length; i++) {
+            getPreviewController().forgetShape(this.childShapes[i]);
         }
-        getRuleController().meshes.delete(shape.id);
-        renderer.RenderSingleFrame();
+        shape.childShapes = [];
+    };
+    split.updateRule = function () {
+        this.parts = [];
+
+        var selector = document.getElementById("axis_selector");
+        var selection = selector.options[selector.selectedIndex].value;
+        this.axis = selection;
+
+        var sumAbs = 0;
+        for (var i = 0; i < this.draggingHelpers.nextIndex; i++) {
+            var name = 'part' + i + '_mode_selector';
+            var modeSelector = document.getElementById(name);
+            if (modeSelector) {
+                var amountInput = document.getElementById('part' + i + '_amount_input_field');
+                var mode = modeSelector.options[modeSelector.selectedIndex].value;
+                var amount = amountInput.value;
+                if (mode == 'Absolute') sumAbs += parseFloat(amount);
+                this.parts['part' + i] = {mode: mode, amount: amount};
+
+                var partId = 'partDiv' + i;
+                var part = document.getElementById(partId)
+                readTags(part, this.parts['part' + i]);
+            }
+        }
     };
     split.createHandles = function (scene, shape) {
         if (this.draggingHelpers.dontDraw) return;
 
-        if (!this.draggingHelpers.segments) this.applyRule(shape.shape);
+        if (!this.draggingHelpers.segments) this.applyRule(shape);
 
         this.draggingHelpers.scene = scene;
 
         var basicColors = [0xAA3030, 0x30AA30, 0x3030AA];
         var highlightColors = [0xFF0000, 0x00FF00, 0x0000FF];
 
-        mat = shape.shape.appearance.transformation;
+        mat = shape.appearance.transformation;
         var m = new THREE.Matrix4().set(mat[0], mat[1], mat[2], mat[3], mat[4], mat[5], mat[6], mat[7], mat[8], mat[9], mat[10], mat[11], mat[12], mat[13], mat[14], mat[15]);
         center = new THREE.Vector3(0, 0, 0);
         center.applyProjection(m);

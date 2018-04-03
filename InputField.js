@@ -15,6 +15,8 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
 
     self.random = 0;
 
+    self.enabled = true;
+
     self.create = function() {
 
         var fieldDiv = document.createElement('div');
@@ -224,6 +226,9 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
 
     self.getValue = function() {
         var value = InputFieldValue();
+
+        if (!this.enabled) return value; // null
+
         switch (this.types[0]) {
 
             case INPUTTYPE.STRING:
@@ -416,6 +421,25 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
         this.random = 1;
     };
 
+    self.enable = function() {
+        this.enabled = true;
+        for (var i = 0; i < this.inputs.length; i++) {
+            this.inputs[i].disabled = false;
+        }
+        for (var i = 0; i < this.children.length; i++) {
+            this.children[i].enable();
+        }
+    };
+
+    self.disable = function() {
+        this.enabled = false;
+        for (var i = 0; i < this.inputs.length; i++) {
+            this.inputs[i].disabled = true;
+        }
+        for (var i = 0; i < this.children.length; i++) {
+            this.children[i].disable();
+        }
+    };
 
     self.create();
     self.setValue(defaults, true);

@@ -114,7 +114,7 @@ generateRotationRule = function () {
     rotation.createHandles = function (scene, shape) {
         this.draggingHelpers.scene = scene;
 
-        if (!this.initialTransform) this.initialTransform = shape.shape.appearance.transformation;
+        if (!this.initialTransform) this.initialTransform = shape.appearance.transformation;
 
         // switch circle color
         var colors = [0xAA0000, 0x00AA00, 0x0000AA];
@@ -342,7 +342,7 @@ generateRotationRule = function () {
         // update input fields
         var inputFieldController = getInputFieldController();
         var newValue = jQuery.extend(true, [], this.draggingHelpers.startValue);
-        if (this.selections[2] == "rad") {
+        if (this.selections[2].getValue() == "rad") {
             newValue.setValue((this.draggingHelpers.startValue.toNumber() + direction * angle).round());
         } else {
             newValue.setValue((this.draggingHelpers.startValue.toNumber() + direction * ((angle * 180) / Math.PI)).round());

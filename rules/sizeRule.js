@@ -106,7 +106,7 @@ generateSizeRule = function () {
     sizeRule.createHandles = function (scene, shape) {
 
         // necessary calculations
-        var m = shape.shape.appearance.transformation;
+        var m = shape.appearance.transformation;
 
         if (!this.initialSizeX) {
             var dir = new THREE.Vector3(m[0], m[1], m[2]);
@@ -138,7 +138,7 @@ generateSizeRule = function () {
         var basicColors = [0xAA3030, 0x30AA30, 0x3030AA];
         var highlightColors = [0xFF0000, 0x00FF00, 0x0000FF];
 
-        var mat = shape.shape.appearance.transformation;
+        var mat = shape.appearance.transformation;
         var m = new THREE.Matrix4().set(mat[0], mat[1], mat[2], mat[3], mat[4], mat[5], mat[6], mat[7], mat[8], mat[9], mat[10], mat[11], mat[12], mat[13], mat[14], mat[15]);
         var center = new THREE.Vector3(0, 0, 0);
         center.applyProjection(m);
