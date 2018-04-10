@@ -312,6 +312,10 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
             }
             if (!noSetting) this.callback();
 
+            if (lambdaButton.classList.contains('inputField-buttonSelected')) {
+                renderer.removeWarning("lambda value");
+            }
+
             normalButton.classList.add('inputField-buttonSelected');
             randomButton.classList.remove('inputField-buttonSelected');
             lambdaButton.classList.remove('inputField-buttonSelected');
@@ -329,6 +333,10 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
             if (!noSetting) {
                 this.setValue(currentValue);
                 this.callback();
+            }
+
+            if (lambdaButton.classList.contains('inputField-buttonSelected')) {
+                renderer.removeWarning("lambda value");
             }
 
             randomButton.classList.add('inputField-buttonSelected');
@@ -353,6 +361,8 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
             lambdaButton.classList.add('inputField-buttonSelected');
             randomButton.classList.remove('inputField-buttonSelected');
             normalButton.classList.remove('inputField-buttonSelected');
+
+            renderer.addWarning("lambda value");
         }
     };
 

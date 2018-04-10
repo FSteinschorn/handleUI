@@ -66,7 +66,6 @@ function HandlesThreeRenderer(domQuery) {
     self.codeParseNeeded = true;
 
     self.warningTexts = [];
-    self.warningChanged = false;
 
     self.parseCode = function () {
         if (lastGrammarResponse.parsedJSON == "") {
@@ -198,19 +197,17 @@ function HandlesThreeRenderer(domQuery) {
             } );
         }
 
-        var renderContainer = document.getElementById("basicRendererContainer");
         var warningDiv = document.createElement('div');
         warningDiv.id = 'warning_div';
         warningDiv.classList.add('preview_warning');
         warningDiv.classList.add('w3-hide');
-        renderContainer.appendChild(warningDiv);
+        document.getElementById("basicRendererContainer").appendChild(warningDiv);
 
 
     });
     self.updateCalls.push(function () {
         self.raycastScene(self.previewController.previewScene.children, false, self.wireframeHitCallback, self.wireframeClearCallback);
         self.raycastScene(self.handlesScene.children, true, self.lineHitCallback, self.lineClearCallback);
-        self.updateWarning();
     });
     self.renderCalls.push(function () {
         self.previewController.preparePreview(self.selectedMesh);
@@ -228,34 +225,31 @@ function HandlesThreeRenderer(domQuery) {
 
     self.addWarning = function(text) {
         self.warningTexts.push(text);
-        self.warningChanged = true;
+        self.updateWarning();
     };
     self.removeWarning = function(text) {
         remove(self.warningTexts, text);
-        self.warningChanged = true;
+        self.updateWarning();
     };
     self.updateWarning = function() {
-        if (self.warningChanged) {
-            var warningDiv = document.getElementById('warning_div');
-            // remove previous children
-            warningDiv.innerHTML = "";
-            // remove if no warning
-            if (self.warningTexts.length == 0) {
-                if (!warningDiv.classList.contains('w3-hide'))
-                    warningDiv.classList.add('w3-hide');
-            // add all warnings
-            } else {
-                var warning_string = "";
-                for (var idx in self.warningTexts)
-                    warning_string += ', ' + self.warningTexts[idx];
-                warning_string = warning_string.slice(2);
-                var warningText = document.createTextNode('Preview not possible! (' + warning_string + ')');
-                warningDiv.appendChild(warningText);
-                if (warningDiv.classList.contains('w3-hide'))
-                    warningDiv.classList.remove('w3-hide');
-            }
+        var warningDiv = document.getElementById('warning_div');
+        // remove previous children
+        warningDiv.innerHTML = "";
+        // remove if no warning
+        if (self.warningTexts.length == 0) {
+            if (!warningDiv.classList.contains('w3-hide'))
+                warningDiv.classList.add('w3-hide');
+        // add all warnings
+        } else {
+            var warning_string = "";
+            for (var idx in self.warningTexts)
+                warning_string += ', ' + self.warningTexts[idx];
+            warning_string = warning_string.slice(2);
+            var warningText = document.createTextNode('Preview not possible! (' + warning_string + ')');
+            warningDiv.appendChild(warningText);
+            if (warningDiv.classList.contains('w3-hide'))
+                warningDiv.classList.remove('w3-hide');
         }
-        self.warningChanged = false;
     };
 
     self.onDocumentMouseDown = function onDocumentMouseClick(event) {
