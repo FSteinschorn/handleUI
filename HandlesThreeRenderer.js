@@ -233,7 +233,7 @@ function HandlesThreeRenderer(domQuery) {
     };
     self.updateWarning = function() {
         var warningDiv = document.getElementById('warning_div');
-        // remove previous children
+        // remove previous warning
         warningDiv.innerHTML = "";
         // remove if no warning
         if (self.warningTexts.length == 0) {
@@ -745,6 +745,9 @@ function HandlesThreeRenderer(domQuery) {
         this.handlesScene = new THREE.Scene();
 
         this.codeParseNeeded = true;
+        
+        this.warningTexts = [];
+        this.updateWarning();
     };
 
     return self;
