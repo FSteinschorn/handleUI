@@ -17,6 +17,8 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
 
     self.enabled = true;
 
+    self.lastValidValue = defaults[0];
+
     self.create = function() {
 
         var fieldDiv = document.createElement('div');
@@ -296,7 +298,30 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
             }
         }
 
-        return value;
+        if (this.sanityCheck(value)) {
+            this.lastValidValue = value;
+            return value;
+        } else {
+            this.setValue(this.lastValidValue);
+            return this.getValue();
+        }
+    };
+
+    self.sanityCheck = function(value) {
+        switch (this.types[0]) {
+            case INPUTTYPE.DOUBLE:
+                if (isNaN(value.toNumber())) return false;
+                break;
+            case INPUTTYPE.VEC3:
+                if (!self.children[0].sanityCheck(value.getValue()[0])) return false;
+                if (!self.children[1].sanityCheck(value.getValue()[1])) return false;
+                if (!self.children[2].sanityCheck(value.getValue()[2])) return false;
+                break;
+            default:
+                return true;
+                break;
+        }
+        return true;
     };
 
     self.normalButton_clicked = function(noSetting) {
@@ -311,10 +336,6 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
                 if (!noSetting) this.setValue(currentValue);
             }
             if (!noSetting) this.callback();
-
-            if (lambdaButton.classList.contains('inputField-buttonSelected')) {
-                renderer.removeWarning("lambda value");
-            }
 
             normalButton.classList.add('inputField-buttonSelected');
             randomButton.classList.remove('inputField-buttonSelected');
@@ -333,10 +354,6 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
             if (!noSetting) {
                 this.setValue(currentValue);
                 this.callback();
-            }
-
-            if (lambdaButton.classList.contains('inputField-buttonSelected')) {
-                renderer.removeWarning("lambda value");
             }
 
             randomButton.classList.add('inputField-buttonSelected');
@@ -361,8 +378,6 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
             lambdaButton.classList.add('inputField-buttonSelected');
             randomButton.classList.remove('inputField-buttonSelected');
             normalButton.classList.remove('inputField-buttonSelected');
-
-            renderer.addWarning("lambda value");
         }
     };
 
