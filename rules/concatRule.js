@@ -24,6 +24,13 @@ generateConcatRule = function () {
         return output;
     };
     concat.generateShortString = function () {
+
+        for (var idx in this.postfixes) {
+            if (this.postfixes[idx].type == "Name") {
+                return '"' + this.postfixes[idx].tags[0] + '"';
+            }
+        }
+
         var output = "Concat of ";
         output += this.selections.length;
         output += " rules";

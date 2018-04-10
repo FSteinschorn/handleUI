@@ -579,6 +579,13 @@ function TempRuleController() {
                     return ruleString;
                 };
                 customRule.generateShortString = function () {
+
+                    for (var idx in customRule.postfixes) {
+                        if (customRule.postfixes[idx].type == "Name") {
+                            return '"' + customRule.postfixes[idx].tags[0] + '"';
+                        }
+                    }
+
                     var ruleString = config.type + " with (";
 
                     ruleString += customRule.addSelectionsString();

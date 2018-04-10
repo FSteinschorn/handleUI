@@ -42,6 +42,13 @@ generatePaintRule = function () {
         return ruleString;
     };
     paint.generateShortString = function () {
+
+        for (var idx in this.postfixes) {
+            if (this.postfixes[idx].type == "Name") {
+                return '"' + this.postfixes[idx].tags[0] + '"';
+            }
+        }
+
         var ruleString = "Paint with " + this.selections[0].getValue();
         if (this.selections[1].getValue() != null) ruleString += '(' + this.selections[1].getValue() + ')';
         return ruleString;

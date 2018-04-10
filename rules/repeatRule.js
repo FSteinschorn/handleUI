@@ -85,6 +85,13 @@ generaterepeatRule = function () {
         return ruleString;
     };
     repeat.generateShortString = function () {
+
+        for (var idx in this.postfixes) {
+            if (this.postfixes[idx].type == "Name") {
+                return '"' + this.postfixes[idx].tags[0] + '"';
+            }
+        }
+
         var keys = Object.keys(this.parts);
         var size = keys.length;
         var partname = keys[0];

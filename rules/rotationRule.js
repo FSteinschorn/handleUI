@@ -39,6 +39,13 @@ generateRotationRule = function () {
         return ruleString;
     };
     rotation.generateShortString = function () {
+
+        for (var idx in this.postfixes) {
+            if (this.postfixes[idx].type == "Name") {
+                return '"' + this.postfixes[idx].tags[0] + '"';
+            }
+        }
+
         return ("Rotation by " + this.selections[1].toNumber()
             + " " + this.selections[2].getValue()
             + " on " + this.selections[0].getValue() + ", " + this.mode);
