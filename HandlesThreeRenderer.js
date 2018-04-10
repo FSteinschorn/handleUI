@@ -65,6 +65,9 @@ function HandlesThreeRenderer(domQuery) {
 
     self.codeParseNeeded = true;
 
+    self.warningTexts = [];
+    self.warningChanged = false;
+
     self.parseCode = function () {
         if (lastGrammarResponse.parsedJSON == "") {
             self.initButtonsUI();
@@ -194,10 +197,20 @@ function HandlesThreeRenderer(domQuery) {
                 document.getElementById('parse-button').click();
             } );
         }
+
+        var renderContainer = document.getElementById("basicRendererContainer");
+        var warningDiv = document.createElement('div');
+        warningDiv.id = 'warning_div';
+        warningDiv.classList.add('preview_warning');
+        warningDiv.classList.add('w3-hide');
+        renderContainer.appendChild(warningDiv);
+
+
     });
     self.updateCalls.push(function () {
         self.raycastScene(self.previewController.previewScene.children, false, self.wireframeHitCallback, self.wireframeClearCallback);
         self.raycastScene(self.handlesScene.children, true, self.lineHitCallback, self.lineClearCallback);
+        self.updateWarning();
     });
     self.renderCalls.push(function () {
         self.previewController.preparePreview(self.selectedMesh);
@@ -212,6 +225,38 @@ function HandlesThreeRenderer(domQuery) {
             self.parseCode();
         }
     });
+
+    self.addWarning = function(text) {
+        self.warningTexts.push(text);
+        self.warningChanged = true;
+    };
+    self.removeWarning = function(text) {
+        remove(self.warningTexts, text);
+        self.warningChanged = true;
+    };
+    self.updateWarning = function() {
+        if (self.warningChanged) {
+            var warningDiv = document.getElementById('warning_div');
+            // remove previous children
+            warningDiv.innerHTML = "";
+            // remove if no warning
+            if (self.warningTexts.length == 0) {
+                if (!warningDiv.classList.contains('w3-hide'))
+                    warningDiv.classList.add('w3-hide');
+            // add all warnings
+            } else {
+                var warning_string = "";
+                for (var idx in self.warningTexts)
+                    warning_string += ', ' + self.warningTexts[idx];
+                warning_string = warning_string.slice(2);
+                var warningText = document.createTextNode('Preview not possible! (' + warning_string + ')');
+                warningDiv.appendChild(warningText);
+                if (warningDiv.classList.contains('w3-hide'))
+                    warningDiv.classList.remove('w3-hide');
+            }
+        }
+        self.warningChanged = false;
+    };
 
     self.onDocumentMouseDown = function onDocumentMouseClick(event) {
         if (overHandle) {
@@ -615,6 +660,8 @@ function HandlesThreeRenderer(domQuery) {
         });
 
         $("#willwas_button").click(function () {
+            renderer.addWarning('Button pressed');
+            /*
             var status = document.getElementById("willwas_status");
             if (self.selectedRule.wasAppliedToList.includes(self.selectedMesh)) {
                 var index = self.selectedRule.wasAppliedToList.indexOf(self.selectedMesh);
@@ -642,6 +689,7 @@ function HandlesThreeRenderer(domQuery) {
                 self.inputChanged();
             }
             self.RenderSingleFrame();
+            */
         });
 
         //create handles
@@ -650,16 +698,6 @@ function HandlesThreeRenderer(domQuery) {
         handlesType = selector.options[selector.selectedIndex].value;
 
         self.RenderSingleFrame();
-    };
-
-    clearUI = function () {
-        if (self.handlesScene)
-        for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
-            self.handlesScene.remove(self.handlesScene.children[i]);
-        if (uiDiv)
-        for (var i = uiDiv.children.length - 1; i >= 0; --i) {
-            uiDiv.removeChild(uiDiv.childNodes[i]);
-        }
     };
 
     self.inputChanged = function () {
@@ -689,6 +727,15 @@ function HandlesThreeRenderer(domQuery) {
         self.RenderSingleFrame();
     };
 
+    clearUI = function () {
+        if (self.handlesScene)
+            for (var i = self.handlesScene.children.length - 1; i >= 0; --i)
+                self.handlesScene.remove(self.handlesScene.children[i]);
+        if (uiDiv)
+            for (var i = uiDiv.children.length - 1; i >= 0; --i) {
+                uiDiv.removeChild(uiDiv.childNodes[i]);
+            }
+    };
     self.cleanup = function() {
         var inputFieldController = getInputFieldController();
         inputFieldController.removeAll();

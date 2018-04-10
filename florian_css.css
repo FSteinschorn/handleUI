@@ -122,6 +122,17 @@
 	width: 20%;
 }
 
+.preview_warning {
+	position: absolute;
+	top: 0px;
+	height: 2em;
+	width: 100%;
+	background: #d6a333;
+	font-size: 2em;
+	color: white;
+	padding: 5px 20px
+}
+
 
 .w3-accordion {
 	width:100%;
