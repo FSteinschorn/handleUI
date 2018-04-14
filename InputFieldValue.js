@@ -221,6 +221,17 @@ function InputFieldValue(value) {
         return this.type == INPUTFIELDVALUETYPE.NULL;
     };
 
+    self.containsString = function() {
+        if (this.type == INPUTFIELDVALUETYPE.LAMBDA) return true;
+        if (this.type == INPUTFIELDVALUETYPE.STRING) return true;
+        if (this.type == INPUTFIELDVALUETYPE.VECTOR) {
+            if (this.vec[0].containsString()) return true;
+            if (this.vec[1].containsString()) return true;
+            if (this.vec[2].containsString()) return true;
+        }
+        return false;
+    };
+
     if (value || value == 0) self.setValue(value);
     return self;
 

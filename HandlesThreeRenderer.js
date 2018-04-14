@@ -745,7 +745,7 @@ function HandlesThreeRenderer(domQuery) {
         this.handlesScene = new THREE.Scene();
 
         this.codeParseNeeded = true;
-        
+
         this.warningTexts = [];
         this.updateWarning();
     };

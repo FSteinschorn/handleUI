@@ -17,7 +17,7 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
 
     self.enabled = true;
 
-    self.lastValidValue = defaults[0];
+    self.lastValidValueNormal = defaults;
 
     self.create = function() {
 
@@ -157,7 +157,8 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
         if (updateRange && self.types[0] != INPUTTYPE.VEC3) {
             if (value.type == INPUTFIELDVALUETYPE.RANGE) {
                 this.randomButton_clicked(true);
-            } else if (value.type == INPUTFIELDVALUETYPE.LAMBDA) {
+            } else if (value.type == INPUTFIELDVALUETYPE.LAMBDA ||
+                        value.type == INPUTFIELDVALUETYPE.STRING) {
                 this.lambdaButton_clicked(true);
             } else if (value.type != INPUTFIELDVALUETYPE.RANGE &&
                         (this.types[0] == INPUTTYPE.RAW ||
@@ -302,24 +303,32 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
             this.lastValidValue = value;
             return value;
         } else {
-            this.setValue(this.lastValidValue);
+            if (this.sanityCheck(this.lastValidValue))
+                this.setValue(this.lastValidValue);
+            else if (this.sanityCheck(this.defaults))
+                this.setValue(this.defaults);
+            else if (this.sanityCheck(InputFieldValue(0)))
+                this.setValue(InputFieldValue(0));
             return this.getValue();
         }
     };
 
     self.sanityCheck = function(value) {
-        switch (this.types[0]) {
-            case INPUTTYPE.DOUBLE:
-                if (isNaN(value.toNumber())) return false;
-                break;
-            case INPUTTYPE.VEC3:
-                if (!self.children[0].sanityCheck(value.getValue()[0])) return false;
-                if (!self.children[1].sanityCheck(value.getValue()[1])) return false;
-                if (!self.children[2].sanityCheck(value.getValue()[2])) return false;
-                break;
-            default:
-                return true;
-                break;
+        var lambdaButton = document.getElementById('inputField_' + this.id + '_lambdaButton');
+        if (!lambdaButton || !lambdaButton.classList.contains('inputField-buttonSelected')) {
+            switch (this.types[0]) {
+                case INPUTTYPE.DOUBLE:
+                    if (isNaN(value.toNumber())) return false;
+                    break;
+                case INPUTTYPE.VEC3:
+                    if (!self.children[0].sanityCheck(value.getValue()[0])) return false;
+                    if (!self.children[1].sanityCheck(value.getValue()[1])) return false;
+                    if (!self.children[2].sanityCheck(value.getValue()[2])) return false;
+                    break;
+                default:
+                    return true;
+                    break;
+            }
         }
         return true;
     };
@@ -328,18 +337,21 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
         var normalButton = document.getElementById('inputField_' + this.id + '_normalButton');
         var randomButton = document.getElementById('inputField_' + this.id + '_randomButton');
         var lambdaButton = document.getElementById('inputField_' + this.id + '_lambdaButton');
-        if (!normalButton.classList.contains('inputField-buttonSelected')) {
+        if (normalButton && !normalButton.classList.contains('inputField-buttonSelected')) {
             if (!lambdaButton.classList.contains('inputField-buttonSelected')) {
                 var currentValue = this.getValue();
                 this.switchToSingleInput();
                 currentValue.switchType(INPUTFIELDVALUETYPE.NUMBER);
                 if (!noSetting) this.setValue(currentValue);
             }
-            if (!noSetting) this.callback();
 
             normalButton.classList.add('inputField-buttonSelected');
             randomButton.classList.remove('inputField-buttonSelected');
             lambdaButton.classList.remove('inputField-buttonSelected');
+
+            var justToSanityCheck = this.getValue();
+
+            if (!noSetting) this.callback();
         }
     };
 
@@ -347,18 +359,21 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
         var normalButton = document.getElementById('inputField_' + this.id + '_normalButton');
         var randomButton = document.getElementById('inputField_' + this.id + '_randomButton');
         var lambdaButton = document.getElementById('inputField_' + this.id + '_lambdaButton');
-        if (!randomButton.classList.contains('inputField-buttonSelected')) {
+        if (randomButton && !randomButton.classList.contains('inputField-buttonSelected')) {
             var currentValue = this.getValue();
             this.switchToRndInput();
             currentValue.switchType(INPUTFIELDVALUETYPE.RANGE);
             if (!noSetting) {
                 this.setValue(currentValue);
-                this.callback();
             }
 
             randomButton.classList.add('inputField-buttonSelected');
             normalButton.classList.remove('inputField-buttonSelected');
             lambdaButton.classList.remove('inputField-buttonSelected');
+
+            var justToSanityCheck = this.getValue();
+
+            if (!noSetting) this.callback();
         }
     };
 
@@ -366,18 +381,19 @@ function InputField(parentDiv, label, types, defaults, updateCallback, additiona
         var normalButton = document.getElementById('inputField_' + this.id + '_normalButton');
         var randomButton = document.getElementById('inputField_' + this.id + '_randomButton');
         var lambdaButton = document.getElementById('inputField_' + this.id + '_lambdaButton');
-        if (!lambdaButton.classList.contains('inputField-buttonSelected')) {
+        if (lambdaButton && !lambdaButton.classList.contains('inputField-buttonSelected')) {
             if (!normalButton.classList.contains('inputField-buttonSelected')) {
                 var currentValue = this.getValue();
                 this.switchToSingleInput();
                 currentValue.switchType(INPUTFIELDVALUETYPE.LAMBDA);
                 if (!noSetting) this.setValue(currentValue);
             }
-            if (!noSetting) this.callback();
 
             lambdaButton.classList.add('inputField-buttonSelected');
             randomButton.classList.remove('inputField-buttonSelected');
             normalButton.classList.remove('inputField-buttonSelected');
+
+            if (!noSetting) this.callback();
         }
     };
 
