@@ -91,7 +91,6 @@ function TempRuleController() {
         if (shape) {
             if (!rule.containsString()) rule.applyRule(shape);
             rule.afterApply(shape);
-            rule.addPreview(shape);
         } else {
             renderer.addWarning("no shape selected");
         }
@@ -138,10 +137,13 @@ function TempRuleController() {
                 rule.appliedShapes.push(shape);
 
                 // apply rule
-                if (!rule.containsString()) rule.applyRule(shape);
-                else if (!rule.edited) renderer.addWarning("lambda value");
-                rule.afterApply(shape);
-                rule.addPreview(shape);
+                if (!rule.containsString() && !rule.wasApplied) {
+                    rule.applyRule(shape);
+                    rule.afterApply(shape);
+                }
+                else if (!rule.edited && rule.containsString()) {
+                    renderer.addWarning("lambda value");
+                }
             }
         } else {
             renderer.addWarning("no shape selected");
@@ -170,9 +172,10 @@ function TempRuleController() {
             if (!shape.appliedRules) shape.appliedRules = [];
             if (!rule.appliedShapes) rule.appliedShapes = [];
             if (shape.appliedRules[shape.appliedRules.length - 1] == rule) {
-                if (!rule.containsString()) rule.unapplyRule(shape);
-                rule.afterUnapply(shape);
-                rule.removePreview(shape);
+                if (!rule.containsString() && !rule.wasApplied) {
+                    rule.unapplyRule(shape);
+                    rule.afterUnapply(shape);
+                }
             }
 
             // remove relation rule <-> shape
@@ -208,9 +211,10 @@ function TempRuleController() {
 
         // unapply rule
         if (shape) {
-            if (!rule.containsString()) rule.unapplyRule(shape);
-            rule.afterUnapply(shape);
-            rule.removePreview(shape);
+            if (!rule.containsString() && !rule.wasApplied) {
+                rule.unapplyRule(shape);
+                rule.afterUnapply(shape);
+            }
 
             // remove relation rule <-> shape
             removeLast(rule.appliedShapes, shape);
@@ -234,9 +238,26 @@ function TempRuleController() {
         }
     };
 
+    self.onWillWasClicked = function(rule, shape) {
+        if (!rule) return;
+
+        if (!rule.wasApplied) {
+            rule.wasApplied = true;
+            if (shape) {
+                rule.unapplyRule(shape);
+                rule.afterUnapply(shape);
+            }
+        } else {
+            rule.wasApplied = false;
+            if (shape) {
+                rule.applyRule(shape);
+                rule.afterApply(shape);
+            }
+        }
+    };
+
     self.removeAll = function() {
         this.meshes = new Map();
-
         this.rules = [];
     };
 
@@ -247,7 +268,6 @@ function TempRuleController() {
         if (shape) {
             var didContainLambda = rule.containsString();
             if (!didContainLambda) rule.unapplyRule(shape);
-            rule.removePreview(shape);
             rule.afterUnapply(shape);
         }
         rule.updateRule();
@@ -255,7 +275,6 @@ function TempRuleController() {
             var doesContainLambda = rule.containsString();
             if (!doesContainLambda) rule.applyRule(shape);
             rule.afterApply(shape);
-            rule.addPreview(shape);
         }
 
         if (shape) {

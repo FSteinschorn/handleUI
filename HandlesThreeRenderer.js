@@ -636,7 +636,11 @@ function HandlesThreeRenderer(domQuery) {
         });
 
         $("#willwas_button").click(function () {
-            renderer.addWarning('Button pressed');
+            self.ruleController.onWillWasClicked(self.selectedRule, self.selectedMesh);
+            self.inputChanged();
+            self.Update();
+            self.OnUpdateCompleted();
+            self.RenderSingleFrame();
         });
 
         //create handles
