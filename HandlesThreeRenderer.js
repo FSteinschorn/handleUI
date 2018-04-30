@@ -517,32 +517,30 @@ function HandlesThreeRenderer(domQuery) {
         cancel_button.appendChild(cancel_buttonn_text);
 
         //create will/was applied div
-        if (self.selectedMesh) {
-            var willwas_div = document.createElement('div');
-            willwas_div.id = "willwas_div";
-            var status_div = document.createElement('div');
-            status_div.id = "willwas_status";
-            status_div.style.display = "inline";
-            var willwas_status;
-            if (!self.selectedRule.wasApplied) {
-                willwas_status = document.createTextNode("Currently the rule WILL be applied ");
-            }
-            else {
-                willwas_status = document.createTextNode("Currently the rule WAS applied ");
-            }
-            status_div.appendChild(willwas_status);
-            willwas_div.appendChild(status_div);
-            var willwas_button = document.createElement('button');
-            willwas_button.id = "willwas_button";
-            var willwas_button_text = document.createTextNode("change");
-            willwas_button.appendChild(willwas_button_text);
-            if (creatingNewRule
-                || self.selectedRule.generatesMultipleShapes
-                || !self.selectedMesh) {
-                willwas_button.style.display = "none";
-            }
-            willwas_div.appendChild(willwas_button);
+        var willwas_div = document.createElement('div');
+        willwas_div.id = "willwas_div";
+        var status_div = document.createElement('div');
+        status_div.id = "willwas_status";
+        status_div.style.display = "inline";
+        var willwas_status;
+        if (!self.selectedRule.wasApplied) {
+            willwas_status = document.createTextNode("Currently the rule WILL be applied ");
         }
+        else {
+            willwas_status = document.createTextNode("Currently the rule WAS applied ");
+        }
+        status_div.appendChild(willwas_status);
+        willwas_div.appendChild(status_div);
+        var willwas_button = document.createElement('button');
+        willwas_button.id = "willwas_button";
+        var willwas_button_text = document.createTextNode("change");
+        willwas_button.appendChild(willwas_button_text);
+        if (creatingNewRule
+            || self.selectedRule.generatesMultipleShapes
+            || !self.selectedMesh) {
+            willwas_button.style.display = "none";
+        }
+        willwas_div.appendChild(willwas_button);
 
         //get goals of current shape
         if (self.selectedMesh && self.selectedMesh.semantics.goal) {
