@@ -88,18 +88,24 @@ function TempRuleController() {
 
     self.onNewClicked = function(rule, shape) {
         // apply new rule
-        if (!rule.containsString()) rule.applyRule(shape);
-        rule.afterApply(shape);
-        rule.addPreview(shape);
+        if (shape) {
+            if (!rule.containsString()) rule.applyRule(shape);
+            rule.afterApply(shape);
+            rule.addPreview(shape);
+        } else {
+            renderer.addWarning("no shape selected");
+        }
 
         // store new rule
         self.rules.push(rule);
 
         // set relations rule <-> shape
-        if (!shape.appliedRules) shape.appliedRules = [];
-        shape.appliedRules.push(rule);
-        rule.appliedShapes = [];
-        rule.appliedShapes.push(shape);
+        if (shape) {
+            if (!shape.appliedRules) shape.appliedRules = [];
+            shape.appliedRules.push(rule);
+            rule.appliedShapes = [];
+            rule.appliedShapes.push(shape);
+        }
 
         // add new rule to code
         var editor = ace.edit("code_text_ace");
@@ -123,18 +129,22 @@ function TempRuleController() {
         if (!rule.uneditedRule)
             rule.uneditedRule = jQuery.extend(true, [], rule);
 
-        if (!shape.appliedRules) shape.appliedRules = [];
-        if (!rule.appliedShapes) rule.appliedShapes = [];
-        if (shape.appliedRules[shape.appliedRules.length - 1] != rule) {
-            // set relations rule <-> shape
-            shape.appliedRules.push(rule);
-            rule.appliedShapes.push(shape);
+        if (shape) {
+            if (!shape.appliedRules) shape.appliedRules = [];
+            if (!rule.appliedShapes) rule.appliedShapes = [];
+            if (shape.appliedRules[shape.appliedRules.length - 1] != rule) {
+                // set relations rule <-> shape
+                shape.appliedRules.push(rule);
+                rule.appliedShapes.push(shape);
 
-            // apply rule
-            if (!rule.containsString()) rule.applyRule(shape);
-            else if (!rule.edited) renderer.addWarning("lambda value");
-            rule.afterApply(shape);
-            rule.addPreview(shape);
+                // apply rule
+                if (!rule.containsString()) rule.applyRule(shape);
+                else if (!rule.edited) renderer.addWarning("lambda value");
+                rule.afterApply(shape);
+                rule.addPreview(shape);
+            }
+        } else {
+            renderer.addWarning("no shape selected");
         }
     };
 
@@ -156,17 +166,19 @@ function TempRuleController() {
         selection.clearSelection();
 
         // unapply rule
-        if (!shape.appliedRules) shape.appliedRules = [];
-        if (!rule.appliedShapes) rule.appliedShapes = [];
-        if (shape.appliedRules[shape.appliedRules.length - 1] == rule) {
-            if (!rule.containsString()) rule.unapplyRule(shape);
-            rule.afterUnapply(shape);
-            rule.removePreview(shape);
-        }
+        if (shape) {
+            if (!shape.appliedRules) shape.appliedRules = [];
+            if (!rule.appliedShapes) rule.appliedShapes = [];
+            if (shape.appliedRules[shape.appliedRules.length - 1] == rule) {
+                if (!rule.containsString()) rule.unapplyRule(shape);
+                rule.afterUnapply(shape);
+                rule.removePreview(shape);
+            }
 
-        // remove relation rule <-> shape
-        removeLast(rule.appliedShapes, shape);
-        removeLast(shape.appliedRules, rule);
+            // remove relation rule <-> shape
+            removeLast(rule.appliedShapes, shape);
+            removeLast(shape.appliedRules, rule);
+        }
 
         // delete rule
         remove(self.rules, rule);
@@ -195,81 +207,31 @@ function TempRuleController() {
         }
 
         // unapply rule
-        if (!rule.containsString()) rule.unapplyRule(shape);
-        rule.afterUnapply(shape);
-        rule.removePreview(shape);
+        if (shape) {
+            if (!rule.containsString()) rule.unapplyRule(shape);
+            rule.afterUnapply(shape);
+            rule.removePreview(shape);
 
-        // remove relation rule <-> shape
-        removeLast(rule.appliedShapes, shape);
-        removeLast(shape.appliedRules, rule);
+            // remove relation rule <-> shape
+            removeLast(rule.appliedShapes, shape);
+            removeLast(shape.appliedRules, rule);
+        }
 
         if (creatingNewRule) {
             remove(self.rules, rule);
+        }
+
+        if (!shape) {
+            renderer.removeWarning("no shape selected");
         }
     };
 
     self.onCommitClicked = function(rule, shape) {
         self.updateRule(shape, rule);
-    };
 
-    self.addRule = function (shape, rule) {
-        if (shape.lastAppliedRule != rule) {
-            if (!rule.containsString()) rule.applyRule(shape);
-            rule.afterApply(shape);
-            rule.addPreview(shape);
+        if (!shape) {
+            renderer.removeWarning("no shape selected");
         }
-
-        if (creatingNewRule) {
-            self.rules.push(rule);
-
-            var editor = ace.edit("code_text_ace");
-            var selection = editor.getSelection();
-            selection.clearSelection();
-            editor.setValue(editor.getValue() + "\n\n", 1);
-            selection.moveCursorFileEnd();
-            rule.start = editor.session.doc.positionToIndex(editor.getCursorPosition());
-            editor.setValue(editor.getValue() + rule.generateRuleString(rule), 1);
-            selection.moveCursorFileEnd();
-            rule.end = editor.session.doc.positionToIndex(editor.getCursorPosition());
-            editor.clearSelection();
-            selection.moveCursorToPosition(rule.start);
-            selection.selectToPosition(rule.end);
-        }
-    };
-
-    self.removeRule = function (rule, shape) {
-        if (shape.lastAppliedRule != shape) {
-            rule.unapplyRule(shape);
-            rule.afterUnapply(shape);
-            rule.removePreview(shape);
-            shape.lastAppliedRule = rule;
-        }
-
-        if (creatingNewRule) {
-            remove(self.rules, rule);
-        }
-    };
-
-    self.deleteRule = function(rule, shape) {
-        // remove from code
-        var editor = ace.edit("code_text_ace");
-        var fullString = editor.getValue();
-        fullString = fullString.substr(0, rule.start) + fullString.substr(rule.end);
-        editor.setValue(fullString);
-        var diff = rule.end - rule.start;
-
-        for (var index in self.rules) {
-            if (self.rules[index].start > rule.start) {
-                self.rules[index].start -= diff;
-                self.rules[index].end -= diff;
-            }
-        }
-        var selection = editor.getSelection();
-        selection.clearSelection();
-
-        rule.deleted = true;
-
-        self.removeRule(rule, shape);
     };
 
     self.removeAll = function() {
@@ -280,24 +242,29 @@ function TempRuleController() {
 
     self.updateRule = function (shape, rule) {
         if (!rule) return;
-        if (!shape) return;
 
         // update rule
-        var didContainLambda = rule.containsString();
-        if (!didContainLambda) rule.unapplyRule(shape);
-        rule.removePreview(shape);
-        rule.afterUnapply(shape);
+        if (shape) {
+            var didContainLambda = rule.containsString();
+            if (!didContainLambda) rule.unapplyRule(shape);
+            rule.removePreview(shape);
+            rule.afterUnapply(shape);
+        }
         rule.updateRule();
-        var doesContainLambda = rule.containsString();
-        if (!doesContainLambda) rule.applyRule(shape);
-        rule.afterApply(shape);
-        rule.addPreview(shape);
+        if (shape) {
+            var doesContainLambda = rule.containsString();
+            if (!doesContainLambda) rule.applyRule(shape);
+            rule.afterApply(shape);
+            rule.addPreview(shape);
+        }
 
-        // update warning
-        if (didContainLambda && !doesContainLambda)
-            renderer.removeWarning('lambda value');
-        if (!didContainLambda && doesContainLambda)
-            renderer.addWarning('lambda value');
+        if (shape) {
+            // update warning
+            if (didContainLambda && !doesContainLambda)
+                renderer.removeWarning('lambda value');
+            if (!didContainLambda && doesContainLambda)
+                renderer.addWarning('lambda value');
+        }
 
         // update code
         var editor = ace.edit("code_text_ace");
@@ -356,11 +323,11 @@ function TempRuleController() {
     };
 
     self.addPreview = function (shape, color) {
-        getPreviewController().addPreview(shape);
+        //getPreviewController().addPreview(shape);
     };
 
     self.removePreview = function (shape) {
-        getPreviewController().removePreview(shape);
+        //getPreviewController().removePreview(shape);
     };
 
     self.changePreviewColor = function (shape, color, rule) {

@@ -5,7 +5,7 @@ function charToRowCol(position) {
     var session = editor.getSession();
     var lines = session.getLines(0, session.getLength());
     var counter = 0, line = 0;
-    while (counter < position) {
+    while (counter < position && line < lines.length) {
         counter += lines[line].length + 1;
         line += 1;
     }
@@ -364,7 +364,8 @@ function HandlesThreeRenderer(domQuery) {
                 currently_marked = div_id;
             } else if (currently_marked) {
                 var old_div = document.getElementById(currently_marked);
-                old_div.style.backgroundColor = "";
+                if (old_div) old_div.style.backgroundColor = "";
+                currently_marked = null;
             }
         };
         var updateRuleHighlightFromRule = function(rule, i) {
@@ -380,12 +381,15 @@ function HandlesThreeRenderer(domQuery) {
                 if (!document.getElementById("ruleListDiv")) return;
                 var div_id = "rule_" + i + "_div";
                 var new_div = document.getElementById(div_id);
-                new_div.style.backgroundColor = "#c2c8eb";
                 if (currently_marked && currently_marked != div_id) {
                     var old_div = document.getElementById(currently_marked);
-                    old_div.style.backgroundColor = "";
+                    if (old_div) old_div.style.backgroundColor = "";
+                    currently_marked = null;
                 }
-                currently_marked = div_id;
+                if (new_div) {
+                    new_div.style.backgroundColor = "#c2c8eb";
+                    currently_marked = div_id;
+                }
             }
         };
         var editor_div = document.getElementById("code_text_ace");
@@ -410,16 +414,14 @@ function HandlesThreeRenderer(domQuery) {
                 ruleListDiv.appendChild(ruleDiv);
                 ruleDiv.innerHTML = "<span class='tag-tag'>" + self.ruleController.generateShortString(rules[i]) + "</span>";
 
-                if (self.selectedMesh) {
-                    var edit_button = document.createElement("button");
-                    edit_button.id = "editRule_Button_" + i;
-                    edit_button.classList = "w3-btn";
-                    edit_button.style = "height:2em;float:right;padding:3px 16px;"
-                    var edit_button_text = document.createTextNode("Edit");
+                var edit_button = document.createElement("button");
+                edit_button.id = "editRule_Button_" + i;
+                edit_button.classList = "w3-btn";
+                edit_button.style = "height:2em;float:right;padding:3px 16px;"
+                var edit_button_text = document.createTextNode("Edit");
 
-                    edit_button.appendChild(edit_button_text);
-                    ruleDiv.appendChild(edit_button);
-                }
+                edit_button.appendChild(edit_button_text);
+                ruleDiv.appendChild(edit_button);
 
                 var delete_button = document.createElement("button");
                 delete_button.id = "deleteRule_Button_" + i;
@@ -438,46 +440,40 @@ function HandlesThreeRenderer(domQuery) {
         var buttonDiv = document.createElement('div');
         buttonDiv.id = "buttonDiv";
 
-        if (self.selectedMesh) {
         //create buttons
-            var new_button = document.createElement("button");
-            new_button.id = "newRule_Button";
-            new_button.classList = "w3-btn";
-            var new_button_text = document.createTextNode("New");
+        var new_button = document.createElement("button");
+        new_button.id = "newRule_Button";
+        new_button.classList = "w3-btn";
+        var new_button_text = document.createTextNode("New");
 
         //put it together
-            new_button.appendChild(new_button_text);
-            buttonDiv.appendChild(new_button);
-        }
+        new_button.appendChild(new_button_text);
+        buttonDiv.appendChild(new_button);
         uiDiv.appendChild(ruleListDiv);
         uiDiv.appendChild(buttonDiv);
 
         //add functions
-        if (self.selectedMesh) {
-            $("#newRule_Button").click(function () {
-                self.selectedRule = null;
-                clearUI();
-                self.initRuleUI();
-                self.ruleController.onNewClicked(self.selectedRule, self.selectedMesh);
-            })
-        }
+        $("#newRule_Button").click(function () {
+            self.selectedRule = null;
+            clearUI();
+            self.initRuleUI();
+            self.ruleController.onNewClicked(self.selectedRule, self.selectedMesh);
+        });
 
-        //parsed rules
+        // rules
         for (var i = 0; i < rules.length; i++) {
-            if (self.selectedMesh) {
-                $("#editRule_Button_" + i).click(function (i) {
-                    return function () {
-                        self.selectedRule = rules[i];
-                        var editor = ace.edit("code_text_ace");
-                        uneditedCode = editor.getValue();
+            $("#editRule_Button_" + i).click(function (i) {
+                return function () {
+                    self.selectedRule = rules[i];
+                    var editor = ace.edit("code_text_ace");
+                    uneditedCode = editor.getValue();
 
-                        self.ruleController.onEditClicked(self.selectedRule, self.selectedMesh);
+                    self.ruleController.onEditClicked(self.selectedRule, self.selectedMesh);
 
-                        clearUI();
-                        self.initRuleUI();
-                    };
-                } (i))
-            }
+                    clearUI();
+                    self.initRuleUI();
+                };
+            } (i));
             $("#deleteRule_Button_" + i).click(function (i) {
                 return function () {
                     self.ruleController.onDeleteClicked(rules[i], self.selectedMesh);
@@ -539,7 +535,7 @@ function HandlesThreeRenderer(domQuery) {
         willwas_div.appendChild(willwas_button);
 
         //get goals of current shape
-        if (self.selectedMesh.semantics.goal) {
+        if (self.selectedMesh && self.selectedMesh.semantics.goal) {
             var goals = Object.keys(self.selectedMesh.semantics.goals);
         }
 
@@ -572,7 +568,6 @@ function HandlesThreeRenderer(domQuery) {
             self.selectedRule = self.ruleController.createRule(selector.options[selector.selectedIndex].value);
             var postfixDiv = document.getElementById("postfixDiv");
             if (postfixDiv) self.postfixController.applyPostfixes(postfixDiv, self.selectedRule);
-//            self.ruleController.addRule(self.selectedMesh, self.selectedRule);
             selector.disabled = false;
             self.selectedRule.uneditedRule = null;
         }
@@ -622,19 +617,6 @@ function HandlesThreeRenderer(domQuery) {
 
         $("#cancel_Button").click(function () {
             self.ruleController.onCancelClicked(self.selectedRule, self.selectedMesh);
-            /*
-            if (creatingNewRule) {
-                self.ruleController.deleteRule(self.selectedRule, self.selectedMesh);
-            } else {
-                self.selectedRule.setStoredState();
-                self.ruleController.updateRule(self.selectedMesh, self.selectedRule);
-                self.ruleController.removeRule(self.selectedRule, self.selectedMesh);
-                if (self.selectedRule.wasParsed) {
-                    var editor = ace.edit("code_text_ace");
-                    editor.setValue(uneditedCode);
-                }
-            }
-            */
             if (self.selectedRule.wasParsed) {
                 var editor = ace.edit("code_text_ace");
                 editor.setValue(uneditedCode);
@@ -655,41 +637,14 @@ function HandlesThreeRenderer(domQuery) {
 
         $("#willwas_button").click(function () {
             renderer.addWarning('Button pressed');
-            /*
-            var status = document.getElementById("willwas_status");
-            if (self.selectedRule.wasAppliedToList.includes(self.selectedMesh)) {
-                var index = self.selectedRule.wasAppliedToList.indexOf(self.selectedMesh);
-                if (index > -1) {
-                    self.selectedRule.wasAppliedToList.splice(index, 1);
-                }
-                self.selectedRule.willAppliedToList.push(self.selectedMesh);
-                status.innerHTML = "Currently the rule WILL be applied. ";
-                self.selectedRule.uneditedRule.applyRule(self.selectedMesh);
-
-                renderer.RenderSingleFrame();
-
-                self.inputChanged();
-            } else {
-                self.selectedRule.wasAppliedToList.push(self.selectedMesh);
-                var index = self.selectedRule.willAppliedToList.indexOf(self.selectedMesh);
-                if (index > -1) {
-                    self.selectedRule.willAppliedToList.splice(index, 1);
-                }
-                status.innerHTML = "Currently the rule WAS applied. ";
-                self.selectedRule.uneditedRule.unapplyRule(self.selectedMesh);
-
-                renderer.RenderSingleFrame();
-
-                self.inputChanged();
-            }
-            self.RenderSingleFrame();
-            */
         });
 
         //create handles
-        self.handlesScene.remove(self.handlesScene.children);
-        self.selectedRule.createHandles(self.handlesScene, self.selectedMesh);
-        handlesType = selector.options[selector.selectedIndex].value;
+        if (self.selectedMesh) {
+            self.handlesScene.remove(self.handlesScene.children);
+            self.selectedRule.createHandles(self.handlesScene, self.selectedMesh);
+            handlesType = selector.options[selector.selectedIndex].value;
+        }
 
         self.RenderSingleFrame();
     };
@@ -705,10 +660,13 @@ function HandlesThreeRenderer(domQuery) {
         while (self.handlesScene.children.length > 0) {
             self.handlesScene.remove(self.handlesScene.children[0]);
         }
-        if (overHandle || dragging) {
-            self.selectedRule.createHandles(self.handlesScene, self.selectedMesh, handleId);
-        } else {
-            self.selectedRule.createHandles(self.handlesScene, self.selectedMesh);
+
+        if (self.selectedMesh) {
+            if (overHandle || dragging) {
+                self.selectedRule.createHandles(self.handlesScene, self.selectedMesh, handleId);
+            } else {
+                self.selectedRule.createHandles(self.handlesScene, self.selectedMesh);
+            }
         }
 
         var willwas_button = document.getElementById("willwas_button");

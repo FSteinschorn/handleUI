@@ -50,9 +50,7 @@ function PreviewController() {
 
         for (var id in this.shapes) {
             var shape = this.shapes[id];
-            //if (!selectedMesh || (shape.nrAppliedRules <= 0 && shape != selectedMesh.shape)) continue;
-            if (!selectedMesh) continue;
-            if (shape.appliedRules.length <= 0 && shape != selectedMesh) continue;
+            if (shape.appliedRules.length <= 0 && (!selectedMesh || shape != selectedMesh)) continue;
             if (shape.childShapes && shape.childShapes.length != 0) continue;
 
             var color = 0x0099ff;
